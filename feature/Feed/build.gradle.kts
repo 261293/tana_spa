@@ -1,0 +1,35 @@
+plugins {
+    id("convention.kmp.multiplatform")
+    id("convention.kmp.compose")
+    alias(libs.plugins.kotlinxSerialization)
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation(projects.core.mvi)
+            implementation(projects.core.navigation)
+            implementation(projects.core.network)
+            implementation(projects.core.cache)
+            implementation(projects.shared)
+
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.ui)
+
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.composeViewmodel)
+
+            implementation(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlinx.coroutines.test)
+        }
+    }
+}
