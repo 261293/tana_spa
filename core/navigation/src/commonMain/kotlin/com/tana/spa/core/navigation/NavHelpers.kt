@@ -22,6 +22,12 @@ class MutableNavigator(start: String) : Navigator {
         current = route
     }
 
+    override fun replaceAll(route: String) {
+        stack.clear()
+        stack.add(route)
+        current = route
+    }
+
     override fun back() {
         if (stack.size > 1) {
             stack.removeAt(stack.lastIndex)

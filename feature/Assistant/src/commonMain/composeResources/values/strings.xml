@@ -1,0 +1,38 @@
+<resources>
+    <!-- Assistant identity: placeholder name, change freely -->
+    <string name="assistant_name">Tana</string>
+    <string name="assistant_subtitle">Trợ lý Tana Spa</string>
+
+    <!-- Welcome -->
+    <string name="welcome_bubble">Mình là Tana,\ntrợ lý của bạn.</string>
+    <string name="welcome_greeting">Chào mừng đến với</string>
+    <string name="welcome_brand">Tana Spa!</string>
+    <string name="welcome_body">Hãy dành vài phút kể cho mình nghe về làn da, mục tiêu và nhu cầu của bạn, mình sẽ gợi ý dịch vụ phù hợp nhất.</string>
+    <string name="welcome_terms">Điều khoản &amp; Điều kiện</string>
+    <string name="welcome_privacy">Chính sách bảo mật</string>
+    <string name="welcome_accept">Tôi đồng ý với %1$s và %2$s.</string>
+    <string name="welcome_button">Vâng, tôi sẵn sàng!</string>
+
+    <!-- Consent. DRAFT copy: replace with legally approved text before release. -->
+    <string name="consent_title">Trợ lý Tana sử dụng thông tin của bạn như thế nào</string>
+    <string name="consent_body">Tana Spa dùng trí tuệ nhân tạo (AI) để hỗ trợ một phần trải nghiệm của bạn, bao gồm trợ lý Tana giúp bạn chọn dịch vụ và đặt lịch.\n\nThông tin bạn chia sẻ trong cuộc trò chuyện, như tên, thông tin liên hệ và tình trạng da, có thể được xử lý để đưa ra gợi ý phù hợp với bạn.\n\nXem Chính sách bảo mật để biết thêm chi tiết.</string>
+    <string name="consent_agree">Tôi đồng ý và chấp thuận nội dung trên</string>
+    <string name="consent_button">Bắt đầu thôi</string>
+    <string name="back">Quay lại</string>
+
+    <!-- Chat -->
+    <string name="chat_progress_label">Bắt đầu</string>
+    <plurals name="chat_progress_description">
+        <item quantity="other">Tiến độ %1$d phần trăm</item>
+    </plurals>
+    <string name="chat_input_placeholder">Nhập câu trả lời...</string>
+    <string name="chat_input_label">Tin nhắn</string>
+    <string name="chat_send">Gửi</string>
+    <string name="chat_close">Đóng</string>
+    <string name="chat_typing">Tana đang nhập…</string>
+    <string name="chat_failed">Không thể kết nối. Tin nhắn của bạn vẫn được giữ lại.</string>
+    <string name="chat_retry">Thử lại</string>
+    <string name="chat_finished_cta">Khám phá Tana Spa</string>
+    <string name="chat_assistant_said">%1$s nói: %2$s</string>
+    <string name="chat_you_said">Bạn nói: %1$s</string>
+</resources>

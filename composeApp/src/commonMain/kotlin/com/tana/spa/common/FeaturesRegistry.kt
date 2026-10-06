@@ -1,7 +1,12 @@
 package com.tana.spa.common
 
 import com.tana.spa.core.navigation.FeatureEntry
+import com.tana.spa.feature.assistant.AssistantEntry
+import com.tana.spa.feature.assistant.ConsentEntry
+import com.tana.spa.feature.assistant.WelcomeEntry
 import com.tana.spa.feature.auth.AuthEntry
+import com.tana.spa.feature.auth.SignUpEntry
+import com.tana.spa.feature.auth.VerifyPhoneEntry
 import com.tana.spa.feature.explore.ExploreEntry
 import com.tana.spa.feature.feed.FeedEntry
 import com.tana.spa.feature.likes.LikesEntry
@@ -17,5 +22,10 @@ object FeaturesRegistry {
         LikesEntry,
         ProfileEntry,
         AuthEntry,
+        SignUpEntry,
+        VerifyPhoneEntry,
+        WelcomeEntry,
+        ConsentEntry,
+        AssistantEntry,
     )
 }

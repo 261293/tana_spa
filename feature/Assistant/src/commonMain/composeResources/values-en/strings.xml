@@ -1,0 +1,39 @@
+<resources>
+    <!-- Assistant identity: placeholder name, change freely -->
+    <string name="assistant_name">Tana</string>
+    <string name="assistant_subtitle">Tana Spa assistant</string>
+
+    <!-- Welcome -->
+    <string name="welcome_bubble">I’m Tana,\nyour assistant.</string>
+    <string name="welcome_greeting">Welcome to</string>
+    <string name="welcome_brand">Tana Spa!</string>
+    <string name="welcome_body">Take a few minutes to tell me about your skin, goals and needs, and I’ll suggest the services that fit you best.</string>
+    <string name="welcome_terms">Terms &amp; Conditions</string>
+    <string name="welcome_privacy">Privacy Policy</string>
+    <string name="welcome_accept">I accept the %1$s and the %2$s.</string>
+    <string name="welcome_button">Yes, I’m ready!</string>
+
+    <!-- Consent. DRAFT copy: replace with legally approved text before release. -->
+    <string name="consent_title">How Tana uses your information</string>
+    <string name="consent_body">Tana Spa uses artificial intelligence (AI) to power part of your experience, including the Tana assistant that helps you choose services and book appointments.\n\nInformation you share in the conversation, such as your name, contact details and skin concerns, may be processed to give you suitable suggestions.\n\nSee the Privacy Policy for details.</string>
+    <string name="consent_agree">I agree and consent to the above</string>
+    <string name="consent_button">Let’s get started</string>
+    <string name="back">Back</string>
+
+    <!-- Chat -->
+    <string name="chat_progress_label">Getting started</string>
+    <plurals name="chat_progress_description">
+        <item quantity="one">Progress %1$d percent</item>
+        <item quantity="other">Progress %1$d percent</item>
+    </plurals>
+    <string name="chat_input_placeholder">Type your answer...</string>
+    <string name="chat_input_label">Message</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_close">Close</string>
+    <string name="chat_typing">Tana is typing…</string>
+    <string name="chat_failed">Couldn’t connect. Your message has been kept.</string>
+    <string name="chat_retry">Try again</string>
+    <string name="chat_finished_cta">Explore Tana Spa</string>
+    <string name="chat_assistant_said">%1$s said: %2$s</string>
+    <string name="chat_you_said">You said: %1$s</string>
+</resources>

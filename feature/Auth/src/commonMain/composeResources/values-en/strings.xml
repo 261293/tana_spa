@@ -1,0 +1,76 @@
+<resources>
+    <!-- Login -->
+    <string name="login_title">Log in !</string>
+    <string name="email_label">Email</string>
+    <string name="email_placeholder">Enter your email</string>
+    <string name="password_label">Password</string>
+    <string name="password_placeholder">Enter your password</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="login_button">Log in</string>
+    <string name="login_with_google">Log in with Google</string>
+    <string name="no_account">Don't have an account?</string>
+    <string name="sign_up_now">Sign up now</string>
+
+    <!-- Sign-up -->
+    <string name="signup_title">Create account !</string>
+    <string name="name_label">Full name</string>
+    <string name="name_placeholder">Enter your full name</string>
+    <string name="phone_label">Phone number</string>
+    <string name="phone_placeholder">Enter your phone number</string>
+    <string name="signup_button">Sign up</string>
+    <string name="signup_with_google">Sign up with Google</string>
+    <string name="have_account">Already have an account?</string>
+    <string name="login_now">Log in now</string>
+
+    <!-- Verify phone -->
+    <string name="verify_title">Verify your phone number</string>
+    <string name="verify_subtitle">We sent a 6-digit code to</string>
+    <string name="verify_subtitle_generic">Enter the 6-digit code sent to your phone number</string>
+    <string name="verify_sending">Sending code…</string>
+    <string name="verify_code_label">Verification code</string>
+    <string name="verify_button">Confirm</string>
+    <string name="verify_didnt_get">Didn't get a code?</string>
+    <string name="verify_resend">Resend code</string>
+    <string name="verify_resend_in">Resend in %1$s</string>
+    <plurals name="verify_expires_in_minutes">
+        <item quantity="one">The code expires in %1$d minute.</item>
+        <item quantity="other">The code expires in %1$d minutes.</item>
+    </plurals>
+    <string name="verify_skip">Do it later</string>
+
+    <!-- Field errors -->
+    <string name="error_name_empty">Please enter your full name</string>
+    <string name="error_name_too_long">Name is too long</string>
+    <string name="error_email_empty">Please enter your email</string>
+    <string name="error_email_invalid">Invalid email address</string>
+    <string name="error_phone_empty">Please enter your phone number</string>
+    <string name="error_phone_invalid">Invalid phone number</string>
+    <string name="error_password_empty">Please enter your password</string>
+    <string name="error_password_too_short">Password must be at least 8 characters</string>
+
+    <!-- Request failures -->
+    <string name="failure_invalid_credentials">Incorrect email or password</string>
+    <string name="failure_email_taken">This email is already registered</string>
+    <string name="failure_phone_taken">This phone number is already verified on another account</string>
+    <string name="failure_invalid_input">Some details are not valid. Please check your phone number and email</string>
+    <string name="failure_too_many_requests">Too many attempts. Please try again in a few minutes</string>
+    <string name="failure_network">Can't reach the server. Check your connection and try again</string>
+    <string name="failure_server">Something went wrong. Please try again later</string>
+
+    <!-- Verification failures -->
+    <string name="otp_rate_limited">You've requested too many codes. Please try again later</string>
+    <string name="otp_failure_expired">The code has expired. Request a new one</string>
+    <string name="otp_failure_too_many_attempts">Too many incorrect codes. Request a new one</string>
+    <string name="otp_failure_not_requested">The code is no longer valid. Request a new one</string>
+    <string name="otp_failure_phone_claimed">This phone number is already verified on another account</string>
+    <string name="otp_failure_country">Codes can't be sent to this country yet</string>
+    <string name="otp_failure_unavailable">Couldn't send the code right now. Please try again shortly</string>
+    <string name="otp_wrong_code">Incorrect code</string>
+    <plurals name="otp_wrong_code_attempts">
+        <item quantity="one">Incorrect code. %1$d attempt left</item>
+        <item quantity="other">Incorrect code. %1$d attempts left</item>
+    </plurals>
+
+    <string name="coming_soon_google">Google sign-in is coming soon</string>
+</resources>

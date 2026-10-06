@@ -14,3 +14,9 @@ kotlin {
         }
     }
 }
+
+compose.resources {
+    // Fonts and shared drawables are consumed from feature modules, so the Res class is public.
+    publicResClass = true
+    packageOfResClass = "com.tana.spa.core.ui.resources"
+}

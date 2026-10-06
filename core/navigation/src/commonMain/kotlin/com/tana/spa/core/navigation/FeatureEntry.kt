@@ -16,5 +16,8 @@ interface FeatureEntry {
 /** Minimal navigation surface exposed to features. */
 interface Navigator {
     fun navigate(route: String)
+
+    /** Navigates to [route] and drops everything behind it (e.g. after login, so Back can't return). */
+    fun replaceAll(route: String)
     fun back()
 }
