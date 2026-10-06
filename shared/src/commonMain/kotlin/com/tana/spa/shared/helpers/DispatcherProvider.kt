@@ -11,6 +11,7 @@ interface DispatcherProvider {
 
 class DefaultDispatcherProvider : DispatcherProvider {
     override val main: CoroutineDispatcher get() = Dispatchers.Main
+
     // Dispatchers.IO is JVM-only; Default is the portable choice across all targets.
     override val io: CoroutineDispatcher get() = Dispatchers.Default
     override val default: CoroutineDispatcher get() = Dispatchers.Default

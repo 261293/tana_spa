@@ -39,11 +39,14 @@ class TwilioVerifyProvider(
         Base64.getEncoder().encodeToString("$apiKeySid:$apiKeySecret".toByteArray(StandardCharsets.UTF_8))
 
     override fun start(phoneE164: String, locale: String?): String? {
-        var response = post("Verifications", buildList {
-            add("To" to phoneE164)
-            add("Channel" to "sms")
-            if (locale != null) add("Locale" to locale)
-        })
+        var response = post(
+            "Verifications",
+            buildList {
+                add("To" to phoneE164)
+                add("Channel" to "sms")
+                if (locale != null) add("Locale" to locale)
+            },
+        )
         // Twilio answers 404 for a locale it has no template for and recommends retrying without
         // it, which falls back to the destination country's default language (or English).
         if (response.statusCode() == 404 && locale != null) {
@@ -60,10 +63,13 @@ class TwilioVerifyProvider(
         val response = post("VerificationCheck", listOf("To" to phoneE164, "Code" to code))
         return when (response.statusCode()) {
             200, 201 -> json(response)["status"]?.jsonPrimitive?.contentOrNull == "approved"
+
             // 404: the verification expired, was already approved, or exhausted its attempts.
             // 400: malformed code. Neither is an outage; the code is simply not valid.
             400, 404 -> false
+
             429 -> throw ProviderException("Twilio Verify rate limited the check", rateLimited = true)
+
             else -> throw ProviderException("Twilio Verify check failed with HTTP ${response.statusCode()}")
         }
     }

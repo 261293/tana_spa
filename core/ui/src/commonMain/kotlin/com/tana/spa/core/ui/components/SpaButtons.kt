@@ -26,13 +26,7 @@ private val ButtonShape = RoundedCornerShape(10.dp)
 
 /** Full-width pink call-to-action. While [loading] it shows a spinner and ignores taps. */
 @Composable
-fun SpaPrimaryButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    loading: Boolean = false,
-) {
+fun SpaPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, loading: Boolean = false) {
     Button(
         onClick = onClick,
         enabled = enabled && !loading,
@@ -59,13 +53,7 @@ fun SpaPrimaryButton(
 
 /** Full-width outlined button with a leading brand image (e.g. "Đăng nhập với Google"). */
 @Composable
-fun SpaSocialButton(
-    text: String,
-    icon: Painter,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
+fun SpaSocialButton(text: String, icon: Painter, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,

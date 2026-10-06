@@ -5,8 +5,11 @@ import com.tana.spa.core.network.withDefaults
 import com.tana.spa.feature.auth.data.remote.source.AuthRemoteApiImpl
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.toByteArray
+import io.ktor.client.request.HttpRequestData
+import io.ktor.client.request.HttpResponseData
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -17,11 +20,14 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
+/** Inspects the request, then returns the response builder to use (so tests can capture what was sent). */
+private typealias Handler = suspend (HttpRequestData) -> MockRequestHandleScope.() -> HttpResponseData
+
 class AuthRemoteApiImplTest {
 
     private val json = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
 
-    private fun api(handler: suspend (io.ktor.client.request.HttpRequestData) -> io.ktor.client.engine.mock.MockRequestHandleScope.() -> io.ktor.client.request.HttpResponseData): AuthRemoteApiImpl {
+    private fun api(handler: Handler): AuthRemoteApiImpl {
         val engine = MockEngine { request -> handler(request)(this) }
         return AuthRemoteApiImpl(NetworkClient(HttpClient(engine).withDefaults()), "http://api.test")
     }
@@ -74,7 +80,8 @@ class AuthRemoteApiImplTest {
         val api = api { request ->
             url = request.url.toString()
             body = request.body.toByteArray().decodeToString()
-            val payload = """{"accessToken":"t","expiresInSeconds":60,"user":{"id":"1","email":"a@b.co","displayName":"Phương Anh","phone":"+84333433969","phoneVerified":false}}"""
+            val user = """{"id":"1","email":"a@b.co","displayName":"Phương Anh","phone":"+84333433969","phoneVerified":false}"""
+            val payload = """{"accessToken":"t","expiresInSeconds":60,"user":$user}"""
             return@api { respond(payload, HttpStatusCode.Created, json) }
         }
 
@@ -97,7 +104,9 @@ class AuthRemoteApiImplTest {
             auth = request.headers[HttpHeaders.Authorization]
             url = request.url.toString()
             body = request.body.toByteArray().decodeToString()
-            return@api { respond("""{"resendAfterSeconds":60,"expiresInSeconds":600,"maskedPhone":"+84••••••969"}""", HttpStatusCode.Accepted, json) }
+            return@api {
+                respond("""{"resendAfterSeconds":60,"expiresInSeconds":600,"maskedPhone":"+84••••••969"}""", HttpStatusCode.Accepted, json)
+            }
         }
 
         val sent = api.sendPhoneOtp("secret-token")
@@ -116,7 +125,13 @@ class AuthRemoteApiImplTest {
         val api = api { request ->
             auth = request.headers[HttpHeaders.Authorization]
             body = request.body.toByteArray().decodeToString()
-            return@api { respond("""{"id":"1","email":"a@b.co","displayName":"A","phone":"+84333433969","phoneVerified":true}""", HttpStatusCode.OK, json) }
+            return@api {
+                respond(
+                    """{"id":"1","email":"a@b.co","displayName":"A","phone":"+84333433969","phoneVerified":true}""",
+                    HttpStatusCode.OK,
+                    json,
+                )
+            }
         }
 
         val user = api.verifyPhoneOtp("tok", "123456")

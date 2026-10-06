@@ -21,10 +21,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 
-class AuthRemoteApiImpl(
-    private val networkClient: NetworkClient,
-    private val baseUrl: String,
-) : AuthRemoteApi {
+class AuthRemoteApiImpl(private val networkClient: NetworkClient, private val baseUrl: String) : AuthRemoteApi {
 
     override suspend fun login(email: String, password: String): AuthResponse =
         call(AuthApi.LOGIN) { json(LoginRequest(email, password)) }.body()
@@ -35,11 +32,10 @@ class AuthRemoteApiImpl(
     override suspend fun sendPhoneOtp(accessToken: String): PhoneOtpSendResponse =
         call(AuthApi.PHONE_OTP_SEND) { bearerAuth(accessToken) }.body()
 
-    override suspend fun verifyPhoneOtp(accessToken: String, code: String): UserDto =
-        call(AuthApi.PHONE_OTP_VERIFY) {
-            bearerAuth(accessToken)
-            json(PhoneOtpVerifyRequest(code))
-        }.body()
+    override suspend fun verifyPhoneOtp(accessToken: String, code: String): UserDto = call(AuthApi.PHONE_OTP_VERIFY) {
+        bearerAuth(accessToken)
+        json(PhoneOtpVerifyRequest(code))
+    }.body()
 
     private suspend fun call(path: String, configure: HttpRequestBuilder.() -> Unit): HttpResponse {
         val response = networkClient.httpClient.post(baseUrl + path, configure)

@@ -36,10 +36,10 @@ import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaColors
 import com.tana.spa.core.ui.components.SpaOtpField
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.feature.auth.presentation.manipulator.VerifyMessage
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneEffect
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneEvent
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneState
-import com.tana.spa.feature.auth.presentation.manipulator.VerifyMessage
 import com.tana.spa.feature.auth.resources.Res
 import com.tana.spa.feature.auth.resources.ic_phone
 import com.tana.spa.feature.auth.resources.verify_button
@@ -142,7 +142,9 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
                         .padding(horizontal = 12.dp, vertical = 4.dp),
                 )
             }
+
             state.isSending -> Subtitle(stringResource(Res.string.verify_sending))
+
             else -> Subtitle(stringResource(Res.string.verify_subtitle_generic))
         }
 
@@ -228,5 +230,4 @@ private fun Subtitle(text: String) {
 }
 
 /** 42 -> `0:42`, 75 -> `1:15`. */
-internal fun formatCountdown(totalSeconds: Int): String =
-    "${totalSeconds / 60}:${(totalSeconds % 60).toString().padStart(2, '0')}"
+internal fun formatCountdown(totalSeconds: Int): String = "${totalSeconds / 60}:${(totalSeconds % 60).toString().padStart(2, '0')}"

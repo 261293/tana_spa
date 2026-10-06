@@ -45,7 +45,9 @@ class TwilioVerifyProviderTest {
     }
 
     private val provider = TwilioVerifyProvider(
-        apiKeySid = "SKtest", apiKeySecret = "s3cret", serviceSid = "VA123",
+        apiKeySid = "SKtest",
+        apiKeySecret = "s3cret",
+        serviceSid = "VA123",
         baseUrl = "http://127.0.0.1:${server.address.port}",
     )
 

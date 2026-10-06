@@ -19,7 +19,9 @@ class FeedRepositoryImplTest {
     private class FakeCache(initial: List<DomainFeed> = emptyList()) : FeedCache {
         private val state = MutableStateFlow(initial)
         override val items: Flow<List<DomainFeed>> = state
-        override suspend fun replaceAll(items: List<DomainFeed>) { state.value = items }
+        override suspend fun replaceAll(items: List<DomainFeed>) {
+            state.value = items
+        }
     }
 
     @Test

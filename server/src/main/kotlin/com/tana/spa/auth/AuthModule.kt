@@ -1,9 +1,5 @@
 package com.tana.spa.auth
 
-import com.tana.spa.shared.auth.AuthApi
-import com.tana.spa.shared.auth.AuthErrorCodes
-import com.tana.spa.shared.auth.AuthResponse
-import com.tana.spa.shared.auth.ErrorResponse
 import com.tana.spa.auth.otp.DevPhoneVerificationProvider
 import com.tana.spa.auth.otp.InMemoryPhoneVerificationRepository
 import com.tana.spa.auth.otp.OtpConfig
@@ -12,6 +8,10 @@ import com.tana.spa.auth.otp.PhoneVerificationRepository
 import com.tana.spa.auth.otp.PhoneVerificationService
 import com.tana.spa.auth.otp.SendResult
 import com.tana.spa.auth.otp.VerifyResult
+import com.tana.spa.shared.auth.AuthApi
+import com.tana.spa.shared.auth.AuthErrorCodes
+import com.tana.spa.shared.auth.AuthResponse
+import com.tana.spa.shared.auth.ErrorResponse
 import com.tana.spa.shared.auth.LoginRequest
 import com.tana.spa.shared.auth.PhoneOtpSendResponse
 import com.tana.spa.shared.auth.PhoneOtpVerifyRequest
@@ -167,14 +167,23 @@ fun Application.authModule(services: AuthServices) {
                 val result = services.authService.register(body.displayName, body.email, body.phone, body.password)
                 when (result) {
                     is AuthResult.Success -> call.respond(HttpStatusCode.Created, services.authResponse(result.user))
+
                     AuthResult.EmailTaken -> call.respondError(
-                        HttpStatusCode.Conflict, AuthErrorCodes.EMAIL_TAKEN, "Email is already registered",
+                        HttpStatusCode.Conflict,
+                        AuthErrorCodes.EMAIL_TAKEN,
+                        "Email is already registered",
                     )
+
                     AuthResult.PhoneTaken -> call.respondError(
-                        HttpStatusCode.Conflict, AuthErrorCodes.PHONE_TAKEN, "Phone number is already registered",
+                        HttpStatusCode.Conflict,
+                        AuthErrorCodes.PHONE_TAKEN,
+                        "Phone number is already registered",
                     )
+
                     else -> call.respondError(
-                        HttpStatusCode.BadRequest, AuthErrorCodes.INVALID_REQUEST, "Invalid registration details",
+                        HttpStatusCode.BadRequest,
+                        AuthErrorCodes.INVALID_REQUEST,
+                        "Invalid registration details",
                     )
                 }
             }
@@ -184,9 +193,12 @@ fun Application.authModule(services: AuthServices) {
                     val body = call.receive<LoginRequest>()
                     when (val result = services.authService.login(body.email, body.password)) {
                         is AuthResult.Success -> call.respond(services.authResponse(result.user))
+
                         // One generic answer for unknown email and wrong password alike.
                         else -> call.respondError(
-                            HttpStatusCode.Unauthorized, AuthErrorCodes.INVALID_CREDENTIALS, "Incorrect email or password",
+                            HttpStatusCode.Unauthorized,
+                            AuthErrorCodes.INVALID_CREDENTIALS,
+                            "Incorrect email or password",
                         )
                     }
                 }
@@ -198,7 +210,9 @@ fun Application.authModule(services: AuthServices) {
                     val user = services.authService.findUser(id)
                     if (user == null) {
                         call.respondError(
-                            HttpStatusCode.Unauthorized, AuthErrorCodes.UNAUTHORIZED, "Authentication required",
+                            HttpStatusCode.Unauthorized,
+                            AuthErrorCodes.UNAUTHORIZED,
+                            "Authentication required",
                         )
                     } else {
                         call.respond(user.toDto())
@@ -217,30 +231,45 @@ fun Application.authModule(services: AuthServices) {
                                 HttpStatusCode.Accepted,
                                 PhoneOtpSendResponse(result.resendAfterSeconds, result.expiresInSeconds, result.maskedPhone),
                             )
+
                             SendResult.AlreadyVerified -> call.respondError(
-                                HttpStatusCode.Conflict, AuthErrorCodes.PHONE_ALREADY_VERIFIED, "Phone number is already verified",
+                                HttpStatusCode.Conflict,
+                                AuthErrorCodes.PHONE_ALREADY_VERIFIED,
+                                "Phone number is already verified",
                             )
+
                             SendResult.PhoneClaimed -> call.respondError(
-                                HttpStatusCode.Conflict, AuthErrorCodes.PHONE_CLAIMED,
+                                HttpStatusCode.Conflict,
+                                AuthErrorCodes.PHONE_CLAIMED,
                                 "This phone number is already verified on another account",
                             )
+
                             is SendResult.CountryNotSupported -> call.respondError(
-                                HttpStatusCode.UnprocessableEntity, AuthErrorCodes.PHONE_COUNTRY_UNSUPPORTED,
+                                HttpStatusCode.UnprocessableEntity,
+                                AuthErrorCodes.PHONE_COUNTRY_UNSUPPORTED,
                                 "Verification codes are not available for this country yet",
                             )
+
                             is SendResult.RateLimited -> {
                                 call.response.header(HttpHeaders.RetryAfter, result.retryAfterSeconds.toString())
                                 call.respondError(
-                                    HttpStatusCode.TooManyRequests, AuthErrorCodes.TOO_MANY_REQUESTS,
-                                    "Please wait before requesting another code", retryAfterSeconds = result.retryAfterSeconds,
+                                    HttpStatusCode.TooManyRequests,
+                                    AuthErrorCodes.TOO_MANY_REQUESTS,
+                                    "Please wait before requesting another code",
+                                    retryAfterSeconds = result.retryAfterSeconds,
                                 )
                             }
+
                             SendResult.ProviderUnavailable -> call.respondError(
-                                HttpStatusCode.ServiceUnavailable, AuthErrorCodes.OTP_UNAVAILABLE,
+                                HttpStatusCode.ServiceUnavailable,
+                                AuthErrorCodes.OTP_UNAVAILABLE,
                                 "Could not send the code right now, please try again shortly",
                             )
+
                             SendResult.UserNotFound, SendResult.NoPhone -> call.respondError(
-                                HttpStatusCode.BadRequest, AuthErrorCodes.INVALID_REQUEST, "No phone number on this account",
+                                HttpStatusCode.BadRequest,
+                                AuthErrorCodes.INVALID_REQUEST,
+                                "No phone number on this account",
                             )
                         }
                     }
@@ -250,26 +279,41 @@ fun Application.authModule(services: AuthServices) {
                         val body = call.receive<PhoneOtpVerifyRequest>()
                         when (val result = services.phoneVerification.verify(userId, body.code)) {
                             is VerifyResult.Verified -> call.respond(result.user.toDto())
+
                             is VerifyResult.InvalidCode -> call.respondError(
-                                HttpStatusCode.BadRequest, AuthErrorCodes.OTP_INVALID, "Incorrect code",
+                                HttpStatusCode.BadRequest,
+                                AuthErrorCodes.OTP_INVALID,
+                                "Incorrect code",
                                 attemptsRemaining = result.attemptsRemaining,
                             )
+
                             VerifyResult.Expired -> call.respondError(
-                                HttpStatusCode.BadRequest, AuthErrorCodes.OTP_EXPIRED, "The code has expired, request a new one",
+                                HttpStatusCode.BadRequest,
+                                AuthErrorCodes.OTP_EXPIRED,
+                                "The code has expired, request a new one",
                             )
+
                             VerifyResult.TooManyAttempts -> call.respondError(
-                                HttpStatusCode.TooManyRequests, AuthErrorCodes.OTP_TOO_MANY_ATTEMPTS,
+                                HttpStatusCode.TooManyRequests,
+                                AuthErrorCodes.OTP_TOO_MANY_ATTEMPTS,
                                 "Too many incorrect codes, request a new one",
                             )
+
                             VerifyResult.NotRequested -> call.respondError(
-                                HttpStatusCode.NotFound, AuthErrorCodes.OTP_NOT_REQUESTED, "No code is waiting for this account",
+                                HttpStatusCode.NotFound,
+                                AuthErrorCodes.OTP_NOT_REQUESTED,
+                                "No code is waiting for this account",
                             )
+
                             VerifyResult.PhoneClaimed -> call.respondError(
-                                HttpStatusCode.Conflict, AuthErrorCodes.PHONE_CLAIMED,
+                                HttpStatusCode.Conflict,
+                                AuthErrorCodes.PHONE_CLAIMED,
                                 "This phone number is already verified on another account",
                             )
+
                             VerifyResult.ProviderUnavailable -> call.respondError(
-                                HttpStatusCode.ServiceUnavailable, AuthErrorCodes.OTP_UNAVAILABLE,
+                                HttpStatusCode.ServiceUnavailable,
+                                AuthErrorCodes.OTP_UNAVAILABLE,
                                 "Could not check the code right now, please try again shortly",
                             )
                         }
@@ -281,7 +325,11 @@ fun Application.authModule(services: AuthServices) {
 }
 
 private fun User.toDto() = UserDto(
-    id = id, email = email, displayName = displayName, phone = phone, phoneVerified = phoneVerified,
+    id = id,
+    email = email,
+    displayName = displayName,
+    phone = phone,
+    phoneVerified = phoneVerified,
 )
 
 private fun AuthServices.authResponse(user: User) = AuthResponse(

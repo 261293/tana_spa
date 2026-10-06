@@ -20,7 +20,8 @@ class DatabaseTest {
             Database.connect(config).use { pool ->
                 pool.connection.use { c ->
                     val applied = c.createStatement().executeQuery("SELECT count(*) FROM flyway_schema_history WHERE success").use { rs ->
-                        rs.next(); rs.getInt(1)
+                        rs.next()
+                        rs.getInt(1)
                     }
                     assertEquals(5, applied)
                     // A table from the last migration proves the whole chain ran in order.
@@ -39,7 +40,8 @@ class DatabaseTest {
             Database.connect(config).use { pool ->
                 pool.connection.use { c ->
                     val applied = c.createStatement().executeQuery("SELECT count(*) FROM flyway_schema_history").use { rs ->
-                        rs.next(); rs.getInt(1)
+                        rs.next()
+                        rs.getInt(1)
                     }
                     assertEquals(5, applied, "a second start must not re-run migrations")
                 }
@@ -54,7 +56,8 @@ class DatabaseTest {
             Database.connect(config).use { pool ->
                 pool.connection.use { c ->
                     val users = c.createStatement().executeQuery("SELECT to_regclass('public.users') IS NULL").use { rs ->
-                        rs.next(); rs.getBoolean(1)
+                        rs.next()
+                        rs.getBoolean(1)
                     }
                     assertTrue(users, "no schema should exist when migration is disabled")
                 }
@@ -84,8 +87,10 @@ class DatabaseTest {
             DatabaseConfig.fromEnvironment(
                 mapOf(
                     "DATABASE_URL" to "jdbc:postgresql://db:5432/tana?sslmode=require&password=inline-secret",
-                    "DATABASE_USER" to "app", "DATABASE_PASSWORD" to "hunter2",
-                    "DATABASE_POOL_SIZE" to "25", "DATABASE_MIGRATE" to "FALSE",
+                    "DATABASE_USER" to "app",
+                    "DATABASE_PASSWORD" to "hunter2",
+                    "DATABASE_POOL_SIZE" to "25",
+                    "DATABASE_MIGRATE" to "FALSE",
                 ),
             ),
         )

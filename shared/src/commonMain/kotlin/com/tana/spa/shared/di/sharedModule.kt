@@ -16,6 +16,5 @@ val sharedModule: Module = module {
     single { Greeting() }
 }
 
-
 /** Per-platform Koin bindings, contributed by each target's `Modules.<platform>.kt`. */
 expect val platformModule: Module

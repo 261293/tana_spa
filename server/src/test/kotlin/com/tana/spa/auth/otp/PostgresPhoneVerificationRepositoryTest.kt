@@ -67,16 +67,16 @@ class PostgresPhoneVerificationRepositoryTest {
         val other = newUser()
         val phone = "+84333${(100_000 + System.nanoTime() % 800_000)}"
         val ip = "198.51.100.${(System.nanoTime() % 200).toInt() + 1}"
-        pending(user, t0 - Duration.ofHours(30), phone, ip)            // outside every window
-        pending(user, t0 - Duration.ofHours(5), phone, ip)             // inside the day only
-        pending(user, t0 - Duration.ofMinutes(30), phone, ip)          // inside the hour
-        pending(other, t0 - Duration.ofMinutes(10), phone, ip)         // other user, same number and address
+        pending(user, t0 - Duration.ofHours(30), phone, ip) // outside every window
+        pending(user, t0 - Duration.ofHours(5), phone, ip) // inside the day only
+        pending(user, t0 - Duration.ofMinutes(30), phone, ip) // inside the hour
+        pending(other, t0 - Duration.ofMinutes(10), phone, ip) // other user, same number and address
 
         val stats = repo.sendStats(user, phone, ip, hourAgo = t0 - Duration.ofHours(1), dayAgo = t0 - Duration.ofHours(24))
 
         assertEquals(t0 - Duration.ofMinutes(30), stats.lastSentAt)
-        assertEquals(2, stats.phoneSendsInWindow)   // user@-30m and other@-10m
-        assertEquals(2, stats.userSendsInDay)       // user@-5h and user@-30m
+        assertEquals(2, stats.phoneSendsInWindow) // user@-30m and other@-10m
+        assertEquals(2, stats.userSendsInDay) // user@-5h and user@-30m
         assertEquals(2, stats.ipSendsInWindow)
     }
 
@@ -94,7 +94,12 @@ class PostgresPhoneVerificationRepositoryTest {
         val threads = 16
         val pool = Executors.newFixedThreadPool(threads)
         val start = CountDownLatch(1)
-        val results = List(threads) { pool.submit<Int?> { start.await(); repo.consumeAttempt(row.id, 5) } }
+        val results = List(threads) {
+            pool.submit<Int?> {
+                start.await()
+                repo.consumeAttempt(row.id, 5)
+            }
+        }
         start.countDown()
         val spent = results.map { it.get(30, TimeUnit.SECONDS) }
         pool.shutdown()
@@ -122,7 +127,10 @@ class PostgresPhoneVerificationRepositoryTest {
         val stamped = dataSource.connection.use { c ->
             c.prepareStatement("SELECT status, verified_at IS NOT NULL FROM phone_verifications WHERE id = ?::uuid").use { ps ->
                 ps.setString(1, row.id)
-                ps.executeQuery().use { rs -> rs.next(); rs.getString(1) to rs.getBoolean(2) }
+                ps.executeQuery().use { rs ->
+                    rs.next()
+                    rs.getString(1) to rs.getBoolean(2)
+                }
             }
         }
         assertEquals("approved" to true, stamped)
@@ -146,7 +154,15 @@ class PostgresPhoneVerificationRepositoryTest {
         val threads = 8
         val pool = Executors.newFixedThreadPool(threads)
         val start = CountDownLatch(1)
-        val results = List(threads) { i -> pool.submit<PhoneVerification?> { start.await(); pending(user, t0 + Duration.ofSeconds(i.toLong())) } }
+        val results = List(threads) { i ->
+            pool.submit<PhoneVerification?> {
+                start.await()
+                pending(
+                    user,
+                    t0 + Duration.ofSeconds(i.toLong()),
+                )
+            }
+        }
         start.countDown()
         val created = results.map { it.get(30, TimeUnit.SECONDS) }
         pool.shutdown()
@@ -155,7 +171,10 @@ class PostgresPhoneVerificationRepositoryTest {
         val live = dataSource.connection.use { c ->
             c.prepareStatement("SELECT count(*) FROM phone_verifications WHERE user_id = ?::uuid AND status = 'pending'").use { ps ->
                 ps.setString(1, user)
-                ps.executeQuery().use { rs -> rs.next(); rs.getInt(1) }
+                ps.executeQuery().use { rs ->
+                    rs.next()
+                    rs.getInt(1)
+                }
             }
         }
         assertEquals(1, live)

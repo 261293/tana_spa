@@ -24,4 +24,6 @@ sealed interface LoginEffect {
 }
 
 /** Features whose button exists in the design but whose flow is not built yet. */
-enum class ComingSoon { GOOGLE }
+enum class ComingSoon {
+    GOOGLE,
+}

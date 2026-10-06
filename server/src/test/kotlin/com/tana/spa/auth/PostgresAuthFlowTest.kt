@@ -1,16 +1,16 @@
 package com.tana.spa.auth
 
-import com.tana.spa.db.TestDatabase
-import com.tana.spa.module
 import com.tana.spa.auth.otp.DevPhoneVerificationProvider
 import com.tana.spa.auth.otp.PostgresPhoneVerificationRepository
-import com.tana.spa.shared.auth.PhoneOtpSendResponse
-import com.tana.spa.shared.auth.PhoneOtpVerifyRequest
+import com.tana.spa.db.TestDatabase
+import com.tana.spa.module
 import com.tana.spa.shared.auth.AuthApi
 import com.tana.spa.shared.auth.AuthErrorCodes
 import com.tana.spa.shared.auth.AuthResponse
 import com.tana.spa.shared.auth.ErrorResponse
 import com.tana.spa.shared.auth.LoginRequest
+import com.tana.spa.shared.auth.PhoneOtpSendResponse
+import com.tana.spa.shared.auth.PhoneOtpVerifyRequest
 import com.tana.spa.shared.auth.RegisterRequest
 import com.tana.spa.shared.auth.UserDto
 import io.ktor.client.HttpClient
@@ -36,10 +36,10 @@ class PostgresAuthFlowTest {
         hasher = Pbkdf2PasswordHasher(iterations = 1_000),
     )
 
-    private fun ApplicationTestBuilder.jsonClient(): HttpClient =
-        createClient { install(ContentNegotiation) { json() } }
+    private fun ApplicationTestBuilder.jsonClient(): HttpClient = createClient { install(ContentNegotiation) { json() } }
 
     private fun email() = "u${UUID.randomUUID().toString().take(10)}@example.com"
+
     // A real, libphonenumber-valid Vietnamese mobile number: 039 + 7 digits.
     private var seq = (System.nanoTime() % 8_000_000L).toInt()
     private fun phoneLocal() = "039" + (1_000_000 + (seq++ % 9_000_000)).toString()
@@ -50,11 +50,10 @@ class PostgresAuthFlowTest {
             setBody(RegisterRequest("Nguyễn Lê Phương Anh", email, phone, password))
         }
 
-    private suspend fun HttpClient.login(email: String, password: String = "password123"): HttpResponse =
-        post(AuthApi.LOGIN) {
-            contentType(ContentType.Application.Json)
-            setBody(LoginRequest(email, password))
-        }
+    private suspend fun HttpClient.login(email: String, password: String = "password123"): HttpResponse = post(AuthApi.LOGIN) {
+        contentType(ContentType.Application.Json)
+        setBody(LoginRequest(email, password))
+    }
 
     @Test
     fun registerLoginAndMeWorkEndToEndAndSurviveARestart() = testApplication {
@@ -127,13 +126,17 @@ class PostgresAuthFlowTest {
         val code = checkNotNull(provider.peekCode(e164))
         val wrong = if (code == "000000") "111111" else "000000"
         val bad = client.post(AuthApi.PHONE_OTP_VERIFY) {
-            bearerAuth(token); contentType(ContentType.Application.Json); setBody(PhoneOtpVerifyRequest(wrong))
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(PhoneOtpVerifyRequest(wrong))
         }
         assertEquals(HttpStatusCode.BadRequest, bad.status)
         assertEquals(4, bad.body<ErrorResponse>().attemptsRemaining)
 
         val good = client.post(AuthApi.PHONE_OTP_VERIFY) {
-            bearerAuth(token); contentType(ContentType.Application.Json); setBody(PhoneOtpVerifyRequest(code))
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(PhoneOtpVerifyRequest(code))
         }
         assertEquals(HttpStatusCode.OK, good.status)
         assertEquals(true, good.body<UserDto>().phoneVerified)
@@ -147,7 +150,9 @@ class PostgresAuthFlowTest {
         val rows = dataSource.connection.use { c ->
             c.prepareStatement("SELECT status, country_code, provider FROM phone_verifications WHERE user_id = ?::uuid").use { ps ->
                 ps.setString(1, registered.user.id)
-                ps.executeQuery().use { rs -> buildList { while (rs.next()) add(Triple(rs.getString(1), rs.getString(2), rs.getString(3))) } }
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(Triple(rs.getString(1), rs.getString(2), rs.getString(3))) }
+                }
             }
         }
         assertEquals(listOf(Triple("approved", "VN", "dev")), rows)
@@ -181,7 +186,10 @@ class PostgresAuthFlowTest {
         val stamped = dataSource.connection.use { c ->
             c.prepareStatement("SELECT last_login_at IS NOT NULL FROM users WHERE email = ?").use { ps ->
                 ps.setString(1, email)
-                ps.executeQuery().use { rs -> rs.next(); rs.getBoolean(1) }
+                ps.executeQuery().use { rs ->
+                    rs.next()
+                    rs.getBoolean(1)
+                }
             }
         }
         assertEquals(true, stamped)

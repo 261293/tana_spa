@@ -30,8 +30,7 @@ data class OtpConfig(
         require(maxCheckAttempts in 1..10) { "maxCheckAttempts must be between 1 and 10" }
     }
 
-    fun allows(region: String): Boolean =
-        region !in blockedCountries && (allowedCountries.isEmpty() || region in allowedCountries)
+    fun allows(region: String): Boolean = region !in blockedCountries && (allowedCountries.isEmpty() || region in allowedCountries)
 
     companion object {
         fun fromEnvironment(env: Map<String, String> = System.getenv()): OtpConfig {

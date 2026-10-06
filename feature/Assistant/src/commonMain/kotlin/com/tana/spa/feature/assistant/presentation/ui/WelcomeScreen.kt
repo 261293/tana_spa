@@ -33,8 +33,8 @@ import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.feature.assistant.resources.Res
 import com.tana.spa.feature.assistant.resources.welcome_accept
 import com.tana.spa.feature.assistant.resources.welcome_body
-import com.tana.spa.feature.assistant.resources.welcome_bubble
 import com.tana.spa.feature.assistant.resources.welcome_brand
+import com.tana.spa.feature.assistant.resources.welcome_bubble
 import com.tana.spa.feature.assistant.resources.welcome_button
 import com.tana.spa.feature.assistant.resources.welcome_greeting
 import com.tana.spa.feature.assistant.resources.welcome_privacy
@@ -46,11 +46,7 @@ import org.jetbrains.compose.resources.stringResource
  * Stateless; the checkbox state lives with the caller.
  */
 @Composable
-fun WelcomeScreen(
-    accepted: Boolean,
-    onAcceptedChange: (Boolean) -> Unit,
-    onContinue: () -> Unit,
-) {
+fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onContinue: () -> Unit) {
     ScreenCard(maxWidth = 520.dp) {
         Column(Modifier.fillMaxSize()) {
             // Hero: soft pink gradient with the assistant and its greeting bubble.

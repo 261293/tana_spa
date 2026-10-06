@@ -23,7 +23,9 @@ class PhoneVerificationServiceTest {
 
     private class Clock(var now: Instant = Instant.parse("2026-10-06T08:00:00Z")) : () -> Instant {
         override fun invoke() = now
-        fun advance(d: Duration) { now += d }
+        fun advance(d: Duration) {
+            now += d
+        }
     }
 
     // JUnit 4 rejects @Test methods that return a value, which `= runBlocking { ... }` would.
@@ -36,10 +38,8 @@ class PhoneVerificationServiceTest {
     private val verifications = InMemoryPhoneVerificationRepository()
     private val dev = DevPhoneVerificationProvider(clock = clock)
 
-    private fun service(
-        config: OtpConfig = OtpConfig(),
-        provider: PhoneVerificationProvider = dev,
-    ) = PhoneVerificationService(users, verifications, provider, config, clock, Dispatchers.Unconfined)
+    private fun service(config: OtpConfig = OtpConfig(), provider: PhoneVerificationProvider = dev) =
+        PhoneVerificationService(users, verifications, provider, config, clock, Dispatchers.Unconfined)
 
     private var seq = 0
     private fun newUser(phone: String? = null): User {

@@ -10,7 +10,12 @@ import com.tana.spa.core.ui.scafold.AppScaffold
 
 /** Sign-in and onboarding screens: full-screen, no app bar and no bottom navigation. */
 private val FULL_SCREEN_ROUTES = setOf(
-    Routes.AUTH, Routes.SIGNUP, Routes.VERIFY_PHONE, Routes.WELCOME, Routes.CONSENT, Routes.ASSISTANT,
+    Routes.AUTH,
+    Routes.SIGNUP,
+    Routes.VERIFY_PHONE,
+    Routes.WELCOME,
+    Routes.CONSENT,
+    Routes.ASSISTANT,
 )
 
 @Composable

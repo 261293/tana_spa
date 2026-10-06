@@ -26,11 +26,7 @@ import kotlinx.coroutines.flow.Flow
 
 /** Stateless: renders [state], reports intents via [onEvent], shows one-shot [effects]. */
 @Composable
-fun FeedScreen(
-    state: FeedState,
-    effects: Flow<FeedEffect>,
-    onEvent: (FeedEvent) -> Unit,
-) {
+fun FeedScreen(state: FeedState, effects: Flow<FeedEffect>, onEvent: (FeedEvent) -> Unit) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(effects) {
         effects.collect { effect ->

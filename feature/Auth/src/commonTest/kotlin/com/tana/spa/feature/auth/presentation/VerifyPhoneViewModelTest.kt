@@ -63,11 +63,14 @@ class VerifyPhoneViewModelTest {
     fun theCountdownTicksDownAndUnlocksResend() {
         val vm = viewModel()
 
-        scheduler.advanceTimeBy(1_000); scheduler.runCurrent()
+        scheduler.advanceTimeBy(1_000)
+        scheduler.runCurrent()
         assertEquals(59, vm.state.value.resendSecondsLeft)
-        scheduler.advanceTimeBy(58_000); scheduler.runCurrent()
+        scheduler.advanceTimeBy(58_000)
+        scheduler.runCurrent()
         assertEquals(1, vm.state.value.resendSecondsLeft)
-        scheduler.advanceTimeBy(1_000); scheduler.runCurrent()
+        scheduler.advanceTimeBy(1_000)
+        scheduler.runCurrent()
         assertEquals(0, vm.state.value.resendSecondsLeft)
     }
 
@@ -78,7 +81,8 @@ class VerifyPhoneViewModelTest {
         scheduler.runCurrent()
         assertEquals(1, repository.sendCalls, "resend must wait for the countdown")
 
-        scheduler.advanceTimeBy(60_000); scheduler.runCurrent()
+        scheduler.advanceTimeBy(60_000)
+        scheduler.runCurrent()
         vm.onEvent(VerifyPhoneEvent.Resend)
         scheduler.runCurrent()
         assertEquals(2, repository.sendCalls)

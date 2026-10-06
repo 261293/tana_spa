@@ -91,6 +91,5 @@ class InMemoryUserRepository : UserRepository {
         return PhoneVerifiedResult.VERIFIED
     }
 
-    private fun verifiedOwner(phone: String): String? =
-        byId.values.firstOrNull { it.phone == phone && it.phoneVerified }?.id
+    private fun verifiedOwner(phone: String): String? = byId.values.firstOrNull { it.phone == phone && it.phoneVerified }?.id
 }

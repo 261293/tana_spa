@@ -33,17 +33,21 @@ class MigrationsTest {
         }
     }
 
-    private fun Connection.queryUuid(sql: String, vararg params: Any?): UUID =
-        prepareStatement(sql).use { ps ->
-            params.forEachIndexed { i, p -> ps.setObject(i + 1, p) }
-            ps.executeQuery().use { rs -> rs.next(); rs.getObject(1, UUID::class.java) }
+    private fun Connection.queryUuid(sql: String, vararg params: Any?): UUID = prepareStatement(sql).use { ps ->
+        params.forEachIndexed { i, p -> ps.setObject(i + 1, p) }
+        ps.executeQuery().use { rs ->
+            rs.next()
+            rs.getObject(1, UUID::class.java)
         }
+    }
 
-    private fun Connection.queryLong(sql: String, vararg params: Any?): Long =
-        prepareStatement(sql).use { ps ->
-            params.forEachIndexed { i, p -> ps.setObject(i + 1, p) }
-            ps.executeQuery().use { rs -> rs.next(); rs.getLong(1) }
+    private fun Connection.queryLong(sql: String, vararg params: Any?): Long = prepareStatement(sql).use { ps ->
+        params.forEachIndexed { i, p -> ps.setObject(i + 1, p) }
+        ps.executeQuery().use { rs ->
+            rs.next()
+            rs.getLong(1)
         }
+    }
 
     private fun assertViolation(state: String, block: () -> Unit) {
         val e = assertFailsWith<PSQLException> { block() }
@@ -104,7 +108,8 @@ class MigrationsTest {
         // the trigger overrides the stale value on the next real update
         c.exec("UPDATE users SET full_name = 'Lan 2' WHERE id = ?", id)
         val age = c.queryLong(
-            "SELECT extract(epoch FROM (now() - updated_at))::bigint FROM users WHERE id = ?", id,
+            "SELECT extract(epoch FROM (now() - updated_at))::bigint FROM users WHERE id = ?",
+            id,
         )
         assertTrue(age < 60, "updated_at was not refreshed (age=${age}s)")
     }
@@ -115,7 +120,8 @@ class MigrationsTest {
         fun address(default: Boolean) = c.exec(
             """INSERT INTO user_addresses (user_id, recipient_name, phone, address_line, city, is_default)
                VALUES (?, 'Lan', '0333433969', '26 Duong 34', 'HCM', ?)""",
-            user, default,
+            user,
+            default,
         )
         address(true)
         address(false)
@@ -128,7 +134,8 @@ class MigrationsTest {
         c.exec(
             """INSERT INTO services (category_id, name, slug, price_vnd, duration_minutes)
                VALUES (?, 'Chăm sóc da chuyên sâu', ?, 399000, 60)""",
-            category, "cs-${UUID.randomUUID()}",
+            category,
+            "cs-${UUID.randomUUID()}",
         )
         val hits = c.queryLong(
             "SELECT count(*) FROM services WHERE app_unaccent(lower(name)) LIKE '%' || app_unaccent(lower(?)) || '%'",
@@ -139,15 +146,20 @@ class MigrationsTest {
         assertEquals("dang nhap", c.queryString("SELECT app_unaccent('đăng nhập')"))
     }
 
-    private fun Connection.queryString(sql: String): String =
-        createStatement().executeQuery(sql).use { rs -> rs.next(); rs.getString(1) }
+    private fun Connection.queryString(sql: String): String = createStatement().executeQuery(sql).use { rs ->
+        rs.next()
+        rs.getString(1)
+    }
 
     @Test
     fun stockAndVariantOptionsAreProtected() = db { c ->
         val product = c.queryUuid("INSERT INTO products (name, slug) VALUES ('Sua rua mat', ?) RETURNING id", "p-${UUID.randomUUID()}")
         fun variant(sku: String, size: String?, stock: Int = 5) = c.exec(
             "INSERT INTO product_variants (product_id, sku, size_label, price_vnd, stock_qty) VALUES (?, ?, ?, 198000, ?)",
-            product, sku, size, stock,
+            product,
+            sku,
+            size,
+            stock,
         )
         variant("SKU-${UUID.randomUUID()}", "100ML")
         assertViolation(UNIQUE_VIOLATION) { variant("SKU-${UUID.randomUUID()}", "100ML") }
@@ -163,7 +175,8 @@ class MigrationsTest {
         val product = c.queryUuid("INSERT INTO products (name, slug) VALUES ('P', ?) RETURNING id", "p-${UUID.randomUUID()}")
         val variant = c.queryUuid(
             "INSERT INTO product_variants (product_id, sku, price_vnd) VALUES (?, ?, 1000) RETURNING id",
-            product, "SKU-${UUID.randomUUID()}",
+            product,
+            "SKU-${UUID.randomUUID()}",
         )
         c.exec("INSERT INTO carts (user_id) VALUES (?)", user)
         c.exec("INSERT INTO cart_items (user_id, variant_id, quantity) VALUES (?, ?, 2)", user, variant)
@@ -177,7 +190,9 @@ class MigrationsTest {
     fun voucherRulesAreEnforced() = db { c ->
         fun voucher(type: String, value: Long, code: String = "V${UUID.randomUUID().toString().take(8).uppercase()}") = c.exec(
             "INSERT INTO vouchers (code, title, discount_type, discount_value) VALUES (?, 't', ?, ?)",
-            code, type, value,
+            code,
+            type,
+            value,
         )
         voucher("percent", 10)
         voucher("fixed", 50_000)
@@ -190,7 +205,11 @@ class MigrationsTest {
         """INSERT INTO orders (user_id, recipient_name, recipient_phone, shipping_address,
                                subtotal_vnd, discount_vnd, tax_vnd, total_vnd)
            VALUES (?, 'Lan', '0333433969', '26 Duong 34', ?, ?, ?, ?)""",
-        user, subtotal, discount, tax, total,
+        user,
+        subtotal,
+        discount,
+        tax,
+        total,
     )
 
     @Test
@@ -218,7 +237,8 @@ class MigrationsTest {
             """INSERT INTO bookings (user_id, branch_id, start_at, end_at, customer_name, customer_phone,
                                      subtotal_vnd, total_vnd)
                VALUES (?, ?, now() + interval '1 day', now() + interval '1 day 1 hour', 'Lan', '0333433969', 399000, 399000)""",
-            user, branch,
+            user,
+            branch,
         )
         assertEquals(2, c.queryLong("SELECT count(*) FROM v_user_history WHERE user_id = ?", user))
         assertEquals(1, c.queryLong("SELECT count(*) FROM v_user_history WHERE user_id = ? AND kind = 'booking'", user))
@@ -233,7 +253,8 @@ class MigrationsTest {
                 """INSERT INTO bookings (user_id, branch_id, start_at, end_at, customer_name, customer_phone,
                                          subtotal_vnd, total_vnd)
                    VALUES (?, ?, now() + interval '2 hour', now() + interval '1 hour', 'Lan', '0333433969', 0, 0)""",
-                user, branch,
+                user,
+                branch,
             )
         }
     }
@@ -267,7 +288,8 @@ class MigrationsTest {
         val user = c.newUser()
         fun token(bytes: ByteArray) = c.exec(
             "INSERT INTO refresh_tokens (user_id, family_id, token_hash, expires_at) VALUES (?, gen_random_uuid(), ?, now() + interval '30 day')",
-            user, bytes,
+            user,
+            bytes,
         )
         token(ByteArray(32) { it.toByte() })
         assertViolation(CHECK_VIOLATION) { token(ByteArray(5)) }

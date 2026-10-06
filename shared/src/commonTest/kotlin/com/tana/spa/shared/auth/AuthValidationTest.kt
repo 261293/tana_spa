@@ -38,8 +38,14 @@ class AuthValidationTest {
     fun everyWayOfWritingTheSameVietnameseNumberNormalisesIdentically() {
         val expected = "+84333433969"
         listOf(
-            "0333433969", " 0333 433 969 ", "0333.433.969", "0333-433-969",
-            "84333433969", "+84333433969", "+84 333 433 969", "+84 (333) 433-969",
+            "0333433969",
+            " 0333 433 969 ",
+            "0333.433.969",
+            "0333-433-969",
+            "84333433969",
+            "+84333433969",
+            "+84 333 433 969",
+            "+84 (333) 433-969",
         ).forEach { assertEquals(expected, AuthValidation.normalizePhone(it), "input: $it") }
     }
 

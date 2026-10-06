@@ -48,12 +48,8 @@ sealed interface RegisterResult {
     data class Success(val session: Session) : RegisterResult
 
     /** The form was rejected locally, no request was sent. */
-    data class InvalidInput(
-        val name: NameError?,
-        val email: EmailError?,
-        val phone: PhoneError?,
-        val password: PasswordError?,
-    ) : RegisterResult
+    data class InvalidInput(val name: NameError?, val email: EmailError?, val phone: PhoneError?, val password: PasswordError?) :
+        RegisterResult
 
     data class Failure(val reason: AuthFailure) : RegisterResult
 }

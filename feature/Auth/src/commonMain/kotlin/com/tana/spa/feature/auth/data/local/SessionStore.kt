@@ -61,5 +61,4 @@ private data class StoredSession(
 private fun Session.toStored() =
     StoredSession(accessToken, expiresAtMillis, user.id, user.email, user.displayName, user.phone, user.phoneVerified)
 
-private fun StoredSession.toDomain() =
-    Session(accessToken, expiresAtMillis, AuthUser(userId, email, displayName, phone, phoneVerified))
+private fun StoredSession.toDomain() = Session(accessToken, expiresAtMillis, AuthUser(userId, email, displayName, phone, phoneVerified))

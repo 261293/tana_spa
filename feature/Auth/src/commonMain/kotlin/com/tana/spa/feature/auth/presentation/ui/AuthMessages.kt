@@ -72,12 +72,19 @@ internal fun AuthFailure.res(): StringResource = when (this) {
 internal fun OtpFailure.res(): StringResource = when (this) {
     // SESSION_EXPIRED navigates to login instead of being shown; the text only guards exhaustiveness.
     OtpFailure.SESSION_EXPIRED, OtpFailure.SERVER -> Res.string.failure_server
+
     OtpFailure.PHONE_CLAIMED -> Res.string.otp_failure_phone_claimed
+
     OtpFailure.COUNTRY_UNSUPPORTED -> Res.string.otp_failure_country
+
     OtpFailure.UNAVAILABLE -> Res.string.otp_failure_unavailable
+
     OtpFailure.NETWORK -> Res.string.failure_network
+
     OtpFailure.EXPIRED -> Res.string.otp_failure_expired
+
     OtpFailure.TOO_MANY_ATTEMPTS -> Res.string.otp_failure_too_many_attempts
+
     OtpFailure.NOT_REQUESTED -> Res.string.otp_failure_not_requested
 }
 
@@ -103,8 +110,11 @@ internal fun AuthFailure?.text(): String? = this?.let { stringResource(it.res())
 @Composable
 internal fun VerifyMessage?.text(): String? = when (this) {
     null -> null
+
     VerifyMessage.RateLimited -> stringResource(Res.string.otp_rate_limited)
+
     is VerifyMessage.Failure -> stringResource(reason.res())
+
     is VerifyMessage.WrongCode ->
         if (attemptsRemaining != null) {
             pluralStringResource(Res.plurals.otp_wrong_code_attempts, attemptsRemaining, attemptsRemaining)

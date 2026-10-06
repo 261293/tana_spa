@@ -46,8 +46,13 @@ class PostgresPhoneVerificationRepository(private val dataSource: DataSource) : 
     }
 
     override fun createPending(
-        userId: String, phone: String, region: String, provider: String, ip: String?,
-        sentAt: Instant, expiresAt: Instant,
+        userId: String,
+        phone: String,
+        region: String,
+        provider: String,
+        ip: String?,
+        sentAt: Instant,
+        expiresAt: Instant,
     ): PhoneVerification? {
         val user = uuid(userId) ?: return null
         return dataSource.connection.use { c ->
@@ -55,7 +60,10 @@ class PostgresPhoneVerificationRepository(private val dataSource: DataSource) : 
             try {
                 c.prepareStatement(
                     "UPDATE phone_verifications SET status = 'canceled' WHERE user_id = ? AND status = 'pending'",
-                ).use { ps -> ps.setObject(1, user); ps.executeUpdate() }
+                ).use { ps ->
+                    ps.setObject(1, user)
+                    ps.executeUpdate()
+                }
 
                 val created = c.prepareStatement(
                     """INSERT INTO phone_verifications (user_id, phone, country_code, provider, ip, sent_at, expires_at)
@@ -69,7 +77,10 @@ class PostgresPhoneVerificationRepository(private val dataSource: DataSource) : 
                     if (ip == null) ps.setNull(5, Types.VARCHAR) else ps.setString(5, ip)
                     ps.setObject(6, odt(sentAt))
                     ps.setObject(7, odt(expiresAt))
-                    ps.executeQuery().use { rs -> rs.next(); rs.toModel() }
+                    ps.executeQuery().use { rs ->
+                        rs.next()
+                        rs.toModel()
+                    }
                 }
                 c.commit()
                 created
@@ -117,7 +128,11 @@ class PostgresPhoneVerificationRepository(private val dataSource: DataSource) : 
         dataSource.connection.use { c ->
             c.prepareStatement(
                 "UPDATE phone_verifications SET status = 'approved', verified_at = ? WHERE id = ? AND status = 'pending'",
-            ).use { ps -> ps.setObject(1, odt(at)); ps.setObject(2, row); ps.executeUpdate() }
+            ).use { ps ->
+                ps.setObject(1, odt(at))
+                ps.setObject(2, row)
+                ps.executeUpdate()
+            }
         }
     }
 

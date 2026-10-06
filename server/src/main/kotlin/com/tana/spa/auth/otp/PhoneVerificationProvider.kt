@@ -54,5 +54,4 @@ interface PhoneVerificationProvider {
 }
 
 /** The provider could not complete the call (network, auth, quota, unsupported destination, ...). */
-class ProviderException(message: String, val rateLimited: Boolean = false, cause: Throwable? = null) :
-    Exception(message, cause)
+class ProviderException(message: String, val rateLimited: Boolean = false, cause: Throwable? = null) : Exception(message, cause)

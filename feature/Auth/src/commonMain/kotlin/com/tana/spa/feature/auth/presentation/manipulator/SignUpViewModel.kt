@@ -6,21 +6,26 @@ import com.tana.spa.feature.auth.domain.model.RegisterResult
 import com.tana.spa.feature.auth.domain.usecase.RegisterUseCase
 import kotlinx.coroutines.launch
 
-class SignUpViewModel(
-    private val register: RegisterUseCase,
-) : MviViewModel<SignUpState, SignUpEvent, SignUpEffect>(SignUpState()) {
+class SignUpViewModel(private val register: RegisterUseCase) : MviViewModel<SignUpState, SignUpEvent, SignUpEffect>(SignUpState()) {
 
     override fun onEvent(event: SignUpEvent) {
         when (event) {
             // Editing a field clears its own error and any stale server failure.
             is SignUpEvent.NameChanged -> setState { copy(name = event.value, nameError = null, failure = null) }
+
             is SignUpEvent.EmailChanged -> setState { copy(email = event.value, emailError = null, failure = null) }
+
             is SignUpEvent.PhoneChanged -> setState { copy(phone = event.value, phoneError = null, failure = null) }
+
             is SignUpEvent.PasswordChanged ->
                 setState { copy(password = event.value, passwordError = null, failure = null) }
+
             SignUpEvent.TogglePasswordVisibility -> setState { copy(passwordVisible = !passwordVisible) }
+
             SignUpEvent.Submit -> submit()
+
             SignUpEvent.GoogleClicked -> sendEffect(SignUpEffect.ShowComingSoon(ComingSoon.GOOGLE))
+
             SignUpEvent.LoginClicked -> sendEffect(SignUpEffect.NavigateToLogin)
         }
     }
@@ -38,6 +43,7 @@ class SignUpViewModel(
                     setState { copy(isLoading = false) }
                     sendEffect(SignUpEffect.NavigateToVerifyPhone)
                 }
+
                 is RegisterResult.InvalidInput -> setState {
                     copy(
                         isLoading = false,
@@ -47,6 +53,7 @@ class SignUpViewModel(
                         passwordError = result.password,
                     )
                 }
+
                 is RegisterResult.Failure -> setState { copy(isLoading = false, failure = result.reason) }
             }
         }

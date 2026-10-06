@@ -17,12 +17,7 @@ data class LoginRequest(val email: String, val password: String)
 
 /** [phone] is accepted as typed ("0333 433 969", "+84 333 433 969"); the server stores the normalised form. */
 @Serializable
-data class RegisterRequest(
-    val displayName: String,
-    val email: String,
-    val phone: String,
-    val password: String,
-)
+data class RegisterRequest(val displayName: String, val email: String, val phone: String, val password: String)
 
 @Serializable
 data class UserDto(
@@ -50,11 +45,7 @@ data class PhoneOtpSendResponse(
 data class PhoneOtpVerifyRequest(val code: String)
 
 @Serializable
-data class AuthResponse(
-    val accessToken: String,
-    val expiresInSeconds: Long,
-    val user: UserDto,
-)
+data class AuthResponse(val accessToken: String, val expiresInSeconds: Long, val user: UserDto)
 
 /** Stable machine-readable [code]s let each client localise the message itself. */
 @Serializable
@@ -73,6 +64,7 @@ object AuthErrorCodes {
     const val EMAIL_TAKEN = "email_taken"
     const val PHONE_TAKEN = "phone_taken"
     const val PHONE_ALREADY_VERIFIED = "phone_already_verified"
+
     /** The number is already verified on a different account. */
     const val PHONE_CLAIMED = "phone_claimed"
     const val PHONE_COUNTRY_UNSUPPORTED = "phone_country_unsupported"
@@ -80,6 +72,7 @@ object AuthErrorCodes {
     const val OTP_INVALID = "otp_invalid"
     const val OTP_EXPIRED = "otp_expired"
     const val OTP_TOO_MANY_ATTEMPTS = "otp_too_many_attempts"
+
     /** The SMS provider is down or misconfigured; safe to retry later. */
     const val OTP_UNAVAILABLE = "otp_unavailable"
     const val TOO_MANY_REQUESTS = "too_many_requests"

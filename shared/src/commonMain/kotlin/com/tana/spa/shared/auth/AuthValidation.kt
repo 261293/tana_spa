@@ -68,14 +68,21 @@ object AuthValidation {
         val compact = raw.trim().filterNot { it in PHONE_SEPARATORS }
         return when {
             compact.isEmpty() -> null
+
             compact.startsWith("+") -> {
                 val digits = compact.drop(1)
-                val ok = if (digits.startsWith("84")) vnInternationalRegex.matches(digits)
-                else internationalRegex.matches(digits)
+                val ok = if (digits.startsWith("84")) {
+                    vnInternationalRegex.matches(digits)
+                } else {
+                    internationalRegex.matches(digits)
+                }
                 if (ok) "+$digits" else null
             }
+
             vnLocalRegex.matches(compact) -> "+84" + compact.drop(1)
+
             vnInternationalRegex.matches(compact) -> "+$compact"
+
             else -> null
         }
     }

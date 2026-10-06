@@ -9,10 +9,7 @@ import com.tana.spa.shared.result.AppResult
 import com.tana.spa.shared.result.appResultOf
 import kotlinx.coroutines.flow.Flow
 
-class FeedRepositoryImpl(
-    private val remoteApi: FeedRemoteApi,
-    private val cache: FeedCache,
-) : FeedRepository {
+class FeedRepositoryImpl(private val remoteApi: FeedRemoteApi, private val cache: FeedCache) : FeedRepository {
 
     override val feed: Flow<List<DomainFeed>> = cache.items
 

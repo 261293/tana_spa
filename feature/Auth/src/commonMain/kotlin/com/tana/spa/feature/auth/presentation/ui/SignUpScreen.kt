@@ -92,7 +92,9 @@ fun SignUpScreen(
         effects.collect { effect ->
             when (effect) {
                 SignUpEffect.NavigateToVerifyPhone -> onNavigateToVerifyPhone()
+
                 SignUpEffect.NavigateToLogin -> onNavigateToLogin()
+
                 is SignUpEffect.ShowComingSoon -> {
                     snackbarHostState.currentSnackbarData?.dismiss()
                     snackbarHostState.showSnackbar(getString(effect.feature.res()))

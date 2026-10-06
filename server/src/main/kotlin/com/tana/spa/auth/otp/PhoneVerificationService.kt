@@ -90,8 +90,13 @@ class PhoneVerificationService(
         // Recorded BEFORE calling the provider: a failed or slow send still counts against the
         // limits, so an outage cannot be turned into unlimited retries.
         val pending = verifications.createPending(
-            userId = userId, phone = phone, region = parsed.region, provider = provider.name,
-            ip = cleanIp, sentAt = now, expiresAt = now + config.codeTtl,
+            userId = userId,
+            phone = phone,
+            region = parsed.region,
+            provider = provider.name,
+            ip = cleanIp,
+            sentAt = now,
+            expiresAt = now + config.codeTtl,
         ) ?: return@withContext SendResult.RateLimited(config.resendCooldown.seconds.toInt())
 
         try {
@@ -150,10 +155,12 @@ class PhoneVerificationService(
                 val user = users.findById(userId) ?: return@withContext VerifyResult.NotRequested
                 VerifyResult.Verified(user)
             }
+
             PhoneVerifiedResult.PHONE_CHANGED -> {
                 verifications.cancel(pending.id)
                 VerifyResult.NotRequested
             }
+
             PhoneVerifiedResult.CLAIMED_BY_ANOTHER -> {
                 verifications.cancel(pending.id)
                 VerifyResult.PhoneClaimed
@@ -169,6 +176,7 @@ class PhoneVerificationService(
         val DAY: Duration = Duration.ofDays(1)
         val CODE_PATTERN = Regex("^[0-9]{4,10}$")
         val LOCALE_PATTERN = Regex("^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$")
+
         // IPv4 or IPv6 literal characters only; anything else (hostnames, junk) is treated as "unknown".
         val IP_PATTERN = Regex("^([0-9]{1,3}(\\.[0-9]{1,3}){3}|[0-9A-Fa-f:.]{2,45})$")
     }

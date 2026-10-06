@@ -19,7 +19,12 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.*
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /** Fast stand-in so the suite doesn't pay for 600k PBKDF2 rounds per call. */
 private class FakeHasher : PasswordHasher {
@@ -34,8 +39,7 @@ class ApplicationTest {
         hasher = FakeHasher(),
     )
 
-    private fun ApplicationTestBuilder.jsonClient(): HttpClient =
-        createClient { install(ContentNegotiation) { json() } }
+    private fun ApplicationTestBuilder.jsonClient(): HttpClient = createClient { install(ContentNegotiation) { json() } }
 
     private suspend fun HttpClient.register(
         email: String = "user@example.com",
@@ -46,11 +50,10 @@ class ApplicationTest {
         setBody(RegisterRequest("Lan", email, phone, password))
     }
 
-    private suspend fun HttpClient.login(email: String, password: String) =
-        post(AuthApi.LOGIN) {
-            contentType(ContentType.Application.Json)
-            setBody(LoginRequest(email, password))
-        }
+    private suspend fun HttpClient.login(email: String, password: String) = post(AuthApi.LOGIN) {
+        contentType(ContentType.Application.Json)
+        setBody(LoginRequest(email, password))
+    }
 
     @Test
     fun testRoot() = testApplication {

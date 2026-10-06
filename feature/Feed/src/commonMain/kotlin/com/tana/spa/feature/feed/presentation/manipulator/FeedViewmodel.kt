@@ -10,9 +10,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class FeedViewmodel(
-    private val repository: FeedRepository,
-) : MviViewModel<FeedState, FeedEvent, FeedEffect>(FeedState()) {
+class FeedViewmodel(private val repository: FeedRepository) : MviViewModel<FeedState, FeedEvent, FeedEffect>(FeedState()) {
 
     init {
         repository.feed
@@ -35,8 +33,11 @@ class FeedViewmodel(
             setState { copy(isRefreshing = false) }
             if (result is AppResult.Failure) {
                 val message = result.error.message ?: "Could not load feed"
-                if (state.value.items.isEmpty()) setState { copy(error = message) }
-                else sendEffect(FeedEffect.ShowMessage(message))
+                if (state.value.items.isEmpty()) {
+                    setState { copy(error = message) }
+                } else {
+                    sendEffect(FeedEffect.ShowMessage(message))
+                }
             }
         }
     }

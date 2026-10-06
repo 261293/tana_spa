@@ -13,10 +13,8 @@ import java.util.concurrent.ConcurrentHashMap
  * exercised locally and in tests without credentials or cost. Never used in production
  * (see [PhoneVerificationProvider.fromEnvironment]).
  */
-class DevPhoneVerificationProvider(
-    private val ttl: Duration = Duration.ofMinutes(10),
-    private val clock: () -> Instant = Instant::now,
-) : PhoneVerificationProvider {
+class DevPhoneVerificationProvider(private val ttl: Duration = Duration.ofMinutes(10), private val clock: () -> Instant = Instant::now) :
+    PhoneVerificationProvider {
 
     override val name = "dev"
 

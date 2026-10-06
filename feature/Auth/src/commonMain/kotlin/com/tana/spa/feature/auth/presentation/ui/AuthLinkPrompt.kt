@@ -21,13 +21,7 @@ import com.tana.spa.core.ui.SpaColors
  * When [enabled] is false the action turns grey (e.g. a resend countdown).
  */
 @Composable
-internal fun AuthLinkPrompt(
-    prompt: String,
-    action: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
+internal fun AuthLinkPrompt(prompt: String, action: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     Text(
         text = buildAnnotatedString {
             append(prompt)

@@ -6,9 +6,7 @@ import com.tana.spa.feature.feed.domain.model.DomainFeed
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class FeedCacheImpl(
-    @Suppress("unused") private val cache: KeyValueCache,
-) : FeedCache {
+class FeedCacheImpl(@Suppress("unused") private val cache: KeyValueCache) : FeedCache {
     // In-memory for now; swap for a SQLDelight table to persist across launches.
     private val state = MutableStateFlow<List<DomainFeed>>(emptyList())
 

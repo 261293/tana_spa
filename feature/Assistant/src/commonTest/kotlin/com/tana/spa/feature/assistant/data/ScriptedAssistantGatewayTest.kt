@@ -3,6 +3,7 @@ package com.tana.spa.feature.assistant.data
 import com.tana.spa.feature.assistant.domain.model.AssistantReply
 import com.tana.spa.feature.assistant.domain.model.Author
 import com.tana.spa.feature.assistant.domain.model.ChatMessage
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -10,6 +11,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+// currentTime is how the test observes virtual time passing; the API is still marked experimental.
+@OptIn(ExperimentalCoroutinesApi::class)
 class ScriptedAssistantGatewayTest {
 
     private val gateway = ScriptedAssistantGateway(thinkingMillis = 500)

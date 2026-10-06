@@ -28,33 +28,32 @@ class AuthService(
     // otherwise response latency would reveal which emails are registered.
     private val dummyHash = hasher.hash("timing-equaliser")
 
-    suspend fun register(displayName: String, email: String, phone: String, password: String): AuthResult =
-        withContext(io) {
-            val name = displayName.trim()
-            if (AuthValidation.validateName(name) != null) return@withContext AuthResult.InvalidInput
-            if (AuthValidation.validateEmail(email) != null) return@withContext AuthResult.InvalidInput
-            // libphonenumber, not the shared regex: this is the authoritative check for every country.
-            val normalizedPhone = PhoneNumbers.parse(phone, defaultPhoneRegion)?.e164
-                ?: return@withContext AuthResult.InvalidInput
-            if (AuthValidation.validatePassword(password) != null ||
-                password.length > AuthValidation.MAX_PASSWORD_LENGTH
-            ) {
-                return@withContext AuthResult.InvalidInput
-            }
-
-            when (
-                val created = users.create(
-                    email = AuthValidation.normalizeEmail(email),
-                    displayName = name,
-                    phone = normalizedPhone,
-                    passwordHash = hasher.hash(password),
-                )
-            ) {
-                is CreateUserResult.Created -> AuthResult.Success(created.user)
-                CreateUserResult.EmailTaken -> AuthResult.EmailTaken
-                CreateUserResult.PhoneTaken -> AuthResult.PhoneTaken
-            }
+    suspend fun register(displayName: String, email: String, phone: String, password: String): AuthResult = withContext(io) {
+        val name = displayName.trim()
+        if (AuthValidation.validateName(name) != null) return@withContext AuthResult.InvalidInput
+        if (AuthValidation.validateEmail(email) != null) return@withContext AuthResult.InvalidInput
+        // libphonenumber, not the shared regex: this is the authoritative check for every country.
+        val normalizedPhone = PhoneNumbers.parse(phone, defaultPhoneRegion)?.e164
+            ?: return@withContext AuthResult.InvalidInput
+        if (AuthValidation.validatePassword(password) != null ||
+            password.length > AuthValidation.MAX_PASSWORD_LENGTH
+        ) {
+            return@withContext AuthResult.InvalidInput
         }
+
+        when (
+            val created = users.create(
+                email = AuthValidation.normalizeEmail(email),
+                displayName = name,
+                phone = normalizedPhone,
+                passwordHash = hasher.hash(password),
+            )
+        ) {
+            is CreateUserResult.Created -> AuthResult.Success(created.user)
+            CreateUserResult.EmailTaken -> AuthResult.EmailTaken
+            CreateUserResult.PhoneTaken -> AuthResult.PhoneTaken
+        }
+    }
 
     suspend fun login(email: String, password: String): AuthResult = withContext(io) {
         // Cap length before hashing so a huge payload cannot be used to burn CPU.

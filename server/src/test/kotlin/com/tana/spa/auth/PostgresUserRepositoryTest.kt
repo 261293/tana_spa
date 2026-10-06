@@ -21,8 +21,7 @@ class PostgresUserRepositoryTest {
     private fun email() = "u${UUID.randomUUID().toString().take(10)}@example.com"
     private fun phone() = "+84" + "3" + (10_000_000 + phoneSeq++).toString().padStart(8, '0').takeLast(8)
 
-    private fun create(email: String = email(), phone: String = phone()) =
-        repo.create(email, "Lan", phone, "hash")
+    private fun create(email: String = email(), phone: String = phone()) = repo.create(email, "Lan", phone, "hash")
 
     private fun sql(query: String, vararg params: Any?) = dataSource.connection.use { c ->
         c.prepareStatement(query).use { ps ->
@@ -81,9 +80,10 @@ class PostgresUserRepositoryTest {
     fun verifyingIsIdempotentAndRefusesAStalePhone() {
         val user = assertIs<CreateUserResult.Created>(create()).user
         assertEquals(PhoneVerifiedResult.PHONE_CHANGED, repo.markPhoneVerified(user.id, "+84999999999"))
-        assertEquals(PhoneVerifiedResult.VERIFIED, repo.markPhoneVerified(user.id, user.phone!!))
-        assertEquals(PhoneVerifiedResult.VERIFIED, repo.markPhoneVerified(user.id, user.phone!!))
-        assertEquals(PhoneVerifiedResult.PHONE_CHANGED, repo.markPhoneVerified("not-a-uuid", user.phone!!))
+        val phone = checkNotNull(user.phone)
+        assertEquals(PhoneVerifiedResult.VERIFIED, repo.markPhoneVerified(user.id, phone))
+        assertEquals(PhoneVerifiedResult.VERIFIED, repo.markPhoneVerified(user.id, phone))
+        assertEquals(PhoneVerifiedResult.PHONE_CHANGED, repo.markPhoneVerified("not-a-uuid", phone))
     }
 
     @Test
@@ -92,7 +92,12 @@ class PostgresUserRepositoryTest {
         val users = List(6) { assertIs<CreateUserResult.Created>(create(phone = phone)).user }
         val pool = Executors.newFixedThreadPool(users.size)
         val start = CountDownLatch(1)
-        val results = users.map { u -> pool.submit<PhoneVerifiedResult> { start.await(); repo.markPhoneVerified(u.id, phone) } }
+        val results = users.map { u ->
+            pool.submit<PhoneVerifiedResult> {
+                start.await()
+                repo.markPhoneVerified(u.id, phone)
+            }
+        }
         start.countDown()
         val outcomes = results.map { it.get(30, TimeUnit.SECONDS) }
         pool.shutdown()
@@ -131,7 +136,10 @@ class PostgresUserRepositoryTest {
         val start = CountDownLatch(1)
         val results = (1..threads).map {
             val phone = phone() // distinct phones: only the email can conflict
-            pool.submit<CreateUserResult> { start.await(); create(email, phone) }
+            pool.submit<CreateUserResult> {
+                start.await()
+                create(email, phone)
+            }
         }
         start.countDown()
         val outcomes = results.map { it.get(30, TimeUnit.SECONDS) }
@@ -159,7 +167,10 @@ class PostgresUserRepositoryTest {
         fun lastLogin(): Boolean = dataSource.connection.use { c ->
             c.prepareStatement("SELECT last_login_at IS NOT NULL FROM users WHERE id = ?").use { ps ->
                 ps.setObject(1, UUID.fromString(user.id))
-                ps.executeQuery().use { rs -> rs.next(); rs.getBoolean(1) }
+                ps.executeQuery().use { rs ->
+                    rs.next()
+                    rs.getBoolean(1)
+                }
             }
         }
         assertEquals(false, lastLogin())

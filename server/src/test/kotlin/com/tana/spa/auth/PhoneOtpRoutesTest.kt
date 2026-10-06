@@ -38,37 +38,30 @@ class PhoneOtpRoutesTest {
 
     private val dev = DevPhoneVerificationProvider()
 
-    private fun services(
-        provider: PhoneVerificationProvider = dev,
-        otp: OtpConfig = OtpConfig(),
-    ) = AuthServices.create(
+    private fun services(provider: PhoneVerificationProvider = dev, otp: OtpConfig = OtpConfig()) = AuthServices.create(
         config = AuthConfig(jwtSecret = "x".repeat(40)),
         hasher = FakeHasher(),
         otpProvider = provider,
         otpConfig = otp,
     )
 
-    private fun ApplicationTestBuilder.jsonClient(): HttpClient =
-        createClient { install(ContentNegotiation) { json() } }
+    private fun ApplicationTestBuilder.jsonClient(): HttpClient = createClient { install(ContentNegotiation) { json() } }
 
-    private suspend fun HttpClient.signUp(email: String, phone: String): AuthResponse =
-        post(AuthApi.REGISTER) {
-            contentType(ContentType.Application.Json)
-            setBody(RegisterRequest("Lan", email, phone, "password123"))
-        }.body()
+    private suspend fun HttpClient.signUp(email: String, phone: String): AuthResponse = post(AuthApi.REGISTER) {
+        contentType(ContentType.Application.Json)
+        setBody(RegisterRequest("Lan", email, phone, "password123"))
+    }.body()
 
-    private suspend fun HttpClient.sendOtp(token: String?, language: String? = null): HttpResponse =
-        post(AuthApi.PHONE_OTP_SEND) {
-            token?.let { bearerAuth(it) }
-            language?.let { header(HttpHeaders.AcceptLanguage, it) }
-        }
+    private suspend fun HttpClient.sendOtp(token: String?, language: String? = null): HttpResponse = post(AuthApi.PHONE_OTP_SEND) {
+        token?.let { bearerAuth(it) }
+        language?.let { header(HttpHeaders.AcceptLanguage, it) }
+    }
 
-    private suspend fun HttpClient.verifyOtp(token: String, code: String): HttpResponse =
-        post(AuthApi.PHONE_OTP_VERIFY) {
-            bearerAuth(token)
-            contentType(ContentType.Application.Json)
-            setBody(PhoneOtpVerifyRequest(code))
-        }
+    private suspend fun HttpClient.verifyOtp(token: String, code: String): HttpResponse = post(AuthApi.PHONE_OTP_VERIFY) {
+        bearerAuth(token)
+        contentType(ContentType.Application.Json)
+        setBody(PhoneOtpVerifyRequest(code))
+    }
 
     @Test
     fun bothEndpointsRequireAuthentication() = testApplication {

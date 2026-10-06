@@ -29,7 +29,9 @@ class VerifyPhoneViewModel(
         val session = getCurrentSession()
         when {
             session == null -> sendEffect(VerifyPhoneEffect.NavigateToLogin)
+
             session.user.phoneVerified -> sendEffect(VerifyPhoneEffect.NavigateHome)
+
             // Arriving here means a code is wanted: send it without making the user ask.
             else -> send()
         }
@@ -74,7 +76,9 @@ class VerifyPhoneViewModel(
                     }
                     startCountdown(result.resendAfterSeconds)
                 }
+
                 OtpSendResult.AlreadyVerified -> sendEffect(VerifyPhoneEffect.NavigateHome)
+
                 is OtpSendResult.RateLimited -> {
                     setState { copy(isSending = false) }
                     if (result.retryAfterSeconds <= MAX_COUNTDOWN_SECONDS) {
@@ -84,6 +88,7 @@ class VerifyPhoneViewModel(
                         setState { copy(message = VerifyMessage.RateLimited) }
                     }
                 }
+
                 is OtpSendResult.Failed -> {
                     if (result.reason == OtpFailure.SESSION_EXPIRED) {
                         sendEffect(VerifyPhoneEffect.NavigateToLogin)
@@ -106,8 +111,10 @@ class VerifyPhoneViewModel(
                     setState { copy(isVerifying = false) }
                     sendEffect(VerifyPhoneEffect.NavigateHome)
                 }
+
                 is OtpVerifyResult.WrongCode ->
                     setState { copy(isVerifying = false, code = "", message = VerifyMessage.WrongCode(result.attemptsRemaining)) }
+
                 is OtpVerifyResult.Failed -> {
                     if (result.reason == OtpFailure.SESSION_EXPIRED) {
                         sendEffect(VerifyPhoneEffect.NavigateToLogin)

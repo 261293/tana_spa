@@ -1,0 +1,32 @@
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# Kotlin official conventions as IntelliJ/Android Studio formats them, so editor
+# "Reformat code" and ktlint agree.
+ktlint_code_style = intellij_idea
+max_line_length = 140
+# Composable functions are PascalCase by Compose convention.
+ktlint_function_naming_ignore_when_annotated_with = Composable
+# Design-token objects such as SpaColors use PascalCase properties on purpose.
+ktlint_property_naming_constant_naming = disabled
+# Ktor's own API is written with wildcard imports (io.ktor.server.*, io.ktor.client.request.*);
+# every other package must still be imported explicitly.
+ij_kotlin_packages_to_use_import_on_demand = java.util.*,kotlinx.android.synthetic.**,io.ktor.**
+# Entry points (main.kt) and Koin module files named after the val they hold (sharedModule.kt)
+# are intentional, so the "file name must match the class" rule does not fit this codebase.
+ktlint_standard_filename = disabled
+
+[*.{yml,yaml,json,toml}]
+indent_size = 2
+
+[*.md]
+# Two trailing spaces are a Markdown line break.
+trim_trailing_whitespace = false
+max_line_length = off

@@ -92,12 +92,7 @@ import org.jetbrains.compose.resources.stringResource
  * connecting the real AI means implementing `AssistantGateway`, with no change here.
  */
 @Composable
-fun ChatScreen(
-    state: ChatState,
-    effects: Flow<ChatEffect>,
-    onEvent: (ChatEvent) -> Unit,
-    onNavigateHome: () -> Unit,
-) {
+fun ChatScreen(state: ChatState, effects: Flow<ChatEffect>, onEvent: (ChatEvent) -> Unit, onNavigateHome: () -> Unit) {
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
@@ -305,7 +300,10 @@ private fun TypingRow() {
                 .background(SpaColors.Surface, RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                 .padding(horizontal = 16.dp, vertical = 16.dp)
                 // Announced politely to screen readers when it appears.
-                .semantics { contentDescription = description; liveRegion = LiveRegionMode.Polite },
+                .semantics {
+                    contentDescription = description
+                    liveRegion = LiveRegionMode.Polite
+                },
             horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             repeat(3) { index ->
@@ -349,12 +347,7 @@ private fun FailedRow(onRetry: () -> Unit) {
 }
 
 @Composable
-private fun InputBar(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onSend: () -> Unit,
-    canSend: Boolean,
-) {
+private fun InputBar(value: String, onValueChange: (String) -> Unit, onSend: () -> Unit, canSend: Boolean) {
     // BasicTextField does not inherit the theme font the way Text does, so it is set explicitly.
     val textStyle = TextStyle(
         fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,

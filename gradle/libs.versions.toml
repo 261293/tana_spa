@@ -1,4 +1,6 @@
 [versions]
+ktlint = "1.8.0"
+ktlint-gradle = "14.2.0"
 flyway = "13.9.0"
 embedded-postgres = "2.2.2"
 postgresql = "42.7.13"
@@ -104,6 +106,7 @@ compose-gradlePlugin = { module = "org.jetbrains.compose:compose-gradle-plugin",
 android-kmpLibrary-gradlePlugin = { module = "com.android.kotlin.multiplatform.library:com.android.kotlin.multiplatform.library.gradle.plugin", version.ref = "agp" }
 
 [plugins]
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }

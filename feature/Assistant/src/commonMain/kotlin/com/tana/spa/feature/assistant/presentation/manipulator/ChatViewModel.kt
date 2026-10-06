@@ -10,10 +10,8 @@ import com.tana.spa.feature.assistant.domain.usecase.StartChatUseCase
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
-class ChatViewModel(
-    private val startChat: StartChatUseCase,
-    private val sendMessage: SendChatMessageUseCase,
-) : MviViewModel<ChatState, ChatEvent, ChatEffect>(ChatState()) {
+class ChatViewModel(private val startChat: StartChatUseCase, private val sendMessage: SendChatMessageUseCase) :
+    MviViewModel<ChatState, ChatEvent, ChatEffect>(ChatState()) {
 
     private var nextId = 0L
 
@@ -29,8 +27,11 @@ class ChatViewModel(
         when (event) {
             // Capped: an unbounded paste would be sent to the model verbatim.
             is ChatEvent.InputChanged -> setState { copy(input = event.value.take(MAX_INPUT_LENGTH)) }
+
             ChatEvent.Send -> send()
+
             ChatEvent.Retry -> retry()
+
             ChatEvent.Close -> sendEffect(ChatEffect.NavigateHome)
         }
     }

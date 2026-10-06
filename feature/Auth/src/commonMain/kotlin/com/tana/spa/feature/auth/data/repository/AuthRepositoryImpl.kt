@@ -23,8 +23,7 @@ class AuthRepositoryImpl(
     private val nowMillis: () -> Long = { Clock.System.now().toEpochMilliseconds() },
 ) : AuthRepository {
 
-    override suspend fun login(email: String, password: String): AuthOutcome =
-        authenticate { remote.login(email, password) }
+    override suspend fun login(email: String, password: String): AuthOutcome = authenticate { remote.login(email, password) }
 
     override suspend fun register(displayName: String, email: String, phone: String, password: String): AuthOutcome =
         authenticate { remote.register(displayName, email, phone, password) }
@@ -64,7 +63,9 @@ class AuthRepositoryImpl(
                     markVerifiedLocally(session)
                     OtpSendResult.AlreadyVerified
                 }
+
                 e.status == 429 -> OtpSendResult.RateLimited(e.retryAfterSeconds ?: DEFAULT_RETRY_SECONDS)
+
                 else -> OtpSendResult.Failed(e.toOtpFailure())
             }
         } catch (_: Exception) {
@@ -100,12 +101,19 @@ class AuthRepositoryImpl(
             store.clear()
             OtpFailure.SESSION_EXPIRED
         }
+
         code == AuthErrorCodes.PHONE_CLAIMED -> OtpFailure.PHONE_CLAIMED
+
         code == AuthErrorCodes.PHONE_COUNTRY_UNSUPPORTED -> OtpFailure.COUNTRY_UNSUPPORTED
+
         code == AuthErrorCodes.OTP_UNAVAILABLE -> OtpFailure.UNAVAILABLE
+
         code == AuthErrorCodes.OTP_EXPIRED -> OtpFailure.EXPIRED
+
         code == AuthErrorCodes.OTP_TOO_MANY_ATTEMPTS -> OtpFailure.TOO_MANY_ATTEMPTS
+
         code == AuthErrorCodes.OTP_NOT_REQUESTED -> OtpFailure.NOT_REQUESTED
+
         else -> OtpFailure.SERVER
     }
 

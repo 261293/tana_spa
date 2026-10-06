@@ -26,9 +26,13 @@ object TestFixtures {
 }
 
 class FakeSessionStore(var stored: Session? = null) : SessionStore {
-    override fun save(session: Session) { stored = session }
+    override fun save(session: Session) {
+        stored = session
+    }
     override fun load(): Session? = stored
-    override fun clear() { stored = null }
+    override fun clear() {
+        stored = null
+    }
 }
 
 /** Remote that either returns canned responses or throws the configured error; records calls. */

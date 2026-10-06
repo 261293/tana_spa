@@ -7,11 +7,7 @@ import androidx.compose.runtime.Composable
 import com.tana.spa.core.ui.model.NavConfig
 
 @Composable
-fun NavBar(
-    items: List<NavConfig>,
-    selectedRoute: String,
-    onSelect: (String) -> Unit,
-) {
+fun NavBar(items: List<NavConfig>, selectedRoute: String, onSelect: (String) -> Unit) {
     NavigationBar {
         items.forEach { item ->
             NavigationBarItem(

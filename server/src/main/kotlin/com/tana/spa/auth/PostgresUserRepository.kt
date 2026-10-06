@@ -14,10 +14,8 @@ import javax.sql.DataSource
  * in code, so two simultaneous sign-ups for the same email cannot both succeed, and two people
  * cannot both end up with the same *verified* phone number.
  */
-class PostgresUserRepository(
-    private val dataSource: DataSource,
-    private val newReferralCode: () -> String = ::randomReferralCode,
-) : UserRepository {
+class PostgresUserRepository(private val dataSource: DataSource, private val newReferralCode: () -> String = ::randomReferralCode) :
+    UserRepository {
 
     override fun findByEmail(email: String): User? = dataSource.connection.use { c ->
         c.prepareStatement("$SELECT WHERE email = ? AND $ACTIVE").use { ps ->
@@ -47,8 +45,10 @@ class PostgresUserRepository(
                 if (e.sqlState != UNIQUE_VIOLATION) throw e
                 when ((e as? PSQLException)?.serverErrorMessage?.constraint) {
                     EMAIL_INDEX -> return CreateUserResult.EmailTaken
+
                     // Generated code collided with an existing one (10 random chars): draw another.
                     REFERRAL_INDEX -> Unit
+
                     else -> throw e
                 }
             }
@@ -102,25 +102,24 @@ class PostgresUserRepository(
     }
 
     /** @return null when a verified account already owns [phone] (no row inserted). */
-    private fun insert(email: String, displayName: String, phone: String, passwordHash: String): User? =
-        dataSource.connection.use { c ->
-            c.prepareStatement(
-                """INSERT INTO users (email, full_name, phone, password_hash, referral_code)
+    private fun insert(email: String, displayName: String, phone: String, passwordHash: String): User? = dataSource.connection.use { c ->
+        c.prepareStatement(
+            """INSERT INTO users (email, full_name, phone, password_hash, referral_code)
                    SELECT ?, ?, ?, ?, ?
                    WHERE NOT EXISTS (
                        SELECT 1 FROM users
                        WHERE phone = ? AND phone_verified_at IS NOT NULL AND deleted_at IS NULL)
                    RETURNING $COLUMNS""",
-            ).use { ps ->
-                ps.setString(1, email)
-                ps.setString(2, displayName)
-                ps.setString(3, phone)
-                ps.setString(4, passwordHash)
-                ps.setString(5, newReferralCode())
-                ps.setString(6, phone)
-                ps.executeQuery().use { rs -> if (rs.next()) rs.toUser() else null }
-            }
+        ).use { ps ->
+            ps.setString(1, email)
+            ps.setString(2, displayName)
+            ps.setString(3, phone)
+            ps.setString(4, passwordHash)
+            ps.setString(5, newReferralCode())
+            ps.setString(6, phone)
+            ps.executeQuery().use { rs -> if (rs.next()) rs.toUser() else null }
         }
+    }
 
     private fun ResultSet.toUser() = User(
         id = getObject("id", UUID::class.java).toString(),

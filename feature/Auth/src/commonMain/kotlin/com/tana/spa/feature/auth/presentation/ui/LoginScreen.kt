@@ -85,7 +85,9 @@ fun LoginScreen(
         effects.collect { effect ->
             when (effect) {
                 LoginEffect.NavigateHome -> onNavigateHome()
+
                 LoginEffect.NavigateToSignUp -> onNavigateToSignUp()
+
                 is LoginEffect.ShowComingSoon -> {
                     snackbarHostState.currentSnackbarData?.dismiss()
                     snackbarHostState.showSnackbar(getString(effect.feature.res()))

@@ -4,7 +4,12 @@ import java.time.Instant
 import java.util.UUID
 
 enum class VerificationStatus(val sql: String) {
-    PENDING("pending"), APPROVED("approved"), CANCELED("canceled"), EXPIRED("expired"), FAILED("failed");
+    PENDING("pending"),
+    APPROVED("approved"),
+    CANCELED("canceled"),
+    EXPIRED("expired"),
+    FAILED("failed"),
+    ;
 
     companion object {
         fun fromSql(value: String) = entries.first { it.sql == value }
@@ -23,12 +28,7 @@ data class PhoneVerification(
     val expiresAt: Instant,
 )
 
-data class SendStats(
-    val lastSentAt: Instant?,
-    val phoneSendsInWindow: Int,
-    val userSendsInDay: Int,
-    val ipSendsInWindow: Int,
-)
+data class SendStats(val lastSentAt: Instant?, val phoneSendsInWindow: Int, val userSendsInDay: Int, val ipSendsInWindow: Int)
 
 /**
  * Bookkeeping for sent codes (the codes themselves are never stored). Backs rate limits, the
@@ -43,8 +43,13 @@ interface PhoneVerificationRepository {
      * @return null if a concurrent request created one first (the caller should treat it as rate limited).
      */
     fun createPending(
-        userId: String, phone: String, region: String, provider: String, ip: String?,
-        sentAt: Instant, expiresAt: Instant,
+        userId: String,
+        phone: String,
+        region: String,
+        provider: String,
+        ip: String?,
+        sentAt: Instant,
+        expiresAt: Instant,
     ): PhoneVerification?
 
     fun findPending(userId: String): PhoneVerification?
@@ -65,9 +70,16 @@ interface PhoneVerificationRepository {
 
 class InMemoryPhoneVerificationRepository : PhoneVerificationRepository {
     private class Row(
-        val id: String, val userId: String, val phone: String, val region: String, val provider: String,
-        val ip: String?, val sentAt: Instant, val expiresAt: Instant,
-        var status: VerificationStatus = VerificationStatus.PENDING, var attempts: Int = 0,
+        val id: String,
+        val userId: String,
+        val phone: String,
+        val region: String,
+        val provider: String,
+        val ip: String?,
+        val sentAt: Instant,
+        val expiresAt: Instant,
+        var status: VerificationStatus = VerificationStatus.PENDING,
+        var attempts: Int = 0,
     ) {
         fun toModel() = PhoneVerification(id, userId, phone, region, provider, status, attempts, sentAt, expiresAt)
     }
@@ -84,8 +96,13 @@ class InMemoryPhoneVerificationRepository : PhoneVerificationRepository {
 
     @Synchronized
     override fun createPending(
-        userId: String, phone: String, region: String, provider: String, ip: String?,
-        sentAt: Instant, expiresAt: Instant,
+        userId: String,
+        phone: String,
+        region: String,
+        provider: String,
+        ip: String?,
+        sentAt: Instant,
+        expiresAt: Instant,
     ): PhoneVerification {
         rows.filter { it.userId == userId && it.status == VerificationStatus.PENDING }
             .forEach { it.status = VerificationStatus.CANCELED }
@@ -99,9 +116,13 @@ class InMemoryPhoneVerificationRepository : PhoneVerificationRepository {
         rows.lastOrNull { it.userId == userId && it.status == VerificationStatus.PENDING }?.toModel()
 
     @Synchronized override fun setProviderRef(id: String, ref: String?) = Unit
+
     @Synchronized override fun markFailed(id: String) = set(id, VerificationStatus.FAILED)
+
     @Synchronized override fun markApproved(id: String, at: Instant) = set(id, VerificationStatus.APPROVED)
+
     @Synchronized override fun markExpired(id: String) = set(id, VerificationStatus.EXPIRED)
+
     @Synchronized override fun cancel(id: String) = set(id, VerificationStatus.CANCELED)
 
     @Synchronized

@@ -32,12 +32,7 @@ import org.jetbrains.compose.resources.stringResource
  * The body text in the string resources is a DRAFT to be replaced with legally approved wording.
  */
 @Composable
-fun ConsentScreen(
-    agreed: Boolean,
-    onAgreedChange: (Boolean) -> Unit,
-    onBack: () -> Unit,
-    onContinue: () -> Unit,
-) {
+fun ConsentScreen(agreed: Boolean, onAgreedChange: (Boolean) -> Unit, onBack: () -> Unit, onContinue: () -> Unit) {
     ScreenCard(maxWidth = 520.dp) {
         Column(Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
             IconSquareButton(

@@ -5,17 +5,17 @@ import com.tana.spa.feature.auth.FakeSessionStore
 import com.tana.spa.feature.auth.TestFixtures
 import com.tana.spa.feature.auth.data.remote.AuthApiException
 import com.tana.spa.feature.auth.domain.model.AuthFailure
-import com.tana.spa.feature.auth.domain.repository.AuthOutcome
-import com.tana.spa.shared.auth.AuthErrorCodes
 import com.tana.spa.feature.auth.domain.model.OtpFailure
 import com.tana.spa.feature.auth.domain.model.OtpSendResult
 import com.tana.spa.feature.auth.domain.model.OtpVerifyResult
-import kotlin.test.assertTrue
+import com.tana.spa.feature.auth.domain.repository.AuthOutcome
+import com.tana.spa.shared.auth.AuthErrorCodes
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class AuthRepositoryImplTest {
 
@@ -98,7 +98,9 @@ class AuthRepositoryImplTest {
 
     // ---- phone OTP ----
 
-    private fun signedIn() { store.stored = TestFixtures.session.copy(expiresAtMillis = now + 1) }
+    private fun signedIn() {
+        store.stored = TestFixtures.session.copy(expiresAtMillis = now + 1)
+    }
 
     @Test
     fun sendingWithoutASessionNeedsALogin() = runTest {

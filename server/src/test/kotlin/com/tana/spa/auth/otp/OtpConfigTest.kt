@@ -65,7 +65,9 @@ class OtpConfigTest {
     fun twilioIsSelectedWhenFullyConfigured() {
         val provider = PhoneVerificationProvider.fromEnvironment(
             mapOf(
-                "TWILIO_VERIFY_SERVICE_SID" to "VA1", "TWILIO_API_KEY_SID" to "SK1", "TWILIO_API_KEY_SECRET" to "x",
+                "TWILIO_VERIFY_SERVICE_SID" to "VA1",
+                "TWILIO_API_KEY_SID" to "SK1",
+                "TWILIO_API_KEY_SECRET" to "x",
                 "APP_ENV" to "production",
             ),
         )
