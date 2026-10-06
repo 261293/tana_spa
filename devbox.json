@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/main/.schema/devbox.schema.json",
+  "packages": ["jdk21@latest", "nodejs@22", "pnpm@latest", "postgresql@17", "docker-compose@latest"],
+  "shell": {
+    "init_hook": ["[ -f .env ] || cp .env.example .env", "set -a; . ./.env; set +a"],
+    "scripts": {
+      "db:up": "docker compose up -d --wait db",
+      "db:down": "docker compose down",
+      "db:reset": "docker compose down -v && docker compose up -d --wait db",
+      "db:migrate": "echo 'Flyway migrates automatically when the server starts (DATABASE_MIGRATE=true). Run: devbox run server'",
+      "db:psql": "docker compose exec db psql -U $DATABASE_USER $POSTGRES_DB",
+      "server": "./gradlew :server:run",
+      "test": "./gradlew :server:test",
+      "test:all": "./gradlew jvmTest :server:test",
+      "web": "./gradlew :composeApp:wasmJsBrowserDevelopmentRun",
+      "web:build": "./gradlew :composeApp:wasmJsBrowserDistribution",
+      "android": "./gradlew :androidApp:assembleDebug",
+      "docker:up": "docker compose --profile app up -d --build"
+    }
+  }
+}

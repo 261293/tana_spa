@@ -1,0 +1,9 @@
+.git
+.gradle
+.idea
+.kotlin
+**/build
+local.properties
+.env
+node_modules
+iosApp

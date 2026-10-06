@@ -1,0 +1,40 @@
+# Local dev stack.  Usage:
+#   cp .env.example .env
+#   docker compose up -d db              # database only (run the server with Gradle)
+#   docker compose --profile app up -d --build   # database + server container
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tana_spa}
+      POSTGRES_USER: ${DATABASE_USER:-tana}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-tana_dev}
+    ports:
+      # Loopback only: the dev password is well known, so the database must not be reachable
+      # from other machines on the network. (The Android emulator reaches host loopback via 10.0.2.2.)
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-tana} -d ${POSTGRES_DB:-tana_spa}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  server:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-tana_spa}
+      PORT: "8081"
+    ports:
+      - "${SERVER_PORT:-8081}:8081"
+
+volumes:
+  pgdata:
