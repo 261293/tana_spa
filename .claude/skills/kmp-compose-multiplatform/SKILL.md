@@ -973,7 +973,7 @@ See `references/logging.md` for the per-layer checklist, levels, redaction rules
 11. **Never use raw `String` for errors in `Resource.Error`** — use typed `AppError` sealed class
 12. **Never put navigation calls in `UiState`** — use a separate `SharedFlow<Event>` for one-time events
 13. **Never call `stopKoin()` in production code** — only in test teardown
-14. **Never use `println()` for logging** — use `expect/actual` log functions
+14. **Never use `println()` for logging** — use `AppLog` (see `references/logging.md`)
 15. **Never skip Room migrations** — always add a `Migration` object when bumping the schema version
 16. **Never omit `contentDescription` on meaningful images/icons** — required for accessibility (TalkBack, VoiceOver)
 17. **Never log sensitive data** — redact tokens, emails, and PII before sending to Crashlytics or any log aggregation service
