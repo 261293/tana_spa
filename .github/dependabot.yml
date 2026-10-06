@@ -1,0 +1,32 @@
+version: 2
+
+updates:
+  # Keeps the pinned action commit SHAs in .github/workflows current (it rewrites the SHA and
+  # the version comment together).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  # Gradle plugins and libraries from gradle/libs.versions.toml. Kotlin, Compose, AGP and KSP-style
+  # tools must move together, so they are grouped to land as one reviewable PR.
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      kotlin-and-compose:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "org.jetbrains.compose*"
+          - "com.android*"
+      ktor:
+        patterns: ["io.ktor*"]
+      testing-and-lint:
+        patterns:
+          - "org.jlleitschuh*"
+          - "io.zonky*"

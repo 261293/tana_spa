@@ -1,0 +1,14 @@
+title = "tana_spa secret scanning"
+
+[extend]
+# Start from gitleaks' maintained ruleset (cloud keys, tokens, private keys, ...).
+useDefault = true
+
+# Keep allowlists NARROW: every entry must say what it hides and why it is safe.
+# `condition = "AND"` means both the path and the value must match, so a real secret that
+# happens to be committed to the same file is still reported.
+[[allowlists]]
+description = "A documented 'BAD example' (hardcoded credentials) with an obviously fake key in an agent skill reference"
+condition = "AND"
+paths = ['''\.claude/skills/code-reviewer/references/common_antipatterns\.md''']
+regexes = ['''sk-abc123xyz789''']

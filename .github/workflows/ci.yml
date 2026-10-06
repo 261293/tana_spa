@@ -1,0 +1,213 @@
+name: CI
+
+# Runs on every pull request into main and on every push to main.
+# Only `pull_request` (never `pull_request_target`) is used, so code from a fork can never run
+# with this repository's secrets. This workflow needs no secrets at all.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: jobs can read the repository and nothing else.
+permissions:
+  contents: read
+
+# A new push to a PR cancels the superseded run; runs on main are never cancelled.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Kept in one place so every job builds with the JDK the project's daemon toolchain asks for
+  # (gradle/gradle-daemon-jvm.properties: Amazon Corretto 21).
+  JAVA_VERSION: "21"
+  JAVA_DISTRIBUTION: corretto
+
+# Actions are pinned to full commit SHAs (not movable tags) so a compromised release cannot
+# change what runs here. Dependabot keeps the pins current; the comment shows the version.
+jobs:
+  wrapper-validation:
+    name: Gradle wrapper validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Fails if gradle-wrapper.jar is not an official Gradle release (a classic supply-chain attack).
+      - uses: gradle/actions/wrapper-validation@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the whole history, so the PR's commits can be listed
+          persist-credentials: false
+
+      - name: Install gitleaks (pinned release, checksum verified)
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+          # SHA-256 of gitleaks_8.30.1_linux_x64.tar.gz, from the release's checksums file.
+          # Update both lines together when bumping the version.
+          GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" "$url"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP/gitleaks" gitleaks
+          echo "$RUNNER_TEMP/gitleaks" >> "$GITHUB_PATH"
+
+      - name: Scan the commits this change adds
+        env:
+          # Passed through env (not interpolated into the script) so event data cannot inject commands.
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          zero="0000000000000000000000000000000000000000"
+          args=(git --redact --verbose --config .gitleaks.toml .)
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            args+=(--log-opts "${PR_BASE_SHA}..${PR_HEAD_SHA}")
+          elif [ -n "$PUSH_BEFORE_SHA" ] && [ "$PUSH_BEFORE_SHA" != "$zero" ] \
+              && git cat-file -e "${PUSH_BEFORE_SHA}^{commit}" 2>/dev/null; then
+            args+=(--log-opts "${PUSH_BEFORE_SHA}..${HEAD_SHA}")
+          fi
+          # No range left (first push, manual run): scan the entire history.
+          # --redact keeps any real secret out of the public job log.
+          gitleaks "${args[@]}"
+
+  ktlint:
+    name: Code style (ktlint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          # Only main writes the build cache; PRs (including forks) can read it but not poison it.
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - name: ktlintCheck
+        run: ./gradlew ktlintCheck --continue --console=plain --stacktrace
+      - name: Upload ktlint reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ktlint-reports
+          path: "**/build/reports/ktlint/**"
+          if-no-files-found: ignore
+          retention-days: 7
+
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      # `jvmTest` runs every Kotlin Multiplatform module's shared tests on the JVM; `:server:test`
+      # runs the backend suite, which starts a real embedded PostgreSQL (no Docker needed).
+      - name: Run unit tests
+        run: ./gradlew jvmTest :server:test --continue --console=plain --stacktrace
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-reports
+          path: |
+            **/build/reports/tests/**
+            **/build/test-results/**
+          if-no-files-found: ignore
+          retention-days: 7
+
+  build:
+    name: Build (web, Android, server)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - name: Accept Android SDK licenses
+        # Lets Gradle download the SDK platform the project compiles against if the runner lacks it.
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+      # The production web bundle also fails when kotlin-js-store/wasm/yarn.lock is out of date,
+      # which a plain compile would not catch.
+      - name: Build web, Android debug and server
+        run: >
+          ./gradlew
+          :composeApp:wasmJsBrowserDistribution
+          :androidApp:assembleDebug
+          :server:assemble
+          --console=plain --stacktrace
+
+  ios:
+    name: Build (iOS)
+    # iOS can only be compiled on macOS, which is billed at a higher rate than Linux runners.
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+      - name: Link the iOS framework (simulator)
+        run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64 --console=plain --stacktrace
+
+  # One stable check name for branch protection: require only "CI passed" and the list of
+  # jobs above can change without touching repository settings. `always()` plus the result
+  # check makes a failed, cancelled or skipped dependency fail this job instead of skipping it.
+  ci-passed:
+    name: CI passed
+    if: always()
+    needs: [wrapper-validation, secret-scan, ktlint, unit-tests, build, ios]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every job to have succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error::At least one required job did not succeed ($result)."
+              exit 1
+            fi
+          done
