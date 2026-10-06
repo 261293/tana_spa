@@ -44,6 +44,7 @@ kotlin {
 
         commonMain.dependencies {
             implementation(projects.shared)
+            implementation(projects.core.logging)
             implementation(projects.core.ui)
             implementation(projects.core.navigation)
             implementation(projects.core.network)

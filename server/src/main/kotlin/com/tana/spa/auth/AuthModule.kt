@@ -30,6 +30,9 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.principal
 import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.plugins.callid.CallId
+import io.ktor.server.plugins.callid.callIdMdc
+import io.ktor.server.plugins.callid.generate
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
@@ -39,6 +42,7 @@ import io.ktor.server.plugins.ratelimit.RateLimit
 import io.ktor.server.plugins.ratelimit.RateLimitName
 import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.path
 import io.ktor.server.request.receive
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
@@ -82,8 +86,24 @@ private val OTP_LIMIT = RateLimitName("otp")
 private const val OTP_REQUESTS_PER_MINUTE = 10
 private val log = LoggerFactory.getLogger("com.tana.spa.auth")
 
+/** Sent by the apps on every request (core:network `RequestTracing`); echoed back and put in every log line. */
+const val REQUEST_ID_HEADER = "X-Request-Id"
+const val SESSION_ID_HEADER = "X-Session-Id"
+private val SAFE_ID = Regex("^[A-Za-z0-9_-]{1,64}$")
+
 fun Application.authModule(services: AuthServices) {
-    install(CallLogging)
+    // A client-supplied id is only trusted if it is short and made of safe characters, so it cannot be
+    // used to forge or inject extra log lines. Otherwise the server generates one.
+    install(CallId) {
+        retrieve { call -> call.request.headers[REQUEST_ID_HEADER]?.takeIf { SAFE_ID.matches(it) } }
+        generate(length = 12)
+        replyToHeader(REQUEST_ID_HEADER)
+    }
+
+    install(CallLogging) {
+        callIdMdc("requestId")
+        mdc("sessionId") { call -> call.request.headers[SESSION_ID_HEADER]?.takeIf { SAFE_ID.matches(it) } }
+    }
 
     install(ContentNegotiation) {
         json()
@@ -101,6 +121,10 @@ fun Application.authModule(services: AuthServices) {
         allowMethod(HttpMethod.Post)
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
+        // Browser clients send these tracing headers (which forces a preflight) and read the id back.
+        allowHeader(REQUEST_ID_HEADER)
+        allowHeader(SESSION_ID_HEADER)
+        exposeHeader(REQUEST_ID_HEADER)
     }
 
     if (services.config.trustProxy) install(XForwardedHeaders)
@@ -121,16 +145,20 @@ fun Application.authModule(services: AuthServices) {
     }
 
     install(StatusPages) {
-        exception<SerializationException> { call, _ ->
+        // Only the exception type is logged: parser messages can quote the body (and so a password).
+        exception<SerializationException> { call, cause ->
+            log.warn("Malformed request body on {} ({})", call.request.path(), cause::class.simpleName)
             call.respondError(HttpStatusCode.BadRequest, AuthErrorCodes.INVALID_REQUEST, "Malformed request body")
         }
-        exception<BadRequestException> { call, _ ->
+        exception<BadRequestException> { call, cause ->
+            log.warn("Bad request on {} ({})", call.request.path(), cause::class.simpleName)
             call.respondError(HttpStatusCode.BadRequest, AuthErrorCodes.INVALID_REQUEST, "Malformed request body")
         }
         // Gives the rate-limit plugin's empty 429 a JSON body. Responses that already carry our own
         // error (with retryAfterSeconds / a specific code) are marked and must not be overwritten.
         status(HttpStatusCode.TooManyRequests) { call, _ ->
             if (!call.attributes.contains(ErrorBodyWritten)) {
+                log.warn("Rate limited {} from {}", call.request.path(), call.request.origin.remoteHost)
                 call.respondError(
                     HttpStatusCode.TooManyRequests,
                     AuthErrorCodes.TOO_MANY_REQUESTS,
@@ -155,6 +183,7 @@ fun Application.authModule(services: AuthServices) {
                     ?.let { JWTPrincipal(credential.payload) }
             }
             challenge { _, _ ->
+                log.info("Unauthenticated request to {} (missing, invalid or expired token)", call.request.path())
                 call.respondError(HttpStatusCode.Unauthorized, AuthErrorCodes.UNAUTHORIZED, "Authentication required")
             }
         }
@@ -165,6 +194,7 @@ fun Application.authModule(services: AuthServices) {
             post("/register") {
                 val body = call.receive<RegisterRequest>()
                 val result = services.authService.register(body.displayName, body.email, body.phone, body.password)
+                log.info("register -> {}{}", result::class.simpleName, (result as? AuthResult.Success)?.let { " user=${it.user.id}" } ?: "")
                 when (result) {
                     is AuthResult.Success -> call.respond(HttpStatusCode.Created, services.authResponse(result.user))
 
@@ -191,7 +221,15 @@ fun Application.authModule(services: AuthServices) {
             rateLimit(LOGIN_LIMIT) {
                 post("/login") {
                     val body = call.receive<LoginRequest>()
-                    when (val result = services.authService.login(body.email, body.password)) {
+                    val result = services.authService.login(body.email, body.password)
+                    log.info(
+                        "login -> {}{}",
+                        result::class.simpleName,
+                        (result as? AuthResult.Success)?.let {
+                            " user=${it.user.id}"
+                        } ?: "",
+                    )
+                    when (result) {
                         is AuthResult.Success -> call.respond(services.authResponse(result.user))
 
                         // One generic answer for unknown email and wrong password alike.
@@ -226,7 +264,9 @@ fun Application.authModule(services: AuthServices) {
                         val userId = call.principal<JWTPrincipal>()!!.payload.subject
                         val locale = call.request.headers[HttpHeaders.AcceptLanguage]
                             ?.substringBefore(',')?.substringBefore(';')?.trim()
-                        when (val result = services.phoneVerification.send(userId, call.request.origin.remoteHost, locale)) {
+                        val result = services.phoneVerification.send(userId, call.request.origin.remoteHost, locale)
+                        log.info("otp send user={} -> {}", userId, result.describe())
+                        when (result) {
                             is SendResult.Sent -> call.respond(
                                 HttpStatusCode.Accepted,
                                 PhoneOtpSendResponse(result.resendAfterSeconds, result.expiresInSeconds, result.maskedPhone),
@@ -277,7 +317,9 @@ fun Application.authModule(services: AuthServices) {
                     post("/phone/otp/verify") {
                         val userId = call.principal<JWTPrincipal>()!!.payload.subject
                         val body = call.receive<PhoneOtpVerifyRequest>()
-                        when (val result = services.phoneVerification.verify(userId, body.code)) {
+                        val result = services.phoneVerification.verify(userId, body.code)
+                        log.info("otp verify user={} -> {}", userId, result.describe())
+                        when (result) {
                             is VerifyResult.Verified -> call.respond(result.user.toDto())
 
                             is VerifyResult.InvalidCode -> call.respondError(
@@ -322,6 +364,18 @@ fun Application.authModule(services: AuthServices) {
             }
         }
     }
+}
+
+// Class name plus the one number that explains a refusal; never the user, phone or code.
+private fun SendResult.describe(): String = when (this) {
+    is SendResult.RateLimited -> "RateLimited(retryAfter=${retryAfterSeconds}s)"
+    is SendResult.CountryNotSupported -> "CountryNotSupported($region)"
+    else -> this::class.simpleName ?: "SendResult"
+}
+
+private fun VerifyResult.describe(): String = when (this) {
+    is VerifyResult.InvalidCode -> "InvalidCode(attemptsRemaining=$attemptsRemaining)"
+    else -> this::class.simpleName ?: "VerifyResult"
 }
 
 private fun User.toDto() = UserDto(

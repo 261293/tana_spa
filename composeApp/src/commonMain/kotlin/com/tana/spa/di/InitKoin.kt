@@ -1,5 +1,7 @@
 package com.tana.spa.di
 
+import com.tana.spa.core.logging.AppLog
+import com.tana.spa.shared.getPlatform
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
 
@@ -9,4 +11,5 @@ fun initKoin(appDeclaration: KoinAppDeclaration = {}) {
         appDeclaration()
         modules(appModules())
     }
+    AppLog.i("App") { "started platform=${getPlatform().name}" }
 }

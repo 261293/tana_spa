@@ -1,6 +1,7 @@
 package com.tana.spa.feature.auth.data.local
 
 import com.tana.spa.core.cache.KeyValueCache
+import com.tana.spa.core.logging.AppLog
 import com.tana.spa.feature.auth.domain.model.AuthUser
 import com.tana.spa.feature.auth.domain.model.Session
 import kotlinx.serialization.Serializable
@@ -29,14 +30,16 @@ class SessionStoreImpl(private val cache: KeyValueCache) : SessionStore {
         val raw = cache.get(KEY)?.takeIf { it.isNotBlank() } ?: return null
         return try {
             json.decodeFromString(StoredSession.serializer(), raw).toDomain()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             // Corrupt or from an incompatible app version: treat as logged out.
+            AppLog.w("SessionStore", e) { "stored session is unreadable, discarding it" }
             cache.put(KEY, "")
             null
         }
     }
 
     override fun clear() {
+        AppLog.d("SessionStore") { "session cleared" }
         cache.put(KEY, "")
     }
 

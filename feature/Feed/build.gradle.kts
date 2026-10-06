@@ -7,6 +7,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.core.logging)
             implementation(projects.core.mvi)
             implementation(projects.core.navigation)
             implementation(projects.core.network)

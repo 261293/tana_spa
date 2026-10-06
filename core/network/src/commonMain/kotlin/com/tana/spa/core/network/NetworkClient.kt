@@ -17,6 +17,7 @@ fun HttpClient.withDefaults(): HttpClient = config {
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true })
     }
+    install(RequestTracing)
     install(HttpTimeout) {
         requestTimeoutMillis = 20_000
     }

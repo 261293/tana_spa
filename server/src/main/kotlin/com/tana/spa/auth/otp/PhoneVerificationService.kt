@@ -76,14 +76,26 @@ class PhoneVerificationService(
 
         stats.lastSentAt?.let { last ->
             val wait = Duration.between(now, last + config.resendCooldown)
-            if (!wait.isNegative && !wait.isZero) return@withContext SendResult.RateLimited(ceilSeconds(wait))
+            if (!wait.isNegative && !wait.isZero) {
+                log.info("OTP send refused for user {}: resend cooldown, {}s left", userId, ceilSeconds(wait))
+                return@withContext SendResult.RateLimited(ceilSeconds(wait))
+            }
         }
         if (stats.phoneSendsInWindow >= config.maxSendsPerPhonePerHour ||
             stats.ipSendsInWindow >= config.maxSendsPerIpPerHour
         ) {
+            // Worth a WARN: this is the pattern abuse (SMS pumping) produces.
+            log.warn(
+                "OTP send refused for user {}: hourly cap (phone={}, ip={}) region={}",
+                userId,
+                stats.phoneSendsInWindow,
+                stats.ipSendsInWindow,
+                parsed.region,
+            )
             return@withContext SendResult.RateLimited(HOUR.seconds.toInt())
         }
         if (stats.userSendsInDay >= config.maxSendsPerUserPerDay) {
+            log.warn("OTP send refused for user {}: daily cap ({} sends)", userId, stats.userSendsInDay)
             return@withContext SendResult.RateLimited(DAY.seconds.toInt())
         }
 
@@ -102,11 +114,12 @@ class PhoneVerificationService(
         try {
             verifications.setProviderRef(pending.id, provider.start(phone, locale?.takeIf { LOCALE_PATTERN.matches(it) }))
         } catch (e: ProviderException) {
-            log.error("OTP send failed via {} for region {}: {}", provider.name, parsed.region, e.message)
+            log.error("OTP send failed for user {} via {} region {}: {}", userId, provider.name, parsed.region, e.message)
             verifications.markFailed(pending.id)
             return@withContext SendResult.ProviderUnavailable
         }
 
+        log.info("OTP sent for user {} via {} region {}", userId, provider.name, parsed.region)
         SendResult.Sent(
             resendAfterSeconds = config.resendCooldown.seconds.toInt(),
             expiresInSeconds = config.codeTtl.seconds.toInt(),
@@ -129,6 +142,7 @@ class PhoneVerificationService(
 
         val spent = verifications.consumeAttempt(pending.id, config.maxCheckAttempts)
         if (spent == null) {
+            log.warn("OTP verify for user {}: attempt limit reached, code cancelled", userId)
             verifications.cancel(pending.id)
             return@withContext VerifyResult.TooManyAttempts
         }
@@ -136,7 +150,7 @@ class PhoneVerificationService(
         val approved = try {
             provider.check(pending.phone, trimmed)
         } catch (e: ProviderException) {
-            log.error("OTP check failed via {}: {}", provider.name, e.message)
+            log.error("OTP check failed for user {} via {}: {}", userId, provider.name, e.message)
             return@withContext VerifyResult.ProviderUnavailable
         }
 
@@ -151,17 +165,20 @@ class PhoneVerificationService(
 
         when (users.markPhoneVerified(userId, pending.phone)) {
             PhoneVerifiedResult.VERIFIED -> {
+                log.info("Phone verified for user {}", userId)
                 verifications.markApproved(pending.id, clock())
                 val user = users.findById(userId) ?: return@withContext VerifyResult.NotRequested
                 VerifyResult.Verified(user)
             }
 
             PhoneVerifiedResult.PHONE_CHANGED -> {
+                log.warn("OTP approved for user {} but the account phone changed meanwhile", userId)
                 verifications.cancel(pending.id)
                 VerifyResult.NotRequested
             }
 
             PhoneVerifiedResult.CLAIMED_BY_ANOTHER -> {
+                log.warn("OTP approved for user {} but another account already verified that phone", userId)
                 verifications.cancel(pending.id)
                 VerifyResult.PhoneClaimed
             }

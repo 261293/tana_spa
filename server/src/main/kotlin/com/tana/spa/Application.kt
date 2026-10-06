@@ -48,6 +48,12 @@ fun main() {
         otpConfig = otpConfig,
     )
 
+    log.info(
+        "Starting server on port {} (env={}, store={})",
+        port,
+        System.getenv("APP_ENV") ?: "unset",
+        if (dataSource != null) "postgres" else "in-memory",
+    )
     embeddedServer(Netty, port = port, host = "0.0.0.0") {
         closeOnStop(dataSource)
         module(auth)

@@ -5,6 +5,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.core.logging)
             implementation(libs.ktor.clientCore)
             implementation(libs.ktor.clientContentNegotiation)
             implementation(libs.ktor.serializationJson)

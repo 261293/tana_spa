@@ -1,5 +1,6 @@
 package com.tana.spa.feature.auth.data.repository
 
+import com.tana.spa.core.logging.AppLog
 import com.tana.spa.feature.auth.data.local.SessionStore
 import com.tana.spa.feature.auth.data.remote.AuthApiException
 import com.tana.spa.feature.auth.data.remote.AuthRemoteApi
@@ -31,19 +32,24 @@ class AuthRepositoryImpl(
     private suspend fun authenticate(call: suspend () -> AuthResponse): AuthOutcome = try {
         val session = call().toSession(nowMillis())
         store.save(session)
+        AppLog.i(TAG) { "authenticated user=${session.user.id} phoneVerified=${session.user.phoneVerified}" }
         AuthOutcome.Success(session)
     } catch (e: CancellationException) {
         throw e
     } catch (e: AuthApiException) {
-        AuthOutcome.Failure(e.toAuthFailure())
-    } catch (_: Exception) {
+        val failure = e.toAuthFailure()
+        AppLog.w(TAG) { "authentication rejected: ${e.describe()} -> $failure" }
+        AuthOutcome.Failure(failure)
+    } catch (e: Exception) {
         // No response at all: offline, DNS, TLS, timeout, or an undecodable body.
+        AppLog.w(TAG, e) { "authentication failed without a usable response: ${e::class.simpleName}" }
         AuthOutcome.Failure(AuthFailure.NETWORK)
     }
 
     override fun currentSession(): Session? {
         val session = store.load() ?: return null
         if (session.expiresAtMillis <= nowMillis()) {
+            AppLog.i(TAG) { "stored session for user=${session.user.id} has expired, clearing" }
             store.clear()
             return null
         }
@@ -51,7 +57,10 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun sendPhoneOtp(): OtpSendResult {
-        val session = currentSession() ?: return OtpSendResult.Failed(OtpFailure.SESSION_EXPIRED)
+        val session = currentSession() ?: run {
+            AppLog.w(TAG) { "cannot send OTP: no valid session" }
+            return OtpSendResult.Failed(OtpFailure.SESSION_EXPIRED)
+        }
         return try {
             val sent = remote.sendPhoneOtp(session.accessToken)
             OtpSendResult.Sent(sent.resendAfterSeconds, sent.expiresInSeconds, sent.maskedPhone)
@@ -60,21 +69,28 @@ class AuthRepositoryImpl(
         } catch (e: AuthApiException) {
             when {
                 e.code == AuthErrorCodes.PHONE_ALREADY_VERIFIED -> {
+                    AppLog.i(TAG) { "OTP send: server reports phone already verified, updating local session" }
                     markVerifiedLocally(session)
                     OtpSendResult.AlreadyVerified
                 }
 
                 e.status == 429 -> OtpSendResult.RateLimited(e.retryAfterSeconds ?: DEFAULT_RETRY_SECONDS)
 
-                else -> OtpSendResult.Failed(e.toOtpFailure())
+                else -> OtpSendResult.Failed(e.toOtpFailure()).also {
+                    AppLog.w(TAG) { "OTP send rejected: ${e.describe()} -> ${it.reason}" }
+                }
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            AppLog.w(TAG, e) { "OTP send failed without a usable response: ${e::class.simpleName}" }
             OtpSendResult.Failed(OtpFailure.NETWORK)
         }
     }
 
     override suspend fun verifyPhoneOtp(code: String): OtpVerifyResult {
-        val session = currentSession() ?: return OtpVerifyResult.Failed(OtpFailure.SESSION_EXPIRED)
+        val session = currentSession() ?: run {
+            AppLog.w(TAG) { "cannot verify OTP: no valid session" }
+            return OtpVerifyResult.Failed(OtpFailure.SESSION_EXPIRED)
+        }
         return try {
             val user = remote.verifyPhoneOtp(session.accessToken, code)
             store.save(session.copy(user = user.toAuthUser()))
@@ -84,9 +100,13 @@ class AuthRepositoryImpl(
         } catch (e: AuthApiException) {
             when (e.code) {
                 AuthErrorCodes.OTP_INVALID -> OtpVerifyResult.WrongCode(e.attemptsRemaining)
-                else -> OtpVerifyResult.Failed(e.toOtpFailure())
+
+                else -> OtpVerifyResult.Failed(e.toOtpFailure()).also {
+                    AppLog.w(TAG) { "OTP verify rejected: ${e.describe()} -> ${it.reason}" }
+                }
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            AppLog.w(TAG, e) { "OTP verify failed without a usable response: ${e::class.simpleName}" }
             OtpVerifyResult.Failed(OtpFailure.NETWORK)
         }
     }
@@ -98,6 +118,7 @@ class AuthRepositoryImpl(
     private fun AuthApiException.toOtpFailure(): OtpFailure = when {
         status == 401 -> {
             // The token was rejected (expired or revoked): the stored session is useless.
+            AppLog.w(TAG) { "server rejected the access token (401), clearing stored session" }
             store.clear()
             OtpFailure.SESSION_EXPIRED
         }
@@ -118,9 +139,12 @@ class AuthRepositoryImpl(
     }
 
     private companion object {
+        const val TAG = "AuthRepo"
         const val DEFAULT_RETRY_SECONDS = 60
     }
 }
+
+private fun AuthApiException.describe() = "status=$status code=$code"
 
 private fun AuthApiException.toAuthFailure(): AuthFailure = when {
     status == 429 || code == AuthErrorCodes.TOO_MANY_REQUESTS -> AuthFailure.TOO_MANY_REQUESTS

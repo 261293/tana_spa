@@ -1,6 +1,7 @@
 package com.tana.spa.feature.auth.presentation.manipulator
 
 import androidx.lifecycle.viewModelScope
+import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
 import com.tana.spa.feature.auth.domain.model.OtpFailure
 import com.tana.spa.feature.auth.domain.model.OtpSendResult
@@ -28,21 +29,33 @@ class VerifyPhoneViewModel(
     init {
         val session = getCurrentSession()
         when {
-            session == null -> sendEffect(VerifyPhoneEffect.NavigateToLogin)
+            session == null -> {
+                AppLog.w(logTag) { "no valid session, sending user back to login" }
+                sendEffect(VerifyPhoneEffect.NavigateToLogin)
+            }
 
-            session.user.phoneVerified -> sendEffect(VerifyPhoneEffect.NavigateHome)
+            session.user.phoneVerified -> {
+                AppLog.i(logTag) { "phone already verified, skipping" }
+                sendEffect(VerifyPhoneEffect.NavigateHome)
+            }
 
             // Arriving here means a code is wanted: send it without making the user ask.
             else -> send()
         }
     }
 
-    override fun onEvent(event: VerifyPhoneEvent) {
+    override fun handleEvent(event: VerifyPhoneEvent) {
         when (event) {
             is VerifyPhoneEvent.CodeChanged -> onCodeChanged(event.value)
+
             VerifyPhoneEvent.Submit -> verify()
+
             VerifyPhoneEvent.Resend -> send()
-            VerifyPhoneEvent.Skip -> sendEffect(VerifyPhoneEffect.NavigateHome)
+
+            VerifyPhoneEvent.Skip -> {
+                AppLog.i(logTag) { "user skipped phone verification" }
+                sendEffect(VerifyPhoneEffect.NavigateHome)
+            }
         }
     }
 
@@ -54,7 +67,10 @@ class VerifyPhoneViewModel(
     }
 
     private fun send() {
-        if (sendInFlight || state.value.resendSecondsLeft > 0) return
+        if (sendInFlight || state.value.resendSecondsLeft > 0) {
+            AppLog.d(logTag) { "send ignored: inFlight=$sendInFlight cooldown=${state.value.resendSecondsLeft}s" }
+            return
+        }
         sendInFlight = true
         setState { copy(isSending = true, message = null) }
         viewModelScope.launch {
@@ -65,6 +81,7 @@ class VerifyPhoneViewModel(
             }
             when (result) {
                 is OtpSendResult.Sent -> {
+                    AppLog.i(logTag) { "code sent: resendAfter=${result.resendAfterSeconds}s expiresIn=${result.expiresInSeconds}s" }
                     setState {
                         copy(
                             isSending = false,
@@ -77,9 +94,13 @@ class VerifyPhoneViewModel(
                     startCountdown(result.resendAfterSeconds)
                 }
 
-                OtpSendResult.AlreadyVerified -> sendEffect(VerifyPhoneEffect.NavigateHome)
+                OtpSendResult.AlreadyVerified -> {
+                    AppLog.i(logTag) { "server says phone already verified" }
+                    sendEffect(VerifyPhoneEffect.NavigateHome)
+                }
 
                 is OtpSendResult.RateLimited -> {
+                    AppLog.w(logTag) { "send rate limited: retryAfter=${result.retryAfterSeconds}s" }
                     setState { copy(isSending = false) }
                     if (result.retryAfterSeconds <= MAX_COUNTDOWN_SECONDS) {
                         // Typically "a code was just sent": show the countdown instead of an error.
@@ -90,6 +111,7 @@ class VerifyPhoneViewModel(
                 }
 
                 is OtpSendResult.Failed -> {
+                    AppLog.w(logTag) { "send failed: ${result.reason}" }
                     if (result.reason == OtpFailure.SESSION_EXPIRED) {
                         sendEffect(VerifyPhoneEffect.NavigateToLogin)
                     } else {
@@ -104,18 +126,23 @@ class VerifyPhoneViewModel(
         val current = state.value
         if (current.isVerifying || current.code.length != AuthValidation.OTP_CODE_LENGTH) return
         val code = current.code
+        AppLog.i(logTag) { "verifying code" }
         setState { copy(isVerifying = true, message = null) }
         viewModelScope.launch {
             when (val result = verifyOtp(code)) {
                 OtpVerifyResult.Verified -> {
+                    AppLog.i(logTag) { "phone verified" }
                     setState { copy(isVerifying = false) }
                     sendEffect(VerifyPhoneEffect.NavigateHome)
                 }
 
-                is OtpVerifyResult.WrongCode ->
+                is OtpVerifyResult.WrongCode -> {
+                    AppLog.w(logTag) { "wrong code: attemptsRemaining=${result.attemptsRemaining}" }
                     setState { copy(isVerifying = false, code = "", message = VerifyMessage.WrongCode(result.attemptsRemaining)) }
+                }
 
                 is OtpVerifyResult.Failed -> {
+                    AppLog.w(logTag) { "verify failed: ${result.reason}" }
                     if (result.reason == OtpFailure.SESSION_EXPIRED) {
                         sendEffect(VerifyPhoneEffect.NavigateToLogin)
                     } else {

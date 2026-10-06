@@ -1,6 +1,7 @@
 package com.tana.spa.feature.assistant.presentation.manipulator
 
 import androidx.lifecycle.viewModelScope
+import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
 import com.tana.spa.feature.assistant.domain.model.AssistantReply
 import com.tana.spa.feature.assistant.domain.model.Author
@@ -23,7 +24,7 @@ class ChatViewModel(private val startChat: StartChatUseCase, private val sendMes
         requestGreeting()
     }
 
-    override fun onEvent(event: ChatEvent) {
+    override fun handleEvent(event: ChatEvent) {
         when (event) {
             // Capped: an unbounded paste would be sent to the model verbatim.
             is ChatEvent.InputChanged -> setState { copy(input = event.value.take(MAX_INPUT_LENGTH)) }
@@ -60,15 +61,16 @@ class ChatViewModel(private val startChat: StartChatUseCase, private val sendMes
 
     private fun launchRequest(call: suspend () -> AssistantReply) {
         requestInFlight = true
+        AppLog.i(logTag) { "requesting assistant reply (history=${state.value.messages.size} messages)" }
         setState { copy(isReplying = true, failed = false) }
         viewModelScope.launch {
             val reply = try {
                 call()
             } catch (e: CancellationException) {
                 throw e
-            } catch (_: Exception) {
-                // Any gateway failure (offline, timeout, model error) is retryable; the details are
-                // the gateway's to log.
+            } catch (e: Exception) {
+                // Any gateway failure (offline, timeout, model error) is retryable.
+                AppLog.w(logTag, e) { "assistant request failed" }
                 null
             } finally {
                 requestInFlight = false
@@ -76,6 +78,9 @@ class ChatViewModel(private val startChat: StartChatUseCase, private val sendMes
             if (reply == null) {
                 setState { copy(isReplying = false, failed = true) }
             } else {
+                AppLog.i(logTag) {
+                    "assistant replied: chars=${reply.text.length} progress=${reply.progress} finished=${reply.finished}"
+                }
                 setState {
                     copy(
                         messages = messages + newMessage(Author.ASSISTANT, reply.text),

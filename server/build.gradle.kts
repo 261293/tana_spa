@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.ktor.serverRateLimit)
     implementation(libs.ktor.serverCors)
     implementation(libs.ktor.serverCallLogging)
+    implementation(libs.ktor.serverCallId)
     implementation(libs.ktor.serverForwardedHeader)
     implementation(libs.libphonenumber)
     implementation(libs.kotlinx.coroutines.core)

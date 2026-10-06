@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.tana.spa.core.logging.AppLog
 
 /** Remembers a simple in-memory back-stack navigator for the given [start] route. */
 @Composable
@@ -18,11 +19,13 @@ class MutableNavigator(start: String) : Navigator {
         private set
 
     override fun navigate(route: String) {
+        AppLog.i(TAG) { "navigate $current -> $route (depth ${stack.size + 1})" }
         stack.add(route)
         current = route
     }
 
     override fun replaceAll(route: String) {
+        AppLog.i(TAG) { "replaceAll $current -> $route" }
         stack.clear()
         stack.add(route)
         current = route
@@ -30,8 +33,16 @@ class MutableNavigator(start: String) : Navigator {
 
     override fun back() {
         if (stack.size > 1) {
+            val from = current
             stack.removeAt(stack.lastIndex)
             current = stack.last()
+            AppLog.i(TAG) { "back $from -> $current (depth ${stack.size})" }
+        } else {
+            AppLog.d(TAG) { "back ignored at root $current" }
         }
+    }
+
+    private companion object {
+        const val TAG = "Nav"
     }
 }
