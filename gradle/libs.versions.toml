@@ -25,7 +25,7 @@ kotlinx-browser = "0.5.0"
 kotlinx-serialization = "1.11.0"
 ktor = "3.6.0"
 logback = "1.6.5"
-material3 = "1.11.0-alpha07"
+material3 = "1.13.0-alpha01"
 sqldelight = "2.4.0"
 
 [libraries]
