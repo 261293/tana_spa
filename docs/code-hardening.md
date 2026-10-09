@@ -90,9 +90,10 @@ stripped archive build, Kotlin and Swift declaration names should be gone from t
   be committed or shipped. Archive it per release (Play Console accepts an upload, and the
   AAB/`DebugSymbols` upload covers the Play crash reports). Not as a public CI artifact: on a
   public repository that hands every reader the deobfuscation key.
-- **Sign the release build.** `assembleRelease` currently produces
-  `androidApp-release-unsigned.apk` — there is no signing config in the repo on purpose. Keep the
-  keystore out of git, feed it from the CI secret store, and prefer Play App Signing.
+- **Sign the release build.** Android reads its keystore from the environment or a gitignored
+  `androidApp/keystore.properties`, and iOS signs `Release` with an Apple Distribution identity;
+  with no Android credentials present the build stays unsigned instead of failing. Setup,
+  verification and the CI wiring: [release-signing.md](release-signing.md).
 - **Point the client at HTTPS.** `Constants.apiBaseUrl` returns a `http://localhost`-style dev URL.
   Cleartext is blocked outside debug builds, so a release build must be given the deployed HTTPS
   URL or every call fails.

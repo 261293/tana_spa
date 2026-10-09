@@ -23,3 +23,11 @@ node_modules/
 
 # Local secrets
 .env
+
+# Release signing material: keystores, certificates and their passwords never go in git
+# (docs/release-signing.md)
+*.jks
+*.keystore
+keystore.properties
+*.p12
+*.mobileprovision

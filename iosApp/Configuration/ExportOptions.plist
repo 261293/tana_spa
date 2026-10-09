@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Options for `xcodebuild -exportArchive`, i.e. turning the archive into a signed IPA.
+     Fill in teamID (the same value as TEAM_ID in Config.xcconfig) before the first export;
+     docs/release-signing.md has the full command. For TestFlight-only builds outside App Store
+     Connect, change method to release-testing. -->
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>app-store-connect</string>
+    <key>teamID</key>
+    <string>REPLACE_WITH_TEAM_ID</string>
+    <key>signingStyle</key>
+    <string>automatic</string>
+    <!-- dSYMs go to App Store Connect for crash symbolication, not into the shipped IPA. -->
+    <key>uploadSymbols</key>
+    <true/>
+    <key>stripSwiftSymbols</key>
+    <true/>
+</dict>
+</plist>

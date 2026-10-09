@@ -1,8 +1,31 @@
+import java.util.Properties
 import java.util.zip.ZipFile
 
 plugins {
     alias(libs.plugins.androidApplication)
 }
+
+// --------------------------------------------------------------------- release signing material
+// Credentials come from the environment, or from a gitignored keystore.properties for local
+// release builds; the keystore itself never lives in the repo. Nothing is defaulted on purpose:
+// with no credentials the release build stays *unsigned* rather than failing, because CI builds
+// it only to check that R8 ran and a fork has no keys. See docs/release-signing.md.
+val keystoreProperties: Properties? = file("keystore.properties")
+    .takeIf { it.isFile }
+    ?.let { propertiesFile -> Properties().apply { propertiesFile.inputStream().use(::load) } }
+
+fun signingSecret(variable: String, property: String): String? =
+    (providers.environmentVariable(variable).orNull ?: keystoreProperties?.getProperty(property))
+        ?.takeIf { it.isNotBlank() }
+
+val releaseKeystore = signingSecret("ANDROID_KEYSTORE_FILE", "storeFile")?.let(rootProject::file)
+val releaseStorePassword = signingSecret("ANDROID_KEYSTORE_PASSWORD", "storePassword")
+val releaseKeyAlias = signingSecret("ANDROID_KEY_ALIAS", "keyAlias")
+// A keystore created by `keytool -genkeypair` usually protects store and key with one password.
+val releaseKeyPassword = signingSecret("ANDROID_KEY_PASSWORD", "keyPassword") ?: releaseStorePassword
+val canSignRelease = releaseKeystore?.isFile == true &&
+    releaseStorePassword != null &&
+    releaseKeyAlias != null
 
 // AGP 9 provides built-in Kotlin compilation, so no kotlin-android plugin is applied here.
 // The Compose plugins ship with the Kotlin Gradle plugin already on the build classpath,
@@ -26,6 +49,23 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    signingConfigs {
+        if (canSignRelease) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+                // minSdk is 31, so v3 is the scheme every supported device verifies - apksigner
+                // adds v2 only when the minimum SDK dips below 28, which is why this stays
+                // enabled. v1 (JAR signing) is off: it would only add a readable manifest of
+                // every file in the APK and a weaker signature to keep valid.
+                enableV1Signing = false
+                enableV2Signing = true
+                enableV3Signing = true
+            }
+        }
+    }
     buildTypes {
         getByName("debug") {
             // Readable stack traces and fast builds matter more than a hardened APK here.
@@ -39,6 +79,9 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             isDebuggable = false
+            // Null when no credentials were provided: the APK is then built unsigned, and
+            // `verifyReleaseObfuscation` says so.
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -101,9 +144,14 @@ tasks.register("verifyReleaseObfuscation") {
             "${apk.name} still exposes: ${leaked.joinToString()}. " +
                 "Check isMinifyEnabled and the keep rules in proguard-rules.pro."
         }
+        // An APK signed with v2/v3 carries the "APK Sig Block 42" magic between its entries and
+        // the central directory. Reported, not enforced: CI has no keys and builds unsigned.
+        val signed = apk.readBytes().toString(Charsets.ISO_8859_1).contains("APK Sig Block 42")
         logger.lifecycle(
             "${apk.name}: ${dex.size} dex file(s), ${mustBeRenamed.size} probe classes obfuscated, " +
-                "${mustBeStripped.size} debug messages stripped, mapping at $mapping",
+                "${mustBeStripped.size} debug messages stripped, " +
+                (if (signed) "signed (v2/v3)" else "UNSIGNED - see docs/release-signing.md") +
+                ", mapping at $mapping",
         )
     }
 }
