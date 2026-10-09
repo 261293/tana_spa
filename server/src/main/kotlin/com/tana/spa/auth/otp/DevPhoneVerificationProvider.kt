@@ -13,8 +13,12 @@ import java.util.concurrent.ConcurrentHashMap
  * exercised locally and in tests without credentials or cost. Never used in production
  * (see [PhoneVerificationProvider.fromEnvironment]).
  */
-class DevPhoneVerificationProvider(private val ttl: Duration = Duration.ofMinutes(10), private val clock: () -> Instant = Instant::now) :
-    PhoneVerificationProvider {
+class DevPhoneVerificationProvider(
+    private val ttl: Duration = Duration.ofMinutes(10),
+    private val clock: () -> Instant = Instant::now,
+    /** Skips verification: [check] approves any code. Only for the dev/SIT environments. */
+    private val acceptAnyCode: Boolean = false,
+) : PhoneVerificationProvider {
 
     override val name = "dev"
 
@@ -31,6 +35,11 @@ class DevPhoneVerificationProvider(private val ttl: Duration = Duration.ofMinute
     }
 
     override fun check(phoneE164: String, code: String): Boolean {
+        if (acceptAnyCode) {
+            entries.remove(phoneE164)
+            log.warn("DEV OTP bypass: approving any code for {}", phoneE164)
+            return true
+        }
         val entry = entries[phoneE164] ?: return false
         if (!clock().isBefore(entry.expiresAt)) {
             entries.remove(phoneE164, entry)

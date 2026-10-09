@@ -38,18 +38,27 @@ interface PhoneVerificationProvider {
          *  - `TWILIO_API_KEY_SECRET`
          */
         fun fromEnvironment(env: Map<String, String> = System.getenv()): PhoneVerificationProvider {
+            val appEnv = env["APP_ENV"]?.trim()?.lowercase()
+            // Dev/SIT: no real verification (and no SMS cost), even if Twilio happens to be configured.
+            if (appEnv in SKIP_VERIFICATION_ENVS) {
+                log.warn("APP_ENV={}: phone verification is skipped, ANY code is accepted.", appEnv)
+                return DevPhoneVerificationProvider(acceptAnyCode = true)
+            }
             val service = env["TWILIO_VERIFY_SERVICE_SID"]?.takeIf { it.isNotBlank() }
             val keySid = env["TWILIO_API_KEY_SID"]?.takeIf { it.isNotBlank() }
             val keySecret = env["TWILIO_API_KEY_SECRET"]?.takeIf { it.isNotBlank() }
             if (service != null && keySid != null && keySecret != null) {
                 return TwilioVerifyProvider(apiKeySid = keySid, apiKeySecret = keySecret, serviceSid = service)
             }
-            check(env["APP_ENV"] != "production") {
-                "Set TWILIO_VERIFY_SERVICE_SID, TWILIO_API_KEY_SID and TWILIO_API_KEY_SECRET when APP_ENV=production"
+            check(appEnv != "production" && appEnv != "uat") {
+                "Set TWILIO_VERIFY_SERVICE_SID, TWILIO_API_KEY_SID and TWILIO_API_KEY_SECRET when APP_ENV=$appEnv"
             }
             log.warn("Twilio is not configured: using the DEV phone verifier. Codes are written to this log, not sent.")
             return DevPhoneVerificationProvider()
         }
+
+        /** Environments where the OTP step is not enforced. UAT and production always verify. */
+        private val SKIP_VERIFICATION_ENVS = setOf("dev", "development", "sit", "local")
     }
 }
 
