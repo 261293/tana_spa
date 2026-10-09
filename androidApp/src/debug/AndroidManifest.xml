@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Debug only: lets the emulator reach the local Ktor server (http://10.0.2.2) without TLS.
-         Release builds keep the default of HTTPS only. -->
-    <application android:usesCleartextTraffic="true" />
+         src/main sets this to false for every other build type, and the merger refuses to pick a
+         winner between two explicit values, so the override has to be spelled out here. -->
+    <application
+        android:usesCleartextTraffic="true"
+        tools:replace="android:usesCleartextTraffic" />
 
 </manifest>
