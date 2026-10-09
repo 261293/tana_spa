@@ -8,6 +8,10 @@ group = "com.tana.spa"
 version = "1.0.0"
 application {
     mainClass = "com.tana.spa.ApplicationKt"
+    // Run in UTC whatever the developer machine is set to, so a local run matches the
+    // container and CI. It also keeps the JDBC driver from announcing a legacy zone id
+    // (a JVM on Windows/Vietnam defaults to Asia/Saigon) that PostgreSQL may not know.
+    applicationDefaultJvmArgs = listOf("-Duser.timezone=UTC")
 }
 
 dependencies {
@@ -37,4 +41,10 @@ dependencies {
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.ktor.clientContentNegotiation)
     testImplementation(libs.kotlin.testJunit)
+}
+
+tasks.withType<Test>().configureEach {
+    // Same reason as applicationDefaultJvmArgs: deterministic timestamps, and the embedded
+    // PostgreSQL sees the same zone locally as it does on CI.
+    jvmArgs("-Duser.timezone=UTC")
 }

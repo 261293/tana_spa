@@ -62,6 +62,34 @@ class OtpConfigTest {
     }
 
     @Test
+    fun uatAlsoRefusesTheDevProvider() {
+        assertFailsWith<IllegalStateException> { PhoneVerificationProvider.fromEnvironment(mapOf("APP_ENV" to "uat")) }
+    }
+
+    @Test
+    fun devAndSitAcceptAnyCodeEvenWhenTwilioIsConfigured() {
+        for (env in listOf("dev", "development", "SIT", "local")) {
+            val provider = PhoneVerificationProvider.fromEnvironment(
+                mapOf(
+                    "APP_ENV" to env,
+                    "TWILIO_VERIFY_SERVICE_SID" to "VA1",
+                    "TWILIO_API_KEY_SID" to "SK1",
+                    "TWILIO_API_KEY_SECRET" to "x",
+                ),
+            )
+            assertEquals("dev", provider.name)
+            assertEquals(true, provider.check("+84901234567", "000000"))
+        }
+    }
+
+    @Test
+    fun theDefaultDevProviderStillChecksTheCode() {
+        val provider = PhoneVerificationProvider.fromEnvironment(emptyMap())
+        provider.start("+84901234567", null)
+        assertEquals(false, provider.check("+84901234567", "not-it"))
+    }
+
+    @Test
     fun twilioIsSelectedWhenFullyConfigured() {
         val provider = PhoneVerificationProvider.fromEnvironment(
             mapOf(

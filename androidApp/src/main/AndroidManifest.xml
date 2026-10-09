@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- allowBackup=false keeps the stored session out of `adb backup` and cloud backups, so a
+         decompiled APK cannot be paired with a copy of someone else's app data.
+         usesCleartextTraffic=false blocks plain HTTP; src/debug overrides it so the emulator can
+         still reach the local Ktor server on http://10.0.2.2. -->
     <application
         android:name=".TanaApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:usesCleartextTraffic="false"
         android:label="Tana SPA"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">

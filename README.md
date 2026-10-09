@@ -44,6 +44,18 @@ plugin (androidLibrary + jvm + iosArm64 + iosSimulatorArm64 + wasmJs); UI module
 - Server: `./gradlew :server:run` (try http://localhost:8080/ and /demo)
 - iOS app: open [/iosApp](./iosApp) in Xcode and run it (requires macOS/Xcode).
 
+## Release builds
+
+Release artifacts are shrunk and obfuscated so a downloaded APK, jar or web bundle does not
+decompile back to readable Kotlin — see [docs/code-hardening.md](docs/code-hardening.md) for what
+that does and does not protect, and [docs/release-signing.md](docs/release-signing.md) for keys
+and store identities.
+
+- Android APK (R8; signed when a keystore is configured): `./gradlew :androidApp:assembleRelease`
+- Android bundle for Play: `./gradlew :androidApp:bundleRelease`
+- Desktop app image (ProGuard): `./gradlew :composeApp:createReleaseDistributable`
+- Check the hardening held: `./gradlew :androidApp:verifyReleaseObfuscation :composeApp:verifyWebDistributionStripped`
+
 ## Running tests
 
 - Feed feature tests: `./gradlew :feature:Feed:jvmTest`

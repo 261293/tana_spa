@@ -43,7 +43,10 @@ Vietnamese carriers require a **registered brand name (alphanumeric sender ID)**
 | Implementation | When |
 |---|---|
 | `TwilioVerifyProvider` | selected when `TWILIO_VERIFY_SERVICE_SID`, `TWILIO_API_KEY_SID`, `TWILIO_API_KEY_SECRET` are all set |
-| `DevPhoneVerificationProvider` | otherwise; real random codes written to the **server log**, never sent. **Refused when `APP_ENV=production`.** |
+| `DevPhoneVerificationProvider` | otherwise; real random codes written to the **server log**, never sent. **Refused when `APP_ENV` is `production` or `uat`.** |
+| `DevPhoneVerificationProvider(acceptAnyCode = true)` | **always** when `APP_ENV` is `dev`, `development`, `sit` or `local`, even if Twilio is configured: any 4-10 digit code is approved, no SMS is sent. |
+
+Verification is enforced only in `uat` and `production`.
 
 Adding another vendor = one new class. Routes, limits and the database do not change.
 
