@@ -9,4 +9,5 @@ WORKDIR /app
 COPY server/build/libs/*-all.jar app.jar
 USER app
 EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# UTC everywhere: the fat jar is launched directly, so applicationDefaultJvmArgs does not apply here.
+ENTRYPOINT ["java", "-Duser.timezone=UTC", "-jar", "app.jar"]

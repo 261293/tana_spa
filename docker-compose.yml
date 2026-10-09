@@ -1,11 +1,16 @@
 # Local dev stack.  Usage:
 #   cp .env.example .env
-#   docker compose up -d db              # database only (run the server with Gradle)
+#   docker compose up -d --build db      # database only (run the server with Gradle)
 #   ./gradlew :server:buildFatJar                # the server image copies this jar in
 #   docker compose --profile app up -d --build   # database + server container
 services:
   db:
-    image: postgres:17
+    # postgres:17 plus tzdata-legacy, so clients that send a backward-compatibility zone id
+    # (a JVM on Windows/Vietnam sends Asia/Saigon) can connect.  See docker/postgres.Dockerfile.
+    image: tana-spa-db
+    build:
+      context: docker
+      dockerfile: postgres.Dockerfile
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-tana_spa}
       POSTGRES_USER: ${DATABASE_USER:-tana}
