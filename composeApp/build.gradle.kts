@@ -73,6 +73,11 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
+            // Dispatchers.Main on the desktop is the Swing event queue, and coroutines only
+            // provides it through this artifact (ServiceLoader). Without it the first
+            // `viewModelScope.launch` - MviViewModel.sendEffect - dies with
+            // "Module with the Main dispatcher is missing".
+            implementation(libs.kotlinx.coroutines.swing)
         }
     }
 }
