@@ -1,6 +1,7 @@
 # Local dev stack.  Usage:
 #   cp .env.example .env
 #   docker compose up -d db              # database only (run the server with Gradle)
+#   ./gradlew :server:buildFatJar                # the server image copies this jar in
 #   docker compose --profile app up -d --build   # database + server container
 services:
   db:

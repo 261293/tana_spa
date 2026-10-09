@@ -21,7 +21,7 @@ concurrency:
 
 env:
   # Kept in one place so every job builds with the JDK the project's daemon toolchain asks for
-  # (gradle/gradle-daemon-jvm.properties: Amazon Corretto 21).
+  # (gradle/gradle-daemon-jvm.properties asks for Java 21; any vendor satisfies it).
   JAVA_VERSION: "21"
   JAVA_DISTRIBUTION: corretto
 
