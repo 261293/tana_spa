@@ -146,7 +146,8 @@ jobs:
   build:
     name: Build (web, Android, server)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # The release builds run R8 and ProGuard, which the debug builds do not.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -166,10 +167,24 @@ jobs:
       - name: Build web, Android debug and server
         run: >
           ./gradlew
-          :composeApp:wasmJsBrowserDistribution
+          :composeApp:verifyWebDistributionStripped
           :androidApp:assembleDebug
           :server:assemble
           --console=plain --stacktrace
+      # The shipped artifacts must stay unreadable: `verifyReleaseObfuscation` builds the release
+      # APK and fails if R8 left original class names or debug log messages in it, and
+      # `proguardReleaseJars` is the equivalent shrink/obfuscate pass for the desktop jar.
+      # See docs/code-hardening.md.
+      - name: Verify release hardening (Android, desktop)
+        run: >
+          ./gradlew
+          :androidApp:verifyReleaseObfuscation
+          :composeApp:proguardReleaseJars
+          --console=plain --stacktrace
+      # Note: the R8 mapping is deliberately *not* uploaded as a build artifact. On a public
+      # repository that would hand everyone the key to deobfuscate - and this APK is unsigned and
+      # never shipped, so its mapping is worthless anyway. The release pipeline that signs an APK
+      # is the one that has to archive its own mapping.txt.
 
   ios:
     name: Build (iOS)

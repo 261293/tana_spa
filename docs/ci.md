@@ -8,7 +8,8 @@ Workflow: `.github/workflows/ci.yml`. It runs on each pull request into `main` a
 | **Secret scan (gitleaks)** | Keys, tokens and passwords committed in this PR's commits | `gitleaks git --redact -v .` |
 | **Code style (ktlint)** | Inconsistent formatting, wildcard imports, long lines | `./gradlew ktlintCheck` (fix: `./gradlew ktlintFormat`) |
 | **Unit tests** | Regressions in shared code, features and the backend (real embedded PostgreSQL) | `./gradlew jvmTest :server:test` |
-| **Build (web, Android, server)** | Code that compiles in tests but not in the shipped app; a stale `kotlin-js-store/wasm/yarn.lock` | `./gradlew :composeApp:wasmJsBrowserDistribution :androidApp:assembleDebug :server:assemble` |
+| **Build (web, Android, server)** | Code that compiles in tests but not in the shipped app; a stale `kotlin-js-store/wasm/yarn.lock`; source maps in the web bundle | `./gradlew :composeApp:verifyWebDistributionStripped :androidApp:assembleDebug :server:assemble` |
+| ↳ same job, release hardening | A release APK or desktop jar that ships unobfuscated — minification turned off, a keep rule grown too broad ([docs/code-hardening.md](code-hardening.md)) | `./gradlew :androidApp:verifyReleaseObfuscation :composeApp:proguardReleaseJars` |
 | **Build (iOS)** | iOS-only compile or link errors (macOS runner) | on a Mac: `./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64` |
 | **CI passed** | Aggregates all of the above into one check | n/a |
 
