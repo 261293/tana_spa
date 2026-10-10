@@ -41,6 +41,7 @@ include(":core:navigation")
 include(":core:network")
 include(":core:ui")
 
+include(":feature:AppUpdate")
 include(":feature:Assistant")
 include(":feature:Auth")
 include(":feature:Explore")

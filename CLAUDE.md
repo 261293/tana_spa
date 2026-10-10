@@ -43,6 +43,7 @@ Read `ARCHITECTURE.md` and `docs/architecture.md` for the layer rules. The parts
 - **Errors as values:** repositories return sealed results / `AppResult`; `appResultOf` rethrows `CancellationException`. Don't catch `Exception` without rethrowing cancellation first.
 - **Platform source sets:** every KMP module gets android/jvm/iosArm64/iosSimulatorArm64/wasmJs from `build-logic` convention plugins (`convention.kmp.multiplatform`, `convention.kmp.compose`). The web target uses an in-memory `KeyValueCache` (no SQLDelight driver), so the session is lost on browser reload.
 - **Server** (`server/`): Ktor Netty, single `authModule` installs CallId/CallLogging/CORS/RateLimit/StatusPages/JWT and the `/api/v1/auth` routes. JDBC and password hashing run on `Dispatchers.IO` inside services. Schema is Flyway migrations; `docs/database-design.md` explains the model.
+- **App update gate:** `GET /api/v1/app-update` serves one row (`app_update_config`, V7) holding the supported floor, the latest release and an escalation flag; `feature/AppUpdate` compares it against the installed version and shows a blocking or dismissible modal. It **fails open** everywhere — no row, no network, no store link configured, or `app_update_gate` off all mean no prompt — because it is the one feature that can lock out every install. Rules and the decision table: `docs/adr/0003-app-update-gate.md`.
 - **Dev URLs:** `Constants.apiBaseUrl` points Android at `10.0.2.2:8081` and everything else at `localhost:8081`. The server reads `PORT` (default `Constants.SERVER_PORT` = 8081); 8080 is the wasm dev server.
 
 ## Logging (required for new code)
@@ -89,7 +90,7 @@ WCAG 2.2 checks, screen templates): `core:ui` plus the `kmp-compose-multiplatfor
 
 ## Gotchas
 
-- Files are edited on Windows: `settings.gradle.kts` uses CRLF while most sources are LF. Preserve each file's line endings when scripting edits.
+- Line endings are mixed and have changed between checkouts: `.env.example` is CRLF, while `CLAUDE.md`, `README.md`, `GLOSSARY.md` and `settings.gradle.kts` are LF. Measure before scripting an edit and preserve what is there: count carriage-return bytes in Python, because Git Bash grep reads the usual escape as a literal `r` and reports a meaningless number.
 - `settings.gradle.kts` is the only authority on module paths; re-check `README.md` against it after adding a module.
 - Kotlin strings in Compose resources don't support `\'`.
 - Several screens (Explore, Likes, NewPost, Profile) are placeholders, and `FeedRemoteApiImpl` returns stub data.

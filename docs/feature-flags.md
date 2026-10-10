@@ -31,9 +31,13 @@ that matter, and accept the delay that comes with it.
 | Flag | Ships | What it gates |
 |---|---|---|
 | `phone_otp_verification` | **off** | `POST /auth/phone/otp/send` and `/verify`, and the "verify phone" screen sign-up leads into |
+| `app_update_gate` | **on** | `GET /api/v1/app-update` and the force/optional update prompts. See `docs/adr/0003-app-update-gate.md` |
 
-A flag is a temporary switch, not an architecture. Delete the entry once the feature is either
-healthy or gone for good — the stored rows become "no opinion" and stop being read.
+Most flags are temporary switches, not architecture: delete the entry once the feature is
+either healthy or gone for good, and the stored rows become "no opinion" and stop being read.
+`app_update_gate` is the exception — a permanent kill switch, because it is the only remote way
+to stop a bad `minimum_version` locking every installed app out. It ships **on**, which is safe
+because a client that cannot read the config shows no prompt at all.
 
 ### Adding one
 

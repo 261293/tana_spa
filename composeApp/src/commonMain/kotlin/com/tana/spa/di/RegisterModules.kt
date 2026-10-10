@@ -3,6 +3,7 @@ package com.tana.spa.di
 import com.tana.spa.core.cache.di.cacheModule
 import com.tana.spa.core.featureflags.di.featureFlagsModule
 import com.tana.spa.core.network.networkModule
+import com.tana.spa.feature.appupdate.di.appUpdateModule
 import com.tana.spa.feature.assistant.di.assistantModule
 import com.tana.spa.feature.auth.di.authModule
 import com.tana.spa.feature.feed.di.feedModule
@@ -18,6 +19,7 @@ fun appModules(): List<Module> = listOf(
     cacheModule,
     appModule,
     featureFlagsModule,
+    appUpdateModule,
     authModule,
     assistantModule,
     feedModule,

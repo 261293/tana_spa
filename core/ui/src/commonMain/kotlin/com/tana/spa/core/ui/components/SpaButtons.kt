@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,6 +72,26 @@ fun SpaSocialButton(text: String, icon: Painter, onClick: () -> Unit, modifier: 
     ) {
         Image(painter = icon, contentDescription = null, modifier = Modifier.size(30.dp))
         androidx.compose.foundation.layout.Spacer(Modifier.size(16.dp))
+        Text(text = text, style = SpaTheme.textStyles.buttonLabel)
+    }
+}
+
+/** Full-width low-emphasis action, for the dismiss half of a two-button choice. */
+@Composable
+fun SpaSecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        shape = ButtonShape,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surface,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+        ),
+        modifier = modifier.fillMaxWidth().height(50.dp),
+    ) {
         Text(text = text, style = SpaTheme.textStyles.buttonLabel)
     }
 }

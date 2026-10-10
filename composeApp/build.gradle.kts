@@ -52,6 +52,7 @@ kotlin {
             implementation(projects.core.network)
             implementation(projects.core.cache)
             implementation(projects.core.featureflags)
+            implementation(projects.feature.appUpdate)
             implementation(projects.feature.assistant)
             implementation(projects.feature.auth)
             implementation(projects.feature.explore)

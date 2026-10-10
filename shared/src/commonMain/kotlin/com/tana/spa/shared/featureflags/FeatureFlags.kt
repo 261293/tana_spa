@@ -7,6 +7,14 @@ enum class FeatureFlag(val key: String, val defaultEnabled: Boolean, val descrip
         defaultEnabled = false,
         description = "Phone-number verification with SMS one-time codes",
     ),
+    APP_UPDATE_GATE(
+        key = "app_update_gate",
+        // A kill switch, not a temporary flag: it is the only remote way to stop a bad
+        // minimumVersion locking every installed app out. On because an absent config row
+        // already means "no gate".
+        defaultEnabled = true,
+        description = "Force and optional app-update prompts driven by app_update_config",
+    ),
     ;
 
     val envName: String = "FEATURE_" + key.uppercase()
