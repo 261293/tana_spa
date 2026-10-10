@@ -136,7 +136,7 @@ private fun ChatHeader(onClose: () -> Unit) {
         Column(Modifier.weight(1f).padding(start = 12.dp)) {
             Text(
                 text = stringResource(Res.string.assistant_name),
-                fontSize = 16.sp,
+                style = SpaTheme.textStyles.prompt,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.semantics { heading() },
@@ -145,7 +145,7 @@ private fun ChatHeader(onClose: () -> Unit) {
                 Box(Modifier.size(7.dp).background(SpaTheme.extraColors.success, CircleShape))
                 Text(
                     text = stringResource(Res.string.assistant_subtitle),
-                    fontSize = 12.sp,
+                    style = SpaTheme.textStyles.label,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 6.dp),
                 )
@@ -179,7 +179,7 @@ private fun ProgressStrip(progress: Float) {
         Column(Modifier.weight(1f)) {
             Text(
                 text = stringResource(Res.string.chat_progress_label),
-                fontSize = 11.sp,
+                style = SpaTheme.textStyles.overline,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Box(
@@ -201,7 +201,7 @@ private fun ProgressStrip(progress: Float) {
         }
         Text(
             text = "$percent%",
-            fontSize = 12.sp,
+            style = SpaTheme.textStyles.label,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier
@@ -260,7 +260,7 @@ private fun AssistantRow(message: ChatMessage) {
             ) {
                 // One bubble, one paragraph per blank-line-separated chunk, as in the reference.
                 message.text.split("\n\n").filter { it.isNotBlank() }.forEach { paragraph ->
-                    Text(text = paragraph, fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = paragraph, style = SpaTheme.textStyles.bodyRelaxed, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
         }
@@ -274,8 +274,7 @@ private fun UserRow(message: ChatMessage) {
         BoxWithConstraints {
             Text(
                 text = message.text,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
+                style = SpaTheme.textStyles.bodyRelaxed,
                 color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
                     .widthIn(max = maxWidth * 0.8f)
@@ -330,12 +329,12 @@ private fun FailedRow(onRetry: () -> Unit) {
     ) {
         Text(
             text = stringResource(Res.string.chat_failed),
-            fontSize = 13.sp,
+            style = SpaTheme.textStyles.caption,
             color = MaterialTheme.colorScheme.error,
         )
         Text(
             text = stringResource(Res.string.chat_retry),
-            fontSize = 14.sp,
+            style = SpaTheme.textStyles.body,
             fontWeight = FontWeight.Bold,
             color = SpaTheme.extraColors.link,
             modifier = Modifier
@@ -347,12 +346,8 @@ private fun FailedRow(onRetry: () -> Unit) {
 
 @Composable
 private fun InputBar(value: String, onValueChange: (String) -> Unit, onSend: () -> Unit, canSend: Boolean) {
-    // BasicTextField does not inherit the theme font the way Text does, so it is set explicitly.
-    val textStyle = TextStyle(
-        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
-        fontSize = 15.sp,
-        color = MaterialTheme.colorScheme.onSurface,
-    )
+    // BasicTextField does not inherit the theme font the way Text does, so the token carries it.
+    val textStyle = SpaTheme.textStyles.chatInput.copy(color = MaterialTheme.colorScheme.onSurface)
     val label = stringResource(Res.string.chat_input_label)
     Row(
         modifier = Modifier

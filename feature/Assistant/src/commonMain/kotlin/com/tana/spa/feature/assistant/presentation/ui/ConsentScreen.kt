@@ -17,6 +17,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.feature.assistant.resources.Res
 import com.tana.spa.feature.assistant.resources.back
@@ -52,15 +53,13 @@ fun ConsentScreen(agreed: Boolean, onAgreedChange: (Boolean) -> Unit, onBack: ()
             ) {
                 Text(
                     text = stringResource(Res.string.consent_title),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = SpaTheme.textStyles.screenTitle,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.consent_body),
-                    fontSize = 14.sp,
-                    lineHeight = 22.sp,
+                    style = SpaTheme.textStyles.bodyLoose,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 16.dp),
                 )
@@ -71,7 +70,7 @@ fun ConsentScreen(agreed: Boolean, onAgreedChange: (Boolean) -> Unit, onBack: ()
                     ConsentCheckRow(checked = agreed, onCheckedChange = onAgreedChange) {
                         Text(
                             text = stringResource(Res.string.consent_agree),
-                            fontSize = 14.sp,
+                            style = SpaTheme.textStyles.body,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     }

@@ -42,7 +42,11 @@ internal val SpaColorScheme = lightColorScheme(
 fun AppTheme(content: @Composable () -> Unit) {
     val fontFamily = poppinsFontFamily()
     val typography = remember(fontFamily) { Typography().withFontFamily(fontFamily) }
-    CompositionLocalProvider(LocalSpaExtraColors provides LightExtraColors) {
+    val textStyles = remember(typography) { spaTextStyles(typography) }
+    CompositionLocalProvider(
+        LocalSpaExtraColors provides LightExtraColors,
+        LocalSpaTextStyles provides textStyles,
+    ) {
         MaterialTheme(colorScheme = SpaColorScheme, typography = typography, content = content)
     }
 }

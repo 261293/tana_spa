@@ -69,10 +69,12 @@ in the git history alone. Agents: the `no-ai-attribution` skill has the full lis
 
 ## UI (required for new screens)
 
-Colours come from `MaterialTheme.colorScheme` or `SpaTheme.extraColors` — never a raw `Color(0x…)`
-or a direct `SpaColors` constant in a composable, which would survive a theme change.
-`SpaColorSchemeTest` pins each role to its design token. Sizes stay faithful to the Figma spec
-rather than a rounded scale. Full rules (per-target constraints, the wasm canvas, breakpoints,
+Colours come from `MaterialTheme.colorScheme` or `SpaTheme.extraColors`, text styles from
+`SpaTheme.textStyles` — never a raw `Color(0x…)`, a `SpaColors` constant or an inline `fontSize` in
+a composable. `SpaColors` is the palette the theme is built from, not an API for screens.
+`SpaColorSchemeTest` and `SpaTextStylesTest` pin each token, including which base a text style
+derives from. Sizes stay faithful to the Figma spec rather than a rounded scale, and the app is
+light-only by decision: `docs/adr/0002-light-only-colour-scheme.md`. Full rules (per-target constraints, the wasm canvas, breakpoints,
 WCAG 2.2 checks, screen templates): `core:ui` plus the `kmp-compose-multiplatform` skill's
 `references/ui-design.md`; library candidates are in its `references/libraries.md`.
 

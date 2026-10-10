@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaColors
+import com.tana.spa.core.ui.SpaTheme
 
 private val GroupShape = RoundedCornerShape(10.dp)
 private val ActiveShape = RoundedCornerShape(8.dp)
@@ -81,13 +82,7 @@ fun SpaOtpField(
         }
     }
 
-    val textStyle = TextStyle(
-        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
-        fontSize = 22.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = SpaColors.TextPrimary,
-        textAlign = TextAlign.Center,
-    )
+    val textStyle = SpaTheme.textStyles.otpDigit.copy(color = MaterialTheme.colorScheme.onSurface)
     val activeIndex = value.length.coerceAtMost(length - 1)
     val groups = (0 until length).chunked(groupSize)
 

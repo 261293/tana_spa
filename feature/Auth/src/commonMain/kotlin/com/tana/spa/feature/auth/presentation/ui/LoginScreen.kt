@@ -42,6 +42,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSocialButton
 import com.tana.spa.core.ui.components.SpaTextField
@@ -128,8 +129,7 @@ private fun LoginForm(state: LoginState, onEvent: (LoginEvent) -> Unit) {
     ) {
         Text(
             text = stringResource(Res.string.login_title),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
+            style = SpaTheme.textStyles.screenTitle,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.semantics { heading() },
         )
@@ -183,7 +183,7 @@ private fun LoginForm(state: LoginState, onEvent: (LoginEvent) -> Unit) {
             Text(
                 text = message,
                 color = MaterialTheme.colorScheme.error,
-                fontSize = 14.sp,
+                style = SpaTheme.textStyles.body,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),
             )

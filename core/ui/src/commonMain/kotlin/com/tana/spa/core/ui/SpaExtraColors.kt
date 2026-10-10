@@ -1,8 +1,6 @@
 package com.tana.spa.core.ui
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
@@ -28,9 +26,3 @@ internal val LightExtraColors = SpaExtraColors(
 )
 
 internal val LocalSpaExtraColors = staticCompositionLocalOf { LightExtraColors }
-
-object SpaTheme {
-    val extraColors: SpaExtraColors
-        @Composable @ReadOnlyComposable
-        get() = LocalSpaExtraColors.current
-}

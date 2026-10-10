@@ -61,7 +61,7 @@ fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onCont
                     Text(
                         text = stringResource(Res.string.welcome_bubble),
                         color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 14.sp,
+                        style = SpaTheme.textStyles.body,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -83,19 +83,18 @@ fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onCont
             ) {
                 Text(
                     text = stringResource(Res.string.welcome_greeting),
-                    fontSize = 15.sp,
+                    style = SpaTheme.textStyles.sectionLead,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.welcome_brand),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = SpaTheme.textStyles.brandTitle,
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
                     text = stringResource(Res.string.welcome_body),
-                    fontSize = 15.sp,
+                    style = SpaTheme.textStyles.sectionLead,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 8.dp),
@@ -107,7 +106,7 @@ fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onCont
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 ConsentCheckRow(checked = accepted, onCheckedChange = onAcceptedChange) {
-                    Text(text = acceptText(), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = acceptText(), style = SpaTheme.textStyles.caption, color = MaterialTheme.colorScheme.onSurface)
                 }
                 SpaPrimaryButton(
                     text = stringResource(Res.string.welcome_button),

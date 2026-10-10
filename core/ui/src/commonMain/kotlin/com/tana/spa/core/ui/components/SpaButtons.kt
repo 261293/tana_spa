@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaColors
+import com.tana.spa.core.ui.SpaTheme
 
 private val ButtonShape = RoundedCornerShape(10.dp)
 
@@ -46,7 +47,7 @@ fun SpaPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
                 strokeWidth = 2.dp,
             )
         } else {
-            Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = text, style = SpaTheme.textStyles.buttonLabel)
         }
     }
 }
@@ -70,6 +71,6 @@ fun SpaSocialButton(text: String, icon: Painter, onClick: () -> Unit, modifier: 
     ) {
         Image(painter = icon, contentDescription = null, modifier = Modifier.size(30.dp))
         androidx.compose.foundation.layout.Spacer(Modifier.size(16.dp))
-        Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = text, style = SpaTheme.textStyles.buttonLabel)
     }
 }

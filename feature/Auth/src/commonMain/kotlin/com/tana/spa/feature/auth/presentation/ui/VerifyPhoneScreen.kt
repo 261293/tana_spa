@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaOtpField
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyMessage
@@ -121,8 +122,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
 
         Text(
             text = stringResource(Res.string.verify_title),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
+            style = SpaTheme.textStyles.screenTitle,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 20.dp).semantics { heading() },
@@ -134,7 +134,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
                 // The destination is shown masked, in a pill: enough to spot a wrong number.
                 Text(
                     text = state.maskedPhone,
-                    fontSize = 13.sp,
+                    style = SpaTheme.textStyles.caption,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .padding(top = 8.dp)
@@ -168,7 +168,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
             Text(
                 text = message,
                 color = MaterialTheme.colorScheme.error,
-                fontSize = 14.sp,
+                style = SpaTheme.textStyles.body,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 10.dp).fillMaxWidth(),
             )
@@ -176,7 +176,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
             Text(
                 text = pluralStringResource(Res.plurals.verify_expires_in_minutes, state.expiresInMinutes, state.expiresInMinutes),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp,
+                style = SpaTheme.textStyles.caption,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 10.dp).fillMaxWidth(),
             )
@@ -207,7 +207,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
 
         Text(
             text = stringResource(Res.string.verify_skip),
-            fontSize = 15.sp,
+            style = SpaTheme.textStyles.sectionLead,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -222,7 +222,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
 private fun Subtitle(text: String) {
     Text(
         text = text,
-        fontSize = 14.sp,
+        style = SpaTheme.textStyles.body,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),

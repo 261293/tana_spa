@@ -36,7 +36,7 @@ internal fun AuthLinkPrompt(prompt: String, action: String, onClick: () -> Unit,
                 append(action)
             }
         },
-        fontSize = 16.sp,
+        style = SpaTheme.textStyles.prompt,
         color = MaterialTheme.colorScheme.onSurface,
         textAlign = TextAlign.Center,
         modifier = modifier

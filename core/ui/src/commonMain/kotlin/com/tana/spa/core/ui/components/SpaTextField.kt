@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaColors
+import com.tana.spa.core.ui.SpaTheme
 
 private val FieldShape = RoundedCornerShape(10.dp)
 
@@ -58,12 +59,7 @@ fun SpaTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    val textStyle = TextStyle(
-        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Normal,
-        color = SpaColors.TextPrimary,
-    )
+    val textStyle = SpaTheme.textStyles.fieldText.copy(color = MaterialTheme.colorScheme.onSurface)
     val borderColor = if (error != null) SpaColors.Error else SpaColors.FieldBorder
 
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -107,7 +103,7 @@ fun SpaTextField(
             },
         )
         if (error != null) {
-            Text(text = error, style = textStyle.copy(fontSize = 13.sp, color = SpaColors.Error))
+            Text(text = error, style = SpaTheme.textStyles.fieldError.copy(color = MaterialTheme.colorScheme.error))
         }
     }
 }

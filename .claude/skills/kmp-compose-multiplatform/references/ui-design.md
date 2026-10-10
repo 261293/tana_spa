@@ -10,14 +10,28 @@ Every color, dimension, type style and shape comes from `MaterialTheme` — neve
 composable. A hardcoded `Color(0xFF...)` or `16.dp` scattered through a screen is the single
 thing that makes a Compose codebase impossible to re-theme, and it defeats dark mode silently.
 
-- Colors: `MaterialTheme.colorScheme.*`. Define the scheme once; derive it from a seed rather than
-  hand-picking 30 roles (see `libraries.md` → MaterialKolor).
-- Spacing: one scale (4/8/12/16/24/32), applied through `Modifier.padding`. No arbitrary values.
-- Type: `MaterialTheme.typography.*`. Do not set `fontSize` inline.
+- Colors: `MaterialTheme.colorScheme.*`, or `SpaTheme.extraColors` for the design-file colours
+  Material has no role for (link, status green, gradients, shadow). Never a raw `Color(0x…)` and
+  never a `SpaColors` constant in a composable — `SpaColors` is the palette the theme is built
+  from, not an API for screens.
+- Type: `SpaTheme.textStyles.*`, which names the Figma text styles. Do not set `fontSize` inline.
+  Each token is derived from the base its call sites inherit (`bodyLarge`, `labelLarge` inside a
+  Material button, or a bare style for `BasicTextField`), because `Text` merges its ambient style
+  and the wrong base moves letterSpacing and lineHeight.
+- Spacing: from the design file. See the note on scales below.
 - Elevation and shape: theme-level, so iOS and web can flatten them in one place.
 
-Dark mode is not a variant to add later: both schemes ship together or the second one never
-gets tested.
+**Two deliberate departures here, both recorded in `docs/adr/0002-light-only-colour-scheme.md`:**
+
+*Dark mode.* The rule is that both schemes ship together, because the second one otherwise never
+gets tested. This app ships light only: the palette comes from a light-only Figma file and no dark
+palette has been approved, so inventing one would push unreviewed colours to every dark-mode
+device. The mechanism is in place (tokens + `CompositionLocal`, no bypasses), so adding dark is a
+constants change plus one `isSystemInDarkTheme()` branch.
+
+*Spacing scale.* The rule bans arbitrary spacing values. It does not ban **specified** ones: this
+UI is a pixel-faithful implementation of a design file, so 13.sp and 46.dp stay as the designer
+set them. Round values only when nothing specifies them.
 
 ## Don't ship the default look
 
@@ -95,8 +109,8 @@ outputs via `sendEffect`.
 
 Before calling a screen done:
 
-- [ ] No literal colors, sizes or font sizes; everything from `MaterialTheme`
-- [ ] Light and dark both checked
+- [ ] No literal colors or font sizes; everything from `MaterialTheme` or `SpaTheme`
+- [ ] Light checked (this app is light-only by decision; see above)
 - [ ] Loading, empty, error and success states all exist
 - [ ] Layout checked at compact, medium and expanded widths
 - [ ] Contrast, touch targets and content descriptions verified
