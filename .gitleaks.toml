@@ -25,3 +25,18 @@ paths = [
     '''docs/local-development\.md''',
 ]
 regexes = ['''P@ssw0rd26''']
+
+# The feature-flags-architect skill is vendored documentation about feature-flag *keys*, and the
+# generic key rule fires on `key` beside a quoted value. Both hits below are sample/placeholder
+# text, not credentials, and `condition = "AND"` keeps a real secret in either file reportable.
+[[allowlists]]
+description = "Flag key in the sample audit report of the vendored feature-flags-architect skill"
+condition = "AND"
+paths = ['''\.claude/skills/feature-flags-architect/references/flag-debt-and-cleanup\.md''']
+regexes = ['''growth\.signup_v2\.enabled''']
+
+[[allowlists]]
+description = "Flag-constant name in a comment documenting flag_audit.py's own regex"
+condition = "AND"
+paths = ['''\.claude/skills/feature-flags-architect/scripts/flag_audit\.py''']
+regexes = ['''SIGNUP_V2_FLAG''']
