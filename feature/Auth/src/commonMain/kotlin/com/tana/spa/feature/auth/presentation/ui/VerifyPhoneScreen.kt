@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,7 +34,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tana.spa.core.ui.SpaColors
 import com.tana.spa.core.ui.components.SpaOtpField
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyMessage
@@ -84,7 +84,7 @@ fun VerifyPhoneScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SpaColors.Background)
+            .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .imePadding(),
         contentAlignment = Alignment.Center,
@@ -108,13 +108,13 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier.size(64.dp).background(SpaColors.Primary.copy(alpha = 0.12f), CircleShape),
+            modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Image(
                 painter = painterResource(Res.drawable.ic_phone),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(SpaColors.Primary),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
                 modifier = Modifier.size(30.dp),
             )
         }
@@ -123,7 +123,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
             text = stringResource(Res.string.verify_title),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = SpaColors.TextPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 20.dp).semantics { heading() },
         )
@@ -135,10 +135,10 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
                 Text(
                     text = state.maskedPhone,
                     fontSize = 13.sp,
-                    color = SpaColors.TextPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .padding(top = 8.dp)
-                        .background(SpaColors.FieldBorder.copy(alpha = 0.45f), RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.45f), RoundedCornerShape(12.dp))
                         .padding(horizontal = 12.dp, vertical = 4.dp),
                 )
             }
@@ -167,7 +167,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
         if (message != null) {
             Text(
                 text = message,
-                color = SpaColors.Error,
+                color = MaterialTheme.colorScheme.error,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 10.dp).fillMaxWidth(),
@@ -175,7 +175,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
         } else if (state.expiresInMinutes != null) {
             Text(
                 text = pluralStringResource(Res.plurals.verify_expires_in_minutes, state.expiresInMinutes, state.expiresInMinutes),
-                color = SpaColors.TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 10.dp).fillMaxWidth(),
@@ -208,7 +208,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
         Text(
             text = stringResource(Res.string.verify_skip),
             fontSize = 15.sp,
-            color = SpaColors.TextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .padding(top = 4.dp)
@@ -223,7 +223,7 @@ private fun Subtitle(text: String) {
     Text(
         text = text,
         fontSize = 14.sp,
-        color = SpaColors.TextSecondary,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
     )

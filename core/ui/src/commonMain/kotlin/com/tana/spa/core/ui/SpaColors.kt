@@ -20,4 +20,9 @@ object SpaColors {
 
     // Not in the design file; a conventional accessible red for validation messages.
     val Error = Color(0xFFD32F2F)
+
+    val Success = Color(0xFF2EB872)
+    val HeroGradientMid = Color(0xFFFFB3C6)
+    val CardGradientEnd = Color(0xFFFFF1F5)
+    val Shadow = Color(0x22000000)
 }

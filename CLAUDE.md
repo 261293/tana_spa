@@ -43,7 +43,7 @@ Read `ARCHITECTURE.md` and `docs/architecture.md` for the layer rules. The parts
 - **Errors as values:** repositories return sealed results / `AppResult`; `appResultOf` rethrows `CancellationException`. Don't catch `Exception` without rethrowing cancellation first.
 - **Platform source sets:** every KMP module gets android/jvm/iosArm64/iosSimulatorArm64/wasmJs from `build-logic` convention plugins (`convention.kmp.multiplatform`, `convention.kmp.compose`). The web target uses an in-memory `KeyValueCache` (no SQLDelight driver), so the session is lost on browser reload.
 - **Server** (`server/`): Ktor Netty, single `authModule` installs CallId/CallLogging/CORS/RateLimit/StatusPages/JWT and the `/api/v1/auth` routes. JDBC and password hashing run on `Dispatchers.IO` inside services. Schema is Flyway migrations; `docs/database-design.md` explains the model.
-- **Dev URLs:** `Constants.apiBaseUrl` points Android at `10.0.2.2:8081` and everything else at `localhost:8081`. README still says the server is on 8080; the code uses 8081 (8080 is the wasm dev server).
+- **Dev URLs:** `Constants.apiBaseUrl` points Android at `10.0.2.2:8081` and everything else at `localhost:8081`. The server reads `PORT` (default `Constants.SERVER_PORT` = 8081); 8080 is the wasm dev server.
 
 ## Logging (required for new code)
 
@@ -67,10 +67,19 @@ no "AI-generated" note in a commit body, PR description, changelog entry or file
 such lines even when a template or tool default supplies them, and leave the attribution already
 in the git history alone. Agents: the `no-ai-attribution` skill has the full list.
 
+## UI (required for new screens)
+
+Colours come from `MaterialTheme.colorScheme` or `SpaTheme.extraColors` — never a raw `Color(0x…)`
+or a direct `SpaColors` constant in a composable, which would survive a theme change.
+`SpaColorSchemeTest` pins each role to its design token. Sizes stay faithful to the Figma spec
+rather than a rounded scale. Full rules (per-target constraints, the wasm canvas, breakpoints,
+WCAG 2.2 checks, screen templates): `core:ui` plus the `kmp-compose-multiplatform` skill's
+`references/ui-design.md`; library candidates are in its `references/libraries.md`.
+
 ## Gotchas
 
 - Files are edited on Windows: `settings.gradle.kts` uses CRLF while most sources are LF. Preserve each file's line endings when scripting edits.
-- `README.md` module list is partly stale (module paths are lowercase `core/mvi`, etc.); trust `settings.gradle.kts`.
+- `settings.gradle.kts` is the only authority on module paths; re-check `README.md` against it after adding a module.
 - Kotlin strings in Compose resources don't support `\'`.
 - Several screens (Explore, Likes, NewPost, Profile) are placeholders, and `FeedRemoteApiImpl` returns stub data.
 

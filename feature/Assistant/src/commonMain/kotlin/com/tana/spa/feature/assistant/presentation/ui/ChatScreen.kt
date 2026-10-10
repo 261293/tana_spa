@@ -42,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -58,7 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tana.spa.core.ui.SpaColors
+import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.feature.assistant.domain.model.Author
 import com.tana.spa.feature.assistant.domain.model.ChatMessage
@@ -101,7 +100,7 @@ fun ChatScreen(state: ChatState, effects: Flow<ChatEffect>, onEvent: (ChatEvent)
         }
     }
 
-    ScreenCard(maxWidth = 720.dp, cardColor = SpaColors.Background) {
+    ScreenCard(maxWidth = 720.dp, cardColor = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize()) {
             ChatHeader(onClose = { onEvent(ChatEvent.Close) })
             ProgressStrip(progress = state.progress)
@@ -129,7 +128,7 @@ private fun ChatHeader(onClose: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SpaColors.Surface)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -139,15 +138,15 @@ private fun ChatHeader(onClose: () -> Unit) {
                 text = stringResource(Res.string.assistant_name),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = SpaColors.TextPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.semantics { heading() },
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(7.dp).background(Color(0xFF2EB872), CircleShape))
+                Box(Modifier.size(7.dp).background(SpaTheme.extraColors.success, CircleShape))
                 Text(
                     text = stringResource(Res.string.assistant_subtitle),
                     fontSize = 12.sp,
-                    color = SpaColors.TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 6.dp),
                 )
             }
@@ -169,7 +168,7 @@ private fun ProgressStrip(progress: Float) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SpaColors.Primary.copy(alpha = 0.10f))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .semantics(mergeDescendants = true) {
                 contentDescription = description
@@ -181,7 +180,7 @@ private fun ProgressStrip(progress: Float) {
             Text(
                 text = stringResource(Res.string.chat_progress_label),
                 fontSize = 11.sp,
-                color = SpaColors.TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Box(
                 Modifier
@@ -189,14 +188,14 @@ private fun ProgressStrip(progress: Float) {
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(SpaColors.Primary.copy(alpha = 0.22f)),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)),
             ) {
                 Box(
                     Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(animated)
                         .clip(RoundedCornerShape(3.dp))
-                        .background(SpaColors.Primary),
+                        .background(MaterialTheme.colorScheme.primary),
                 )
             }
         }
@@ -204,10 +203,10 @@ private fun ProgressStrip(progress: Float) {
             text = "$percent%",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier
                 .padding(start = 12.dp)
-                .background(SpaColors.Primary, RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(14.dp))
                 .padding(horizontal = 10.dp, vertical = 5.dp),
         )
     }
@@ -254,14 +253,14 @@ private fun AssistantRow(message: ChatMessage) {
             Column(
                 modifier = Modifier
                     .widthIn(max = maxWidth * 0.86f)
-                    .background(SpaColors.Surface, RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                     .padding(horizontal = 14.dp, vertical = 12.dp)
                     .semantics(mergeDescendants = true) { contentDescription = spoken },
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 // One bubble, one paragraph per blank-line-separated chunk, as in the reference.
                 message.text.split("\n\n").filter { it.isNotBlank() }.forEach { paragraph ->
-                    Text(text = paragraph, fontSize = 14.sp, lineHeight = 20.sp, color = SpaColors.TextPrimary)
+                    Text(text = paragraph, fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
         }
@@ -277,10 +276,10 @@ private fun UserRow(message: ChatMessage) {
                 text = message.text,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
                     .widthIn(max = maxWidth * 0.8f)
-                    .background(SpaColors.Primary, RoundedCornerShape(16.dp, 16.dp, 4.dp, 16.dp))
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp, 16.dp, 4.dp, 16.dp))
                     .padding(horizontal = 14.dp, vertical = 10.dp)
                     .semantics { contentDescription = spoken },
             )
@@ -297,7 +296,7 @@ private fun TypingRow() {
         val transition = rememberInfiniteTransition(label = "typing")
         Row(
             modifier = Modifier
-                .background(SpaColors.Surface, RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp))
                 .padding(horizontal = 16.dp, vertical = 16.dp)
                 // Announced politely to screen readers when it appears.
                 .semantics {
@@ -317,7 +316,7 @@ private fun TypingRow() {
                     ),
                     label = "dot$index",
                 )
-                Box(Modifier.size(7.dp).alpha(alpha).background(SpaColors.TextSecondary, CircleShape))
+                Box(Modifier.size(7.dp).alpha(alpha).background(MaterialTheme.colorScheme.onSurfaceVariant, CircleShape))
             }
         }
     }
@@ -332,13 +331,13 @@ private fun FailedRow(onRetry: () -> Unit) {
         Text(
             text = stringResource(Res.string.chat_failed),
             fontSize = 13.sp,
-            color = SpaColors.Error,
+            color = MaterialTheme.colorScheme.error,
         )
         Text(
             text = stringResource(Res.string.chat_retry),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = SpaColors.Link,
+            color = SpaTheme.extraColors.link,
             modifier = Modifier
                 .clickable(role = Role.Button, onClick = onRetry)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -352,13 +351,13 @@ private fun InputBar(value: String, onValueChange: (String) -> Unit, onSend: () 
     val textStyle = TextStyle(
         fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
         fontSize = 15.sp,
-        color = SpaColors.TextPrimary,
+        color = MaterialTheme.colorScheme.onSurface,
     )
     val label = stringResource(Res.string.chat_input_label)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SpaColors.Surface)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -367,7 +366,7 @@ private fun InputBar(value: String, onValueChange: (String) -> Unit, onSend: () 
             onValueChange = onValueChange,
             singleLine = true,
             textStyle = textStyle,
-            cursorBrush = SolidColor(SpaColors.Primary),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
             keyboardActions = KeyboardActions(onSend = { onSend() }),
             modifier = Modifier.weight(1f).semantics { contentDescription = label },
@@ -376,14 +375,14 @@ private fun InputBar(value: String, onValueChange: (String) -> Unit, onSend: () 
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .border(1.dp, SpaColors.FieldBorder, RoundedCornerShape(24.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(24.dp))
                         .padding(horizontal = 18.dp),
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     if (value.isEmpty()) {
                         Text(
                             text = stringResource(Res.string.chat_input_placeholder),
-                            style = textStyle.copy(color = SpaColors.TextSecondary),
+                            style = textStyle.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                         )
                     }
                     inner()
@@ -396,7 +395,7 @@ private fun InputBar(value: String, onValueChange: (String) -> Unit, onSend: () 
                 .padding(start = 10.dp)
                 .size(46.dp)
                 .clip(CircleShape)
-                .background(if (canSend) SpaColors.Primary else SpaColors.Primary.copy(alpha = 0.35f))
+                .background(if (canSend) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
                 .clickable(enabled = canSend, role = Role.Button, onClick = onSend)
                 .semantics { contentDescription = sendDescription },
             contentAlignment = Alignment.Center,
@@ -404,7 +403,7 @@ private fun InputBar(value: String, onValueChange: (String) -> Unit, onSend: () 
             Image(
                 painter = painterResource(Res.drawable.ic_send),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(Color.White),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary),
                 modifier = Modifier.size(22.dp),
             )
         }

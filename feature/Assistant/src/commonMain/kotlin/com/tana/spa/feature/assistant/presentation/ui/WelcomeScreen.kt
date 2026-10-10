@@ -11,12 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
@@ -28,7 +28,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tana.spa.core.ui.SpaColors
+import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.feature.assistant.resources.Res
 import com.tana.spa.feature.assistant.resources.welcome_accept
@@ -54,18 +54,18 @@ fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onCont
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(260.dp)
-                    .background(Brush.verticalGradient(listOf(SpaColors.Primary, Color(0xFFFFB3C6), SpaColors.Surface))),
+                    .background(Brush.verticalGradient(SpaTheme.extraColors.heroGradient)),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = stringResource(Res.string.welcome_bubble),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
-                            .background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(14.dp))
+                            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.22f), RoundedCornerShape(14.dp))
                             .padding(horizontal = 16.dp, vertical = 10.dp),
                     )
                     AssistantAvatar(size = 112.dp, modifier = Modifier.padding(top = 14.dp))
@@ -84,19 +84,19 @@ fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onCont
                 Text(
                     text = stringResource(Res.string.welcome_greeting),
                     fontSize = 15.sp,
-                    color = SpaColors.TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.welcome_brand),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = SpaColors.Primary,
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
                     text = stringResource(Res.string.welcome_body),
                     fontSize = 15.sp,
-                    color = SpaColors.TextPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 8.dp),
                 )
@@ -107,7 +107,7 @@ fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onCont
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 ConsentCheckRow(checked = accepted, onCheckedChange = onAcceptedChange) {
-                    Text(text = acceptText(), fontSize = 13.sp, color = SpaColors.TextPrimary)
+                    Text(text = acceptText(), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
                 }
                 SpaPrimaryButton(
                     text = stringResource(Res.string.welcome_button),
@@ -136,7 +136,11 @@ private fun acceptText(): AnnotatedString {
             val start = sentence.indexOf(name)
             if (start >= 0) {
                 addStyle(
-                    SpanStyle(color = SpaColors.Link, fontWeight = FontWeight.SemiBold, textDecoration = TextDecoration.Underline),
+                    SpanStyle(
+                        color = SpaTheme.extraColors.link,
+                        fontWeight = FontWeight.SemiBold,
+                        textDecoration = TextDecoration.Underline,
+                    ),
                     start,
                     start + name.length,
                 )

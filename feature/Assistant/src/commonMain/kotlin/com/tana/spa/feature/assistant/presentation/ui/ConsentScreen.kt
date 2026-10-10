@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,7 +17,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tana.spa.core.ui.SpaColors
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.feature.assistant.resources.Res
 import com.tana.spa.feature.assistant.resources.back
@@ -54,14 +54,14 @@ fun ConsentScreen(agreed: Boolean, onAgreedChange: (Boolean) -> Unit, onBack: ()
                     text = stringResource(Res.string.consent_title),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = SpaColors.TextPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.consent_body),
                     fontSize = 14.sp,
                     lineHeight = 22.sp,
-                    color = SpaColors.TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 16.dp),
                 )
             }
@@ -72,7 +72,7 @@ fun ConsentScreen(agreed: Boolean, onAgreedChange: (Boolean) -> Unit, onBack: ()
                         Text(
                             text = stringResource(Res.string.consent_agree),
                             fontSize = 14.sp,
-                            color = SpaColors.TextPrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                     SpaPrimaryButton(

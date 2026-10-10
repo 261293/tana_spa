@@ -19,6 +19,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -41,7 +42,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tana.spa.core.ui.SpaColors
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSocialButton
 import com.tana.spa.core.ui.components.SpaTextField
@@ -99,7 +99,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SpaColors.Background)
+            .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .imePadding(),
         contentAlignment = Alignment.Center,
@@ -130,7 +130,7 @@ private fun LoginForm(state: LoginState, onEvent: (LoginEvent) -> Unit) {
             text = stringResource(Res.string.login_title),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = SpaColors.TextPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.semantics { heading() },
         )
 
@@ -182,7 +182,7 @@ private fun LoginForm(state: LoginState, onEvent: (LoginEvent) -> Unit) {
         state.failure.text()?.let { message ->
             Text(
                 text = message,
-                color = SpaColors.Error,
+                color = MaterialTheme.colorScheme.error,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),

@@ -13,14 +13,16 @@ server/                      Ktor server (JVM)
 shared/                      Non-UI shared code: Platform expect/actual, Greeting,
                              Constants, DI (sharedModule), helpers
 core/
-  Navigation/                FeatureEntry / Navigator / Routes
-  Network/                   Ktor client + per-platform engine (PlatformClientEngine)
-  UI/                        AppTheme, AppScaffold, NavBar, AppBars, NavConfig
-  Mvi/                       MviViewModel base (State / Event / Effect)
-  Cache/                     KeyValueCache abstraction (in-memory stub; SQLDelight in a full build)
+  cache/                     KeyValueCache abstraction (SQLDelight; in-memory on wasmJs)
+  featureflags/              FeatureFlags resolution (per-user override / DB / env / default)
+  logging/                   AppLog + platform sinks
+  mvi/                       MviViewModel base (State / Event / Effect)
+  navigation/                FeatureEntry / Navigator / Routes
+  network/                   Ktor client + per-platform engine (PlatformClientEngine)
+  ui/                        AppTheme, SpaColors/SpaTheme tokens, AppScaffold, NavBar, AppBars
 feature/
-  Auth, Explore, Likes,      Entry + Screen per feature
-  NewPost, Profile
+  Assistant, Auth, Explore,  Entry + Screen per feature
+  Likes, NewPost, Profile
   Feed/                      Full clean-arch reference: data (remote/cache/repository),
                              domain (model/mapper/repository), presentation (ui + MVI viewmodel)
 ```

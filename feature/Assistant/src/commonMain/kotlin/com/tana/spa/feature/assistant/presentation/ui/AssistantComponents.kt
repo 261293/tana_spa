@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +40,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.tana.spa.core.ui.SpaColors
+import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.feature.assistant.resources.Res
 import com.tana.spa.feature.assistant.resources.ic_sparkle
 import org.jetbrains.compose.resources.DrawableResource
@@ -55,7 +56,7 @@ internal fun AssistantAvatar(size: Dp, modifier: Modifier = Modifier) {
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(Brush.linearGradient(listOf(SpaColors.Primary, SpaColors.Link))),
+            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, SpaTheme.extraColors.link))),
         contentAlignment = Alignment.Center,
     ) {
         Image(
@@ -75,13 +76,13 @@ internal fun AssistantAvatar(size: Dp, modifier: Modifier = Modifier) {
 internal fun ScreenCard(
     modifier: Modifier = Modifier,
     maxWidth: Dp = 560.dp,
-    cardColor: Color = SpaColors.Surface,
+    cardColor: Color = MaterialTheme.colorScheme.surface,
     content: @Composable () -> Unit,
 ) {
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(SpaColors.Background, Color(0xFFFFF1F5))))
+            .background(Brush.verticalGradient(SpaTheme.extraColors.cardGradient))
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .imePadding(),
         contentAlignment = Alignment.Center,
@@ -92,7 +93,7 @@ internal fun ScreenCard(
                 .widthIn(max = maxWidth)
                 .fillMaxSize()
                 .padding(vertical = 24.dp)
-                .shadow(16.dp, RoundedCornerShape(24.dp), clip = false, ambientColor = Color(0x22000000))
+                .shadow(16.dp, RoundedCornerShape(24.dp), clip = false, ambientColor = SpaTheme.extraColors.shadow)
                 .clip(RoundedCornerShape(24.dp))
                 .background(cardColor)
         } else {
@@ -118,8 +119,8 @@ internal fun IconSquareButton(
         modifier = modifier
             .size(40.dp)
             .clip(shape)
-            .background(SpaColors.Surface)
-            .border(1.dp, SpaColors.FieldBorder, shape)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outline, shape)
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
@@ -127,7 +128,7 @@ internal fun IconSquareButton(
         Image(
             painter = painterResource(icon),
             contentDescription = null,
-            colorFilter = ColorFilter.tint(SpaColors.TextPrimary),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
             modifier = Modifier.size(20.dp).graphicsLayer { if (mirror) scaleX = -1f },
         )
     }
@@ -152,9 +153,9 @@ internal fun ConsentCheckRow(
             // The row owns the click (bigger target, one accessibility node); the box only displays.
             onCheckedChange = null,
             colors = CheckboxDefaults.colors(
-                checkedColor = SpaColors.Primary,
-                uncheckedColor = SpaColors.FieldBorder,
-                checkmarkColor = Color.White,
+                checkedColor = MaterialTheme.colorScheme.primary,
+                uncheckedColor = MaterialTheme.colorScheme.outline,
+                checkmarkColor = MaterialTheme.colorScheme.onPrimary,
             ),
         )
         Spacer(Modifier.width(8.dp))

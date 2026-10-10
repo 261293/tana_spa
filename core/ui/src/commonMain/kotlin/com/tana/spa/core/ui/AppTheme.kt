@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -24,7 +25,7 @@ fun poppinsFontFamily(): FontFamily = FontFamily(
     Font(Res.font.poppins_bold, FontWeight.Bold),
 )
 
-private val SpaColorScheme = lightColorScheme(
+internal val SpaColorScheme = lightColorScheme(
     primary = SpaColors.Primary,
     onPrimary = SpaColors.OnPrimary,
     background = SpaColors.Background,
@@ -41,7 +42,9 @@ private val SpaColorScheme = lightColorScheme(
 fun AppTheme(content: @Composable () -> Unit) {
     val fontFamily = poppinsFontFamily()
     val typography = remember(fontFamily) { Typography().withFontFamily(fontFamily) }
-    MaterialTheme(colorScheme = SpaColorScheme, typography = typography, content = content)
+    CompositionLocalProvider(LocalSpaExtraColors provides LightExtraColors) {
+        MaterialTheme(colorScheme = SpaColorScheme, typography = typography, content = content)
+    }
 }
 
 private fun Typography.withFontFamily(family: FontFamily): Typography {
