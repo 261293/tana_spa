@@ -5,9 +5,12 @@ import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
 import com.tana.spa.feature.auth.domain.model.RegisterResult
 import com.tana.spa.feature.auth.domain.usecase.RegisterUseCase
+import com.tana.spa.shared.featureflags.FeatureFlag
+import com.tana.spa.shared.featureflags.FeatureFlags
 import kotlinx.coroutines.launch
 
-class SignUpViewModel(private val register: RegisterUseCase) : MviViewModel<SignUpState, SignUpEvent, SignUpEffect>(SignUpState()) {
+class SignUpViewModel(private val register: RegisterUseCase, private val featureFlags: FeatureFlags) :
+    MviViewModel<SignUpState, SignUpEvent, SignUpEffect>(SignUpState()) {
 
     override fun handleEvent(event: SignUpEvent) {
         when (event) {
@@ -46,7 +49,7 @@ class SignUpViewModel(private val register: RegisterUseCase) : MviViewModel<Sign
                 is RegisterResult.Success -> {
                     AppLog.i(logTag) { "registration succeeded" }
                     setState { copy(isLoading = false) }
-                    sendEffect(SignUpEffect.NavigateToVerifyPhone)
+                    sendEffect(nextStepAfterRegistration())
                 }
 
                 is RegisterResult.InvalidInput -> {
@@ -71,5 +74,12 @@ class SignUpViewModel(private val register: RegisterUseCase) : MviViewModel<Sign
                 }
             }
         }
+    }
+
+    private fun nextStepAfterRegistration(): SignUpEffect = if (featureFlags.isEnabled(FeatureFlag.PHONE_OTP_VERIFICATION)) {
+        SignUpEffect.NavigateToVerifyPhone
+    } else {
+        AppLog.i(logTag) { "phone verification is switched off, skipping it" }
+        SignUpEffect.NavigateHome
     }
 }

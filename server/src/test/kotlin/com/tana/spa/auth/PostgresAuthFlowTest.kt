@@ -13,6 +13,8 @@ import com.tana.spa.shared.auth.PhoneOtpSendResponse
 import com.tana.spa.shared.auth.PhoneOtpVerifyRequest
 import com.tana.spa.shared.auth.RegisterRequest
 import com.tana.spa.shared.auth.UserDto
+import com.tana.spa.shared.featureflags.ConfigurableFeatureFlags
+import com.tana.spa.shared.featureflags.FeatureFlag
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -105,6 +107,7 @@ class PostgresAuthFlowTest {
             hasher = Pbkdf2PasswordHasher(iterations = 1_000),
             verifications = PostgresPhoneVerificationRepository(dataSource),
             otpProvider = provider,
+            flagDefaults = ConfigurableFeatureFlags(mapOf(FeatureFlag.PHONE_OTP_VERIFICATION to true)),
         )
         application { module(services) }
         val client = jsonClient()

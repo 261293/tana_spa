@@ -12,6 +12,9 @@ import com.tana.spa.shared.auth.EmailError
 import com.tana.spa.shared.auth.NameError
 import com.tana.spa.shared.auth.PasswordError
 import com.tana.spa.shared.auth.PhoneError
+import com.tana.spa.shared.featureflags.ConfigurableFeatureFlags
+import com.tana.spa.shared.featureflags.FeatureFlag
+import com.tana.spa.shared.featureflags.FeatureFlags
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,7 +42,11 @@ class SignUpViewModelTest {
     @AfterTest
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel() = SignUpViewModel(RegisterUseCase(repository))
+    /** Phone verification on unless a test says otherwise. */
+    private fun viewModel(featureFlags: FeatureFlags = otpVerification(enabled = true)) =
+        SignUpViewModel(RegisterUseCase(repository), featureFlags)
+
+    private fun otpVerification(enabled: Boolean) = ConfigurableFeatureFlags(mapOf(FeatureFlag.PHONE_OTP_VERIFICATION to enabled))
 
     private fun SignUpViewModel.fill(
         name: String = "Lan",
@@ -62,6 +69,18 @@ class SignUpViewModelTest {
         assertEquals(SignUpEffect.NavigateToVerifyPhone, vm.effects.first())
         assertFalse(vm.state.value.isLoading)
         assertEquals(1, repository.registerCalls)
+    }
+
+    @Test
+    fun withPhoneVerificationSwitchedOffSignUpGoesStraightOnAndStillCreatesTheAccount() = runTest {
+        val vm = viewModel(otpVerification(enabled = false))
+        vm.fill()
+        vm.onEvent(SignUpEvent.Submit)
+
+        assertEquals(SignUpEffect.NavigateHome, vm.effects.first())
+        assertEquals(1, repository.registerCalls, "the account is still created, only the extra step is skipped")
+        assertFalse(vm.state.value.isLoading)
+        assertNull(vm.state.value.failure)
     }
 
     @Test

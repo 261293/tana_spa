@@ -23,7 +23,7 @@ class DatabaseTest {
                         rs.next()
                         rs.getInt(1)
                     }
-                    assertEquals(5, applied)
+                    assertEquals(6, applied)
                     // A table from the last migration proves the whole chain ran in order.
                     c.createStatement().executeQuery("SELECT count(*) FROM phone_verifications").use { rs -> assertTrue(rs.next()) }
                 }
@@ -43,7 +43,7 @@ class DatabaseTest {
                         rs.next()
                         rs.getInt(1)
                     }
-                    assertEquals(5, applied, "a second start must not re-run migrations")
+                    assertEquals(6, applied, "a second start must not re-run migrations")
                 }
             }
         }

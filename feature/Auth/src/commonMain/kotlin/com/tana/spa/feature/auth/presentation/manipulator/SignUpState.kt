@@ -37,6 +37,9 @@ sealed interface SignUpEvent {
 sealed interface SignUpEffect {
     /** The account exists and the user is signed in; next they confirm their phone number. */
     data object NavigateToVerifyPhone : SignUpEffect
+
+    /** The account exists and phone verification is switched off, so onboarding carries on. */
+    data object NavigateHome : SignUpEffect
     data object NavigateToLogin : SignUpEffect
     data class ShowComingSoon(val feature: ComingSoon) : SignUpEffect
 }

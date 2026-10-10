@@ -10,6 +10,8 @@ import com.tana.spa.feature.auth.domain.usecase.GetCurrentSessionUseCase
 import com.tana.spa.feature.auth.domain.usecase.SendPhoneOtpUseCase
 import com.tana.spa.feature.auth.domain.usecase.VerifyPhoneOtpUseCase
 import com.tana.spa.shared.auth.AuthValidation
+import com.tana.spa.shared.featureflags.FeatureFlag
+import com.tana.spa.shared.featureflags.FeatureFlags
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -18,6 +20,7 @@ class VerifyPhoneViewModel(
     private val sendOtp: SendPhoneOtpUseCase,
     private val verifyOtp: VerifyPhoneOtpUseCase,
     getCurrentSession: GetCurrentSessionUseCase,
+    featureFlags: FeatureFlags,
 ) : MviViewModel<VerifyPhoneState, VerifyPhoneEvent, VerifyPhoneEffect>(VerifyPhoneState()) {
 
     private var countdown: Job? = null
@@ -29,6 +32,13 @@ class VerifyPhoneViewModel(
     init {
         val session = getCurrentSession()
         when {
+            // Before the session check: a switched-off step must not text anybody, and must not
+            // bounce a signed-out visitor to login over something that no longer runs.
+            !featureFlags.isEnabled(FeatureFlag.PHONE_OTP_VERIFICATION) -> {
+                AppLog.i(logTag) { "phone verification is switched off, leaving the screen" }
+                sendEffect(VerifyPhoneEffect.NavigateHome)
+            }
+
             session == null -> {
                 AppLog.w(logTag) { "no valid session, sending user back to login" }
                 sendEffect(VerifyPhoneEffect.NavigateToLogin)
@@ -112,10 +122,10 @@ class VerifyPhoneViewModel(
 
                 is OtpSendResult.Failed -> {
                     AppLog.w(logTag) { "send failed: ${result.reason}" }
-                    if (result.reason == OtpFailure.SESSION_EXPIRED) {
-                        sendEffect(VerifyPhoneEffect.NavigateToLogin)
-                    } else {
-                        setState { copy(isSending = false, message = VerifyMessage.Failure(result.reason)) }
+                    when (result.reason) {
+                        OtpFailure.SESSION_EXPIRED -> sendEffect(VerifyPhoneEffect.NavigateToLogin)
+                        OtpFailure.DISABLED -> sendEffect(VerifyPhoneEffect.NavigateHome)
+                        else -> setState { copy(isSending = false, message = VerifyMessage.Failure(result.reason)) }
                     }
                 }
             }
@@ -143,10 +153,14 @@ class VerifyPhoneViewModel(
 
                 is OtpVerifyResult.Failed -> {
                     AppLog.w(logTag) { "verify failed: ${result.reason}" }
-                    if (result.reason == OtpFailure.SESSION_EXPIRED) {
-                        sendEffect(VerifyPhoneEffect.NavigateToLogin)
-                    } else {
-                        setState { copy(isVerifying = false, code = "", message = VerifyMessage.Failure(result.reason)) }
+                    when (result.reason) {
+                        OtpFailure.SESSION_EXPIRED -> sendEffect(VerifyPhoneEffect.NavigateToLogin)
+
+                        OtpFailure.DISABLED -> sendEffect(VerifyPhoneEffect.NavigateHome)
+
+                        else -> setState {
+                            copy(isVerifying = false, code = "", message = VerifyMessage.Failure(result.reason))
+                        }
                     }
                 }
             }

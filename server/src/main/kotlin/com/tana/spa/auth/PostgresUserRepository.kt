@@ -4,6 +4,7 @@ import org.postgresql.util.PSQLException
 import java.security.SecureRandom
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.sql.Types
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -62,6 +63,51 @@ class PostgresUserRepository(private val dataSource: DataSource, private val new
             c.prepareStatement("UPDATE users SET last_login_at = now() WHERE id = ?").use { ps ->
                 ps.setObject(1, uuid)
                 ps.executeUpdate()
+            }
+        }
+    }
+
+    override fun ensureAdmin(email: String, displayName: String, passwordHash: String): User? {
+        dataSource.connection.use { c ->
+            // The unique index decides, not a "SELECT then INSERT": two instances starting at
+            // once must not both create the account.
+            c.prepareStatement(
+                """INSERT INTO users (email, full_name, password_hash, referral_code, role)
+                   VALUES (?, ?, ?, ?, 'admin')
+                   ON CONFLICT DO NOTHING""",
+            ).use { ps ->
+                ps.setString(1, email)
+                ps.setString(2, displayName)
+                ps.setString(3, passwordHash)
+                ps.setString(4, newReferralCode())
+                ps.executeUpdate()
+            }
+        }
+        return findByEmail(email)
+    }
+
+    override fun search(query: String, limit: Int): List<User> {
+        val needle = query.trim()
+        if (needle.isEmpty()) return emptyList()
+        val id = runCatching { UUID.fromString(needle) }.getOrNull()
+        return dataSource.connection.use { c ->
+            // app_unaccent (V1) makes the name match accent-insensitive, so "sang" finds "Sáng".
+            c.prepareStatement(
+                """$SELECT
+                   WHERE $ACTIVE AND (
+                       id = ?
+                       OR app_unaccent(full_name) ILIKE app_unaccent(?)
+                       OR email ILIKE ?)
+                   ORDER BY full_name
+                   LIMIT ?""",
+            ).use { ps ->
+                if (id == null) ps.setNull(1, Types.OTHER) else ps.setObject(1, id)
+                ps.setString(2, "%$needle%")
+                ps.setString(3, "%$needle%")
+                ps.setInt(4, limit)
+                ps.executeQuery().use { rs ->
+                    buildList { while (rs.next()) add(rs.toUser()) }
+                }
             }
         }
     }
@@ -128,10 +174,12 @@ class PostgresUserRepository(private val dataSource: DataSource, private val new
         phone = getString("phone"),
         phoneVerified = getBoolean("phone_verified"),
         passwordHash = getString("password_hash"),
+        role = UserRole.fromSql(getString("role")),
     )
 
     private companion object {
-        const val COLUMNS = "id, email, full_name, phone, (phone_verified_at IS NOT NULL) AS phone_verified, password_hash"
+        const val COLUMNS =
+            "id, email, full_name, phone, (phone_verified_at IS NOT NULL) AS phone_verified, password_hash, role"
         const val SELECT = "SELECT $COLUMNS FROM users"
         const val ACTIVE = "deleted_at IS NULL AND status = 'active'"
 

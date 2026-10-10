@@ -131,6 +131,19 @@ erDiagram
 
 `users.phone` is **unique only among verified users** (`users_phone_verified_uq`). Otherwise anyone could register with a stranger's number and lock the real owner out. The `phone_verifications` table records each code that was sent (never the code itself) to drive cooldowns, caps and per-country fraud monitoring. Full design: [`phone-verification.md`](phone-verification.md).
 
+## Feature flags (V6)
+
+Two tables let a feature be switched off while the system runs:
+
+| Table | Holds |
+|---|---|
+| `feature_flags` | `key` → `enabled`: the state for everybody |
+| `feature_flag_overrides` | `(flag_key, user_id)` → `enabled`: one user's exception, cascading on user delete |
+
+A **missing row means "no opinion"**, not "off" — resolution falls through to the `FEATURE_<KEY>` environment variable and then to the state compiled into the app, so `DELETE` is an undo rather than an off switch. `flag_key` deliberately has **no** foreign key to `feature_flags`: an override must be settable for a flag with no global row, and a flag deleted from the code must not make these tables unwritable. The application validates keys against its own catalog instead. V6 seeds `phone_otp_verification = false`.
+
+Changes are made through the `/admin` portal by an account with `role = 'admin'`; two are created on every start-up (`sanghtruong@tana.local`, `duchnguyen@tana.local`) with a password that is public in the repository — change or delete them before the server is exposed. `updated_by` holds the acting administrator's id. Full design: [`feature-flags.md`](feature-flags.md).
+
 ## Running it
 
 | Variable | Meaning |

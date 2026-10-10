@@ -1,12 +1,15 @@
 package com.tana.spa
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import com.tana.spa.common.FeaturesRegistry
+import com.tana.spa.core.featureflags.FeatureFlagStore
 import com.tana.spa.core.navigation.Routes
 import com.tana.spa.core.navigation.rememberNavigator
 import com.tana.spa.core.ui.AppTheme
 import com.tana.spa.core.ui.model.NavConfig
 import com.tana.spa.core.ui.scafold.AppScaffold
+import org.koin.compose.koinInject
 
 /** Sign-in and onboarding screens: full-screen, no app bar and no bottom navigation. */
 private val FULL_SCREEN_ROUTES = setOf(
@@ -27,6 +30,9 @@ fun App() {
         // `current` is backed by mutableStateOf, so reading it here observes navigation.
         val current = navigator.current
         val entry = FeaturesRegistry.entries.firstOrNull { it.route == current }
+
+        val featureFlags: FeatureFlagStore = koinInject()
+        LaunchedEffect(current) { featureFlags.refreshIfStale() }
 
         if (current in FULL_SCREEN_ROUTES) {
             // Full-screen, no top/bottom app chrome during sign-in and onboarding.

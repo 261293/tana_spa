@@ -12,6 +12,9 @@ import com.tana.spa.feature.auth.presentation.manipulator.VerifyMessage
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneEffect
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneEvent
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneViewModel
+import com.tana.spa.shared.featureflags.ConfigurableFeatureFlags
+import com.tana.spa.shared.featureflags.FeatureFlag
+import com.tana.spa.shared.featureflags.FeatureFlags
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -41,11 +44,15 @@ class VerifyPhoneViewModelTest {
     @AfterTest
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel(): VerifyPhoneViewModel = VerifyPhoneViewModel(
+    /** The screen only exists while the feature is on. */
+    private fun viewModel(featureFlags: FeatureFlags = otpVerification(enabled = true)): VerifyPhoneViewModel = VerifyPhoneViewModel(
         SendPhoneOtpUseCase(repository),
         VerifyPhoneOtpUseCase(repository),
         GetCurrentSessionUseCase(repository),
+        featureFlags,
     ).also { scheduler.runCurrent() }
+
+    private fun otpVerification(enabled: Boolean) = ConfigurableFeatureFlags(mapOf(FeatureFlag.PHONE_OTP_VERIFICATION to enabled))
 
     @Test
     fun aCodeIsSentAutomaticallyOnOpenAndTheCountdownStarts() {
@@ -156,6 +163,32 @@ class VerifyPhoneViewModelTest {
 
         assertEquals(VerifyPhoneEffect.NavigateToLogin, vm.effects.first())
         assertEquals(0, repository.sendCalls, "nothing may be sent without a login")
+    }
+
+    @Test
+    fun withTheFeatureSwitchedOffTheScreenLeavesWithoutTextingAnybody() = runTest(StandardTestDispatcher(scheduler)) {
+        val vm = viewModel(otpVerification(enabled = false))
+
+        assertEquals(VerifyPhoneEffect.NavigateHome, vm.effects.first())
+        assertEquals(0, repository.sendCalls, "a switched-off feature must not send an SMS")
+    }
+
+    @Test
+    fun withTheFeatureOffAndNoSessionTheUserIsNotSentToLoginForAStepThatNoLongerRuns() = runTest(StandardTestDispatcher(scheduler)) {
+        repository.session = null
+        val vm = viewModel(otpVerification(enabled = false))
+
+        assertEquals(VerifyPhoneEffect.NavigateHome, vm.effects.first())
+        assertEquals(0, repository.sendCalls)
+    }
+
+    @Test
+    fun aServerThatHasTheFeatureOffMovesAnOlderClientAlong() = runTest(StandardTestDispatcher(scheduler)) {
+        repository.sendResults += OtpSendResult.Failed(OtpFailure.DISABLED)
+        val vm = viewModel()
+
+        assertEquals(VerifyPhoneEffect.NavigateHome, vm.effects.first())
+        assertNull(vm.state.value.message, "a dead step is not an error to show the user")
     }
 
     @Test

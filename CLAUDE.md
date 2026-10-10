@@ -26,7 +26,7 @@ Kotlin Multiplatform app (Android, iOS, Desktop/JVM, Web/wasmJs) with a Compose 
 docker compose up -d db          # or `devbox run db:up`
 ```
 
-Full CI matrix and the local equivalent of each job: `docs/ci.md`. Before pushing, a change that touches `commonMain` should compile for the web target too (`:composeApp:compileKotlinWasmJs`), since it is the strictest target and CI builds it.
+Every command in order (first-time setup, daily loop, pre-push gate, schema changes, troubleshooting): `docs/local-development.md`. Full CI matrix and the local equivalent of each job: `docs/ci.md`. Before pushing, a change that touches `commonMain` should compile for the web target too (`:composeApp:compileKotlinWasmJs`), since it is the strictest target and CI builds it.
 
 Server config is env-driven (`AuthConfig`, `OtpConfig`, `DatabaseConfig`): `DATABASE_URL` (absent → in-memory users, accounts lost on restart), `JWT_SECRET`, `APP_ENV=production` (refuses in-memory store, dev OTP provider and random JWT secret), `TWILIO_*` (absent → dev OTP provider that prints codes to the server log). See `docs/phone-verification.md`.
 
@@ -34,11 +34,12 @@ Server config is env-driven (`AuthConfig`, `OtpConfig`, `DatabaseConfig`): `DATA
 
 Read `ARCHITECTURE.md` and `docs/architecture.md` for the layer rules. The parts that span many files:
 
-- **Module graph:** `composeApp` (wiring only) → `feature/*` → `core/{mvi,navigation,network,cache,ui,logging}` → `shared`. Features never depend on each other and `core` never depends on `feature`. `composeApp` is a KMP *library*; `androidApp` is the thin installable app (AGP 9 forbids the application plugin beside KMP). `server` depends only on `shared`.
+- **Module graph:** `composeApp` (wiring only) → `feature/*` → `core/{mvi,navigation,network,cache,ui,logging,featureflags}` → `shared`. Features never depend on each other and `core` never depends on `feature`. `composeApp` is a KMP *library*; `androidApp` is the thin installable app (AGP 9 forbids the application plugin beside KMP). `server` depends only on `shared`.
 - **`shared` is the client/server contract.** `shared/.../auth/AuthContract.kt` (`AuthApi` paths, DTOs, `AuthErrorCodes`) and `AuthValidation` are compiled into both the app and the server. Change an endpoint or error code there, then update both sides.
 - **Adding a feature** touches several places: new `feature/<Name>` module + `include(...)` in `settings.gradle.kts` (copy `feature/Feed/build.gradle.kts`), a Koin module added to `appModules()` in `composeApp/.../di/RegisterModules.kt`, and the `FeatureEntry` added to `FeaturesRegistry`. Full-screen routes (login/onboarding, no app bar) are listed in `FULL_SCREEN_ROUTES` in `App.kt`.
 - **MVI:** screens are stateless composables `(state, effects, onEvent)`; only the `*Entry` object touches Koin/ViewModel. ViewModels extend `core/mvi/MviViewModel` and override **`handleEvent`** (not `onEvent`, which is a final wrapper that logs). One-shot outputs (navigation, snackbars) go through `sendEffect`, never state.
 - **Navigation** is a minimal string-route back stack (`MutableNavigator`, `Routes`), not navigation-compose. Use `replaceAll` when Back must not return (after login/sign-up).
+- **Feature flags** gate anything broken or unfinished. The catalog is `shared/.../featureflags/FeatureFlags.kt` (compiled into both sides); state is resolved per request as **per-user override → global DB row → `FEATURE_<KEY>` env → compiled default**, so a missing row means "no opinion", not "off". Inject `FeatureFlags` and branch on `isEnabled(flag)` in the client; gate a route with `call.refuseIfDisabled(services.featureFlags, FLAG, userId)` (answers `503 feature_disabled`). Operated at `/admin/` by an account with `role = 'admin'`. `phone_otp_verification` currently ships **off**. Details: `docs/feature-flags.md`.
 - **Errors as values:** repositories return sealed results / `AppResult`; `appResultOf` rethrows `CancellationException`. Don't catch `Exception` without rethrowing cancellation first.
 - **Platform source sets:** every KMP module gets android/jvm/iosArm64/iosSimulatorArm64/wasmJs from `build-logic` convention plugins (`convention.kmp.multiplatform`, `convention.kmp.compose`). The web target uses an in-memory `KeyValueCache` (no SQLDelight driver), so the session is lost on browser reload.
 - **Server** (`server/`): Ktor Netty, single `authModule` installs CallId/CallLogging/CORS/RateLimit/StatusPages/JWT and the `/api/v1/auth` routes. JDBC and password hashing run on `Dispatchers.IO` inside services. Schema is Flyway migrations; `docs/database-design.md` explains the model.
@@ -77,4 +78,4 @@ Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-
 
 ### Domain docs
 
-Single-context: `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Single-context: `GLOSSARY.md` + `docs/adr/` at the repo root (both exist; `GLOSSARY.md` is a glossary only — no implementation detail). See `docs/agents/domain.md`.

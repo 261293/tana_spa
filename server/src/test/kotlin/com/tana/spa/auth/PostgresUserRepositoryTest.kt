@@ -184,4 +184,76 @@ class PostgresUserRepositoryTest {
         assertTrue(codes.all { it.length == 10 && it.all { c -> c in "ABCDEFGHJKMNPQRSTUVWXYZ23456789" } })
         assertTrue(codes.toSet().size > 190, "codes should be effectively unique")
     }
+
+    @Test
+    fun aNewAccountIsACustomer() {
+        assertEquals(UserRole.CUSTOMER, assertIs<CreateUserResult.Created>(create()).user.role)
+    }
+
+    @Test
+    fun ensureAdminCreatesAnAdministratorWithoutAPhoneNumber() {
+        val address = email()
+
+        val admin = assertNotNull(repo.ensureAdmin(address, "Ops", "hash"))
+
+        assertEquals(UserRole.ADMIN, admin.role)
+        assertEquals(address, admin.email)
+        assertNull(admin.phone, "an administrator has no number to verify by SMS")
+        assertEquals(UserRole.ADMIN, assertNotNull(repo.findByEmail(address)).role)
+    }
+
+    @Test
+    fun ensureAdminIsIdempotentUnderTheEmailUniqueIndex() {
+        val address = email()
+        val first = assertNotNull(repo.ensureAdmin(address, "Ops", "hash"))
+
+        val second = assertNotNull(repo.ensureAdmin(address, "Someone Else", "other-hash"))
+
+        assertEquals(first, second, "a second start-up must not change the account")
+    }
+
+    @Test
+    fun searchFindsAUserByNameIgnoringCaseAndAccents() {
+        val marker = UUID.randomUUID().toString().take(6)
+        val user = assertIs<CreateUserResult.Created>(repo.create(email(), "Sáng Trường $marker", phone(), "h")).user
+
+        assertEquals(listOf(user.id), repo.search("sang truong $marker", 10).map { it.id })
+        assertEquals(listOf(user.id), repo.search("SÁNG TRƯỜNG $marker", 10).map { it.id })
+        assertEquals(listOf(user.id), repo.search(marker, 10).map { it.id })
+    }
+
+    @Test
+    fun searchFindsAUserByEmailAndByExactId() {
+        val user = assertIs<CreateUserResult.Created>(create()).user
+
+        assertEquals(listOf(user.id), repo.search(user.email, 10).map { it.id })
+        assertEquals(listOf(user.id), repo.search(user.id, 10).map { it.id })
+    }
+
+    @Test
+    fun searchIgnoresAnEmptyQueryAndRespectsTheLimit() {
+        assertIs<CreateUserResult.Created>(create())
+
+        assertTrue(repo.search("", 10).isEmpty(), "a blank box is not a request for every customer")
+        assertTrue(repo.search("   ", 10).isEmpty())
+        assertEquals(1, repo.search("@example.com", 1).size)
+    }
+
+    @Test
+    fun searchSkipsSoftDeletedAccounts() {
+        val marker = UUID.randomUUID().toString().take(6)
+        val user = assertIs<CreateUserResult.Created>(repo.create(email(), "Lan $marker", phone(), "h")).user
+        assertEquals(listOf(user.id), repo.search(marker, 10).map { it.id })
+
+        sql("UPDATE users SET deleted_at = now() WHERE id = ?", UUID.fromString(user.id))
+
+        assertTrue(repo.search(marker, 10).isEmpty(), "deleted accounts are absent here too")
+    }
+
+    @Test
+    fun searchTreatsTextThatLooksLikeSqlAsText() {
+        // Parameterised, so the quote matches nothing and the table survives.
+        assertTrue(repo.search("'; DROP TABLE users; --", 10).isEmpty())
+        assertIs<CreateUserResult.Created>(create())
+    }
 }

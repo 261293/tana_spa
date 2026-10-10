@@ -12,3 +12,16 @@ description = "A documented 'BAD example' (hardcoded credentials) with an obviou
 condition = "AND"
 paths = ['''\.claude/skills/code-reviewer/references/common_antipatterns\.md''']
 regexes = ['''sk-abc123xyz789''']
+
+# The seeded local-admin password. Deliberately public so the /admin portal opens with no setup
+# on any fresh database (see docs/feature-flags.md); it is not a credential for any real system,
+# and the seeder's own comment says to change or delete those accounts before exposing a server.
+[[allowlists]]
+description = "Deliberately published dev password for the two seeded /admin accounts"
+condition = "AND"
+paths = [
+    '''server/src/main/kotlin/com/tana/spa/auth/AdminSeeder\.kt''',
+    '''docs/feature-flags\.md''',
+    '''docs/local-development\.md''',
+]
+regexes = ['''P@ssw0rd26''']

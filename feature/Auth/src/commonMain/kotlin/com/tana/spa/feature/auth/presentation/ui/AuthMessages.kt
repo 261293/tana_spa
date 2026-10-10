@@ -70,8 +70,8 @@ internal fun AuthFailure.res(): StringResource = when (this) {
 }
 
 internal fun OtpFailure.res(): StringResource = when (this) {
-    // SESSION_EXPIRED navigates to login instead of being shown; the text only guards exhaustiveness.
-    OtpFailure.SESSION_EXPIRED, OtpFailure.SERVER -> Res.string.failure_server
+    // SESSION_EXPIRED and DISABLED navigate away instead of being shown; these only guard exhaustiveness.
+    OtpFailure.SESSION_EXPIRED, OtpFailure.DISABLED, OtpFailure.SERVER -> Res.string.failure_server
 
     OtpFailure.PHONE_CLAIMED -> Res.string.otp_failure_phone_claimed
 
