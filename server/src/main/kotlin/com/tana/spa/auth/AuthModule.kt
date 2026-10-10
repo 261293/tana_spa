@@ -8,6 +8,9 @@ import com.tana.spa.auth.otp.PhoneVerificationRepository
 import com.tana.spa.auth.otp.PhoneVerificationService
 import com.tana.spa.auth.otp.SendResult
 import com.tana.spa.auth.otp.VerifyResult
+import com.tana.spa.featureflags.FeatureFlagRepository
+import com.tana.spa.featureflags.FeatureFlagService
+import com.tana.spa.featureflags.InMemoryFeatureFlagRepository
 import com.tana.spa.shared.auth.AuthApi
 import com.tana.spa.shared.auth.AuthErrorCodes
 import com.tana.spa.shared.auth.AuthResponse
@@ -17,6 +20,8 @@ import com.tana.spa.shared.auth.PhoneOtpSendResponse
 import com.tana.spa.shared.auth.PhoneOtpVerifyRequest
 import com.tana.spa.shared.auth.RegisterRequest
 import com.tana.spa.shared.auth.UserDto
+import com.tana.spa.shared.featureflags.FeatureFlag
+import com.tana.spa.shared.featureflags.FeatureFlags
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -62,6 +67,7 @@ class AuthServices(
     val authService: AuthService,
     val tokens: TokenService,
     val phoneVerification: PhoneVerificationService,
+    val featureFlags: FeatureFlagService,
 ) {
     companion object {
         fun create(
@@ -71,16 +77,19 @@ class AuthServices(
             verifications: PhoneVerificationRepository = InMemoryPhoneVerificationRepository(),
             otpProvider: PhoneVerificationProvider = DevPhoneVerificationProvider(),
             otpConfig: OtpConfig = OtpConfig(),
+            flagRepository: FeatureFlagRepository = InMemoryFeatureFlagRepository(),
+            flagDefaults: FeatureFlags = FeatureFlags.defaults,
         ) = AuthServices(
             config = config,
             authService = AuthService(users, hasher, defaultPhoneRegion = otpConfig.defaultPhoneRegion),
             tokens = TokenService(config),
             phoneVerification = PhoneVerificationService(users, verifications, otpProvider, otpConfig),
+            featureFlags = FeatureFlagService(flagRepository, users, flagDefaults),
         )
     }
 }
 
-private const val JWT_AUTH = "auth-jwt"
+internal const val JWT_AUTH = "auth-jwt"
 private val LOGIN_LIMIT = RateLimitName("login")
 private val OTP_LIMIT = RateLimitName("otp")
 private const val OTP_REQUESTS_PER_MINUTE = 10
@@ -262,6 +271,9 @@ fun Application.authModule(services: AuthServices) {
                     // already on the account. That is the main defence against SMS pumping.
                     post("/phone/otp/send") {
                         val userId = call.principal<JWTPrincipal>()!!.payload.subject
+                        if (call.refuseIfDisabled(services.featureFlags, FeatureFlag.PHONE_OTP_VERIFICATION, userId)) {
+                            return@post
+                        }
                         val locale = call.request.headers[HttpHeaders.AcceptLanguage]
                             ?.substringBefore(',')?.substringBefore(';')?.trim()
                         val result = services.phoneVerification.send(userId, call.request.origin.remoteHost, locale)
@@ -316,6 +328,9 @@ fun Application.authModule(services: AuthServices) {
 
                     post("/phone/otp/verify") {
                         val userId = call.principal<JWTPrincipal>()!!.payload.subject
+                        if (call.refuseIfDisabled(services.featureFlags, FeatureFlag.PHONE_OTP_VERIFICATION, userId)) {
+                            return@post
+                        }
                         val body = call.receive<PhoneOtpVerifyRequest>()
                         val result = services.phoneVerification.verify(userId, body.code)
                         log.info("otp verify user={} -> {}", userId, result.describe())
@@ -384,6 +399,7 @@ private fun User.toDto() = UserDto(
     displayName = displayName,
     phone = phone,
     phoneVerified = phoneVerified,
+    role = role.sql,
 )
 
 private fun AuthServices.authResponse(user: User) = AuthResponse(
@@ -391,6 +407,21 @@ private fun AuthServices.authResponse(user: User) = AuthResponse(
     expiresInSeconds = config.tokenTtlSeconds,
     user = user.toDto(),
 )
+
+/**
+ * @return true when the handler must stop. Inside the route rather than around it, so the path
+ *   keeps existing: a client can tell "switched off" (503) from "wrong URL" (404).
+ */
+private suspend fun ApplicationCall.refuseIfDisabled(flags: FeatureFlagService, flag: FeatureFlag, userId: String?): Boolean {
+    if (flags.isEnabled(flag, userId)) return false
+    log.info("{} refused: feature {} is switched off", request.path(), flag.key)
+    respondError(
+        HttpStatusCode.ServiceUnavailable,
+        AuthErrorCodes.FEATURE_DISABLED,
+        "This feature is temporarily unavailable",
+    )
+    return true
+}
 
 private suspend fun ApplicationCall.respondError(
     status: HttpStatusCode,

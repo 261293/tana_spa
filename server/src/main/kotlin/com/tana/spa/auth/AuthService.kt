@@ -73,4 +73,6 @@ class AuthService(
     }
 
     suspend fun findUser(id: String): User? = withContext(io) { users.findById(id) }
+
+    suspend fun searchUsers(query: String, limit: Int): List<User> = withContext(io) { users.search(query, limit) }
 }

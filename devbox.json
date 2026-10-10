@@ -12,6 +12,8 @@
       "server": "./gradlew :server:run",
       "test": "./gradlew :server:test",
       "test:all": "./gradlew jvmTest :server:test",
+      "verify": "./gradlew ktlintFormat && ./gradlew ktlintCheck jvmTest :server:test :composeApp:compileKotlinWasmJs",
+      "desktop": "./gradlew :composeApp:run",
       "web": "./gradlew :composeApp:wasmJsBrowserDevelopmentRun",
       "web:build": "./gradlew :composeApp:wasmJsBrowserDistribution",
       "android": "./gradlew :androidApp:assembleDebug",

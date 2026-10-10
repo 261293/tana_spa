@@ -2,6 +2,18 @@ package com.tana.spa.auth
 
 import java.util.UUID
 
+enum class UserRole(val sql: String) {
+    CUSTOMER("customer"),
+    STAFF("staff"),
+    ADMIN("admin"),
+    ;
+
+    companion object {
+        /** An unknown value yields the least privileged role rather than failing the read. */
+        fun fromSql(value: String?): UserRole = entries.firstOrNull { it.sql == value } ?: CUSTOMER
+    }
+}
+
 data class User(
     val id: String,
     val email: String,
@@ -12,6 +24,7 @@ data class User(
     val phoneVerified: Boolean,
     /** Null for accounts that only ever signed in with a social provider. */
     val passwordHash: String?,
+    val role: UserRole = UserRole.CUSTOMER,
 )
 
 sealed interface CreateUserResult {
@@ -45,6 +58,12 @@ interface UserRepository {
 
     fun recordLogin(id: String)
 
+    /** @return the account that holds [email], whatever its role, or null if it could not be read. */
+    fun ensureAdmin(email: String, displayName: String, passwordHash: String): User?
+
+    /** Matches a display name, an email or an exact id. */
+    fun search(query: String, limit: Int): List<User>
+
     /** The id of the account that has *verified* [phone], if any. */
     fun verifiedPhoneOwner(phone: String): String?
 
@@ -77,6 +96,32 @@ class InMemoryUserRepository : UserRepository {
     }
 
     override fun recordLogin(id: String) = Unit
+
+    @Synchronized
+    override fun ensureAdmin(email: String, displayName: String, passwordHash: String): User? {
+        byId.values.firstOrNull { it.email == email }?.let { return it }
+        val admin = User(
+            id = UUID.randomUUID().toString(),
+            email = email,
+            displayName = displayName,
+            phone = null,
+            phoneVerified = false,
+            passwordHash = passwordHash,
+            role = UserRole.ADMIN,
+        )
+        byId[admin.id] = admin
+        return admin
+    }
+
+    @Synchronized
+    override fun search(query: String, limit: Int): List<User> {
+        val needle = query.trim()
+        if (needle.isEmpty()) return emptyList()
+        byId[needle]?.let { return listOf(it) }
+        return byId.values
+            .filter { it.displayName.contains(needle, ignoreCase = true) || it.email.contains(needle, ignoreCase = true) }
+            .take(limit)
+    }
 
     @Synchronized
     override fun verifiedPhoneOwner(phone: String): String? = verifiedOwner(phone)

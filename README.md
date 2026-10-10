@@ -37,12 +37,24 @@ plugin (androidLibrary + jvm + iosArm64 + iosSimulatorArm64 + wasmJs); UI module
 
 ## Running the apps
 
+**New here?** [docs/local-development.md](docs/local-development.md) has every command in order:
+first-time setup, the daily loop, what to run before you push, and what to do when a build fails.
+
+```bash
+cp .env.example .env               # once
+docker compose up -d --wait db     # PostgreSQL 17
+./gradlew :server:run              # http://localhost:8081
+```
+
+- Server: `./gradlew :server:run` → http://localhost:8081 (try `/`, `/demo`, and the feature-flag
+  portal at [`/admin/`](http://localhost:8081/admin/))
 - Web (dev server): `./gradlew :composeApp:wasmJsBrowserDevelopmentRun` → http://localhost:8080
 - Web (production bundle): `./gradlew :composeApp:wasmJsBrowserDistribution`
 - Android app: `./gradlew :androidApp:assembleDebug`
 - Desktop app: `./gradlew :composeApp:run`
-- Server: `./gradlew :server:run` (try http://localhost:8080/ and /demo)
 - iOS app: open [/iosApp](./iosApp) in Xcode and run it (requires macOS/Xcode).
+
+The backend listens on **8081**; 8080 is the web dev server.
 
 ## Release builds
 
@@ -58,8 +70,16 @@ and store identities.
 
 ## Running tests
 
-- Feed feature tests: `./gradlew :feature:Feed:jvmTest`
-- Server tests: `./gradlew :server:test`
+What CI runs, and what to run before pushing ([all of it, in order](docs/local-development.md#3-before-you-push)):
+
+```bash
+./gradlew ktlintFormat && ./gradlew ktlintCheck   # style gate
+./gradlew jvmTest :server:test                    # unit tests (server uses embedded PostgreSQL)
+./gradlew :composeApp:compileKotlinWasmJs         # strictest target; required for commonMain changes
+```
+
+- One module: `./gradlew :feature:Auth:jvmTest`
+- One test: `./gradlew :server:test --tests "com.tana.spa.featureflags.FeatureFlagRoutesTest"`
 
 ---
 

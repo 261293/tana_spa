@@ -65,6 +65,9 @@ enum class OtpFailure {
 
     /** The SMS provider is down; trying again shortly is safe. */
     UNAVAILABLE,
+
+    /** The server has phone verification switched off; the step is skipped, not retried. */
+    DISABLED,
     NETWORK,
     EXPIRED,
     TOO_MANY_ATTEMPTS,

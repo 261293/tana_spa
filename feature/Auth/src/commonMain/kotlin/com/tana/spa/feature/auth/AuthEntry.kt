@@ -44,6 +44,7 @@ object SignUpEntry : FeatureEntry {
             onEvent = viewModel::onEvent,
             // The account already exists, so Back must not return to the (now stale) form.
             onNavigateToVerifyPhone = { navigator.replaceAll(Routes.VERIFY_PHONE) },
+            onNavigateHome = { navigator.replaceAll(Routes.WELCOME) },
             onNavigateToLogin = { navigator.replaceAll(Routes.AUTH) },
         )
     }

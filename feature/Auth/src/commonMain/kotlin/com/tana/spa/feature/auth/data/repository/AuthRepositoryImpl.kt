@@ -129,6 +129,8 @@ class AuthRepositoryImpl(
 
         code == AuthErrorCodes.OTP_UNAVAILABLE -> OtpFailure.UNAVAILABLE
 
+        code == AuthErrorCodes.FEATURE_DISABLED -> OtpFailure.DISABLED
+
         code == AuthErrorCodes.OTP_EXPIRED -> OtpFailure.EXPIRED
 
         code == AuthErrorCodes.OTP_TOO_MANY_ATTEMPTS -> OtpFailure.TOO_MANY_ATTEMPTS

@@ -28,6 +28,8 @@ data class UserDto(
     val phone: String? = null,
     /** True once the owner proved control of [phone] with a one-time code. */
     val phoneVerified: Boolean = false,
+    /** `customer`, `staff` or `admin`. */
+    val role: String = "customer",
 )
 
 /** The code is always sent to the phone number on the account, never to one supplied here. */
@@ -75,7 +77,16 @@ object AuthErrorCodes {
 
     /** The SMS provider is down or misconfigured; safe to retry later. */
     const val OTP_UNAVAILABLE = "otp_unavailable"
+
+    /** Switched off by a feature flag. Retrying will not help; skip the feature instead. */
+    const val FEATURE_DISABLED = "feature_disabled"
+
+    /** A key that is not in this server's `FeatureFlag` catalog. */
+    const val UNKNOWN_FLAG = "unknown_flag"
     const val TOO_MANY_REQUESTS = "too_many_requests"
     const val UNAUTHORIZED = "unauthorized"
+
+    /** Signed in, but this account is not allowed to do that. */
+    const val FORBIDDEN = "forbidden"
     const val INTERNAL = "internal_error"
 }

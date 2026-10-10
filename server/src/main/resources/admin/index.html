@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feature flags — Tana SPA</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --line: #dcdfe4;
+    --text: #1b1f24;
+    --muted: #666e7a;
+    --on: #0f7a3d;
+    --off: #a8371f;
+    --accent: #1f5fd0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  header { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; margin-bottom: 20px; }
+  h1 { font-size: 20px; margin: 0; flex: 1 1 auto; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .on { color: var(--on); font-weight: 600; }
+  .off { color: var(--off); font-weight: 600; }
+  button {
+    font: inherit; padding: 5px 11px; margin-right: 6px; cursor: pointer;
+    background: #fff; color: var(--text); border: 1px solid var(--line); border-radius: 6px;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  input {
+    font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px;
+    background: #fff; color: var(--text); min-width: 220px;
+  }
+  label { display: block; margin-bottom: 10px; }
+  label span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 3px; }
+  #error { background: #fdeceb; border: 1px solid #f0b3ab; color: #8a2b19; padding: 10px 12px; border-radius: 6px; }
+  #notice { background: #eaf2fd; border: 1px solid #b6cff5; color: #16407f; padding: 10px 12px; border-radius: 6px; }
+  ul.results { list-style: none; margin: 12px 0 0; padding: 0; }
+  ul.results li { padding: 7px 0; border-bottom: 1px solid var(--line); }
+  ul.results li:last-child { border-bottom: none; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Feature flags</h1>
+    <span id="who" class="muted small"></span>
+    <button id="signout" hidden>Sign out</button>
+  </header>
+
+  <p id="error" hidden></p>
+  <p id="notice" hidden></p>
+
+  <section id="signin" hidden>
+    <h2>Sign in</h2>
+    <p class="muted small">An account with the <code>admin</code> role. Flags can be read by anyone; changing them cannot.</p>
+    <form id="signin-form">
+      <label><span>Email</span><input id="email" type="email" autocomplete="username" required></label>
+      <label><span>Password</span><input id="password" type="password" autocomplete="current-password" required></label>
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <div id="console" hidden>
+    <section>
+      <h2>Everybody</h2>
+      <p class="muted small">
+        <strong>Clear</strong> removes the stored state, so the flag falls back to this
+        deployment's default — it is an undo, not an off switch.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Flag</th><th>Now</th><th>Stored</th><th>Deploy default</th><th>Overrides</th><th></th></tr>
+        </thead>
+        <tbody id="flag-rows"></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>One user</h2>
+      <p class="muted small">Search by name, email or user id. An override beats the global state for that one person.</p>
+      <form id="search-form" class="row">
+        <label style="margin:0"><span>Search</span><input id="query" type="search" placeholder="Lan, lan@example.com, or an id"></label>
+        <button class="primary" type="submit">Search</button>
+      </form>
+      <ul id="results" class="results"></ul>
+
+      <div id="user-flags" hidden>
+        <p class="small" style="margin-top:18px">
+          <strong id="user-name"></strong>
+          <span class="muted" id="user-email"></span><br>
+          <code class="muted" id="user-id"></code>
+        </p>
+        <table>
+          <thead>
+            <tr><th>Flag</th><th>This user</th><th>Override</th><th></th></tr>
+          </thead>
+          <tbody id="user-rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <p class="muted small">
+    Server: <code id="origin"></code> · If no administrator can sign in, flags can still be changed with SQL
+    (<code>UPDATE feature_flags SET enabled = true WHERE key = '…'</code>).
+  </p>
+</div>
+
+<script>
+'use strict';
+
+var TOKEN_KEY = 'tana.admin.token';
+var token = sessionStorage.getItem(TOKEN_KEY);
+var view = null;          // last /feature-flags/admin response
+var selected = null;      // the user whose overrides are on screen
+
+var el = function (id) { return document.getElementById(id); };
+
+function showError(message) {
+  el('error').textContent = message;
+  el('error').hidden = !message;
+}
+
+function showNotice(message) {
+  el('notice').textContent = message;
+  el('notice').hidden = !message;
+}
+
+async function api(method, path, body) {
+  var headers = { 'Accept': 'application/json' };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  var response = await fetch(path, {
+    method: method,
+    headers: headers,
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  var text = await response.text();
+  var data = null;
+  if (text) {
+    try { data = JSON.parse(text); } catch (e) { data = null; }
+  }
+  if (response.status === 401) {
+    signOut('The session has expired. Sign in again.');
+    throw new Error('Not signed in');
+  }
+  if (!response.ok) {
+    throw new Error((data && data.message) || ('Request failed with ' + response.status));
+  }
+  return data;
+}
+
+function state(value) {
+  return value ? '<span class="on">on</span>' : '<span class="off">off</span>';
+}
+
+function effective(flag, userId) {
+  var override = overrideFor(flag, userId);
+  if (override) return override.enabled;
+  if (flag.globalEnabled !== null && flag.globalEnabled !== undefined) return flag.globalEnabled;
+  return flag.deployDefault;
+}
+
+function overrideFor(flag, userId) {
+  var list = flag.overrides || [];
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].userId === userId) return list[i];
+  }
+  return null;
+}
+
+function renderFlags() {
+  var rows = view.flags.map(function (flag) {
+    var stored = (flag.globalEnabled === null || flag.globalEnabled === undefined)
+      ? '<span class="muted">not set</span>'
+      : state(flag.globalEnabled);
+    return '<tr>' +
+      '<td><code>' + flag.key + '</code><br><span class="muted small">' + flag.description + '</span></td>' +
+      '<td>' + state(flag.enabled) + '</td>' +
+      '<td>' + stored + '</td>' +
+      '<td>' + state(flag.deployDefault) + '</td>' +
+      '<td>' + (flag.overrides || []).length + '</td>' +
+      '<td style="white-space:nowrap">' +
+        '<button data-global="' + flag.key + '" data-enabled="true">On</button>' +
+        '<button data-global="' + flag.key + '" data-enabled="false">Off</button>' +
+        '<button data-clear-global="' + flag.key + '">Clear</button>' +
+      '</td></tr>';
+  });
+  el('flag-rows').innerHTML = rows.join('');
+}
+
+function renderUser() {
+  el('user-flags').hidden = selected === null;
+  if (selected === null) return;
+  el('user-name').textContent = selected.displayName;
+  el('user-email').textContent = ' — ' + selected.email + ' (' + selected.role + ')';
+  el('user-id').textContent = selected.id;
+  var rows = view.flags.map(function (flag) {
+    var override = overrideFor(flag, selected.id);
+    var stored = override
+      ? state(override.enabled) + (override.note ? ' <span class="muted small">' + override.note + '</span>' : '')
+      : '<span class="muted">follows everybody</span>';
+    return '<tr>' +
+      '<td><code>' + flag.key + '</code></td>' +
+      '<td>' + state(effective(flag, selected.id)) + '</td>' +
+      '<td>' + stored + '</td>' +
+      '<td style="white-space:nowrap">' +
+        '<button data-user="' + flag.key + '" data-enabled="true">On</button>' +
+        '<button data-user="' + flag.key + '" data-enabled="false">Off</button>' +
+        '<button data-clear-user="' + flag.key + '"' + (override ? '' : ' disabled') + '>Clear</button>' +
+      '</td></tr>';
+  });
+  el('user-rows').innerHTML = rows.join('');
+}
+
+async function loadFlags() {
+  view = await api('GET', '/api/v1/feature-flags/admin');
+  renderFlags();
+  renderUser();
+}
+
+function signOut(message) {
+  token = null;
+  sessionStorage.removeItem(TOKEN_KEY);
+  view = null;
+  selected = null;
+  el('console').hidden = true;
+  el('signin').hidden = false;
+  el('signout').hidden = true;
+  el('who').textContent = '';
+  el('results').innerHTML = '';
+  el('user-flags').hidden = true;
+  showNotice(message || '');
+}
+
+async function start() {
+  showError('');
+  if (!token) { signOut(); return; }
+  var me;
+  try {
+    me = await api('GET', '/api/v1/auth/me');
+  } catch (e) {
+    showError(e.message);
+    return;
+  }
+  if (me.role !== 'admin') {
+    signOut('Signed in as ' + me.email + ', whose role is ' + me.role + '. Sign in with an administrator account.');
+    return;
+  }
+  el('who').textContent = me.email;
+  el('signin').hidden = true;
+  el('signout').hidden = false;
+  el('console').hidden = false;
+  showNotice('');
+  try {
+    await loadFlags();
+  } catch (e) {
+    showError(e.message);
+  }
+}
+
+el('signin-form').addEventListener('submit', async function (event) {
+  event.preventDefault();
+  showError('');
+  showNotice('');
+  try {
+    var auth = await api('POST', '/api/v1/auth/login', {
+      email: el('email').value.trim(),
+      password: el('password').value
+    });
+    token = auth.accessToken;
+    sessionStorage.setItem(TOKEN_KEY, token);
+    el('password').value = '';
+    await start();
+  } catch (e) {
+    showError(e.message);
+  }
+});
+
+el('signout').addEventListener('click', function () { signOut('Signed out.'); });
+
+el('search-form').addEventListener('submit', async function (event) {
+  event.preventDefault();
+  showError('');
+  var query = el('query').value.trim();
+  if (!query) { el('results').innerHTML = ''; return; }
+  try {
+    var found = await api('GET', '/api/v1/admin/users?q=' + encodeURIComponent(query));
+    if (found.users.length === 0) {
+      el('results').innerHTML = '<li class="muted small">Nobody matches that.</li>';
+      return;
+    }
+    el('results').innerHTML = found.users.map(function (user) {
+      return '<li><button data-pick="' + user.id + '">Select</button>' +
+        '<strong>' + user.displayName + '</strong> ' +
+        '<span class="muted small">' + user.email + ' · ' + user.role + ' · <code>' + user.id + '</code></span></li>';
+    }).join('');
+    el('results').dataset.found = JSON.stringify(found.users);
+  } catch (e) {
+    showError(e.message);
+  }
+});
+
+// Delegated, because every button below is replaced on each render.
+document.addEventListener('click', async function (event) {
+  var button = event.target.closest ? event.target.closest('button') : null;
+  if (!button) return;
+  var data = button.dataset;
+  showError('');
+  try {
+    if (data.pick) {
+      var found = JSON.parse(el('results').dataset.found || '[]');
+      selected = found.filter(function (user) { return user.id === data.pick; })[0] || null;
+      renderUser();
+      return;
+    }
+    if (data.global) {
+      view = await api('PUT', '/api/v1/feature-flags/' + data.global, { enabled: data.enabled === 'true' });
+    } else if (data.clearGlobal) {
+      view = await api('DELETE', '/api/v1/feature-flags/' + data.clearGlobal);
+    } else if (data.user && selected) {
+      view = await api('PUT', '/api/v1/feature-flags/' + data.user + '/users/' + selected.id, {
+        enabled: data.enabled === 'true',
+        note: 'set from the admin portal'
+      });
+    } else if (data.clearUser && selected) {
+      view = await api('DELETE', '/api/v1/feature-flags/' + data.clearUser + '/users/' + selected.id);
+    } else {
+      return;
+    }
+    // Every write answers with the whole admin view, so both tables can be rendered from it.
+    renderFlags();
+    renderUser();
+  } catch (e) {
+    showError(e.message);
+  }
+});
+
+el('origin').textContent = location.origin;
+start();
+</script>
+</body>
+</html>

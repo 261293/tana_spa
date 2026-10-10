@@ -34,6 +34,7 @@ include(":androidApp")
 include(":shared")
 
 include(":core:cache")
+include(":core:featureflags")
 include(":core:logging")
 include(":core:mvi")
 include(":core:navigation")

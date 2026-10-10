@@ -1,8 +1,10 @@
 package com.tana.spa
 
+import com.tana.spa.admin.adminModule
 import com.tana.spa.auth.AuthConfig
 import com.tana.spa.auth.AuthServices
 import com.tana.spa.auth.InMemoryUserRepository
+import com.tana.spa.auth.Pbkdf2PasswordHasher
 import com.tana.spa.auth.PostgresUserRepository
 import com.tana.spa.auth.UserRepository
 import com.tana.spa.auth.authModule
@@ -11,10 +13,17 @@ import com.tana.spa.auth.otp.OtpConfig
 import com.tana.spa.auth.otp.PhoneVerificationProvider
 import com.tana.spa.auth.otp.PhoneVerificationRepository
 import com.tana.spa.auth.otp.PostgresPhoneVerificationRepository
+import com.tana.spa.auth.seedAdmins
 import com.tana.spa.db.Database
 import com.tana.spa.db.DatabaseConfig
 import com.tana.spa.demo.demoRoutes
+import com.tana.spa.featureflags.FeatureFlagRepository
+import com.tana.spa.featureflags.InMemoryFeatureFlagRepository
+import com.tana.spa.featureflags.PostgresFeatureFlagRepository
+import com.tana.spa.featureflags.featureFlagModule
 import com.tana.spa.shared.Constants
+import com.tana.spa.shared.featureflags.ConfigurableFeatureFlags
+import com.tana.spa.shared.featureflags.describe
 import com.tana.spa.shared.sayHello
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -40,13 +49,22 @@ fun main() {
     val verifications: PhoneVerificationRepository =
         dataSource?.let { PostgresPhoneVerificationRepository(it) } ?: InMemoryPhoneVerificationRepository()
     val otpConfig = OtpConfig.fromEnvironment()
+    val flagDefaults = ConfigurableFeatureFlags.fromEnvironment(System.getenv())
+    val flagRepository: FeatureFlagRepository =
+        dataSource?.let { PostgresFeatureFlagRepository(it) } ?: InMemoryFeatureFlagRepository()
+    // Built here, not inside AuthServices, so the same hasher seeds the administrators.
+    val hasher = Pbkdf2PasswordHasher()
     val auth = AuthServices.create(
         config = AuthConfig.fromEnvironment(),
         users = users,
+        hasher = hasher,
         verifications = verifications,
         otpProvider = PhoneVerificationProvider.fromEnvironment(),
         otpConfig = otpConfig,
+        flagRepository = flagRepository,
+        flagDefaults = flagDefaults,
     )
+    seedAdmins(users, hasher)
 
     log.info(
         "Starting server on port {} (env={}, store={})",
@@ -54,6 +72,8 @@ fun main() {
         System.getenv("APP_ENV") ?: "unset",
         if (dataSource != null) "postgres" else "in-memory",
     )
+    // Only the defaults: stored states change while the server runs. Read those from /admin.
+    log.info("Feature flag deploy defaults: {}", flagDefaults.describe())
     embeddedServer(Netty, port = port, host = "0.0.0.0") {
         closeOnStop(dataSource)
         module(auth)
@@ -70,6 +90,9 @@ private fun Application.closeOnStop(dataSource: DataSource?) {
  */
 fun Application.module(authServices: AuthServices = AuthServices.create(AuthConfig.fromEnvironment())) {
     authModule(authServices)
+    // After authModule: it installs the plugins and the JWT realm that both of these use.
+    featureFlagModule(authServices.featureFlags, authServices.tokens, authServices.authService)
+    adminModule(authServices.authService)
     demoRoutes()
     routing {
         get("/") {

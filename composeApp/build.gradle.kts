@@ -51,6 +51,7 @@ kotlin {
             implementation(projects.core.navigation)
             implementation(projects.core.network)
             implementation(projects.core.cache)
+            implementation(projects.core.featureflags)
             implementation(projects.feature.assistant)
             implementation(projects.feature.auth)
             implementation(projects.feature.explore)

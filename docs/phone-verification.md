@@ -3,6 +3,12 @@
 Proves that the person who signed up controls the phone number on the account.
 Works for numbers from any country; the SMS vendor is pluggable.
 
+> **Switched off by default.** The whole feature sits behind the `phone_otp_verification` feature
+> flag, which ships **off** because the flow is unreliable. With it off, sign-up goes straight to
+> onboarding (the account is created, just with `phoneVerified: false`) and both OTP routes answer
+> `503 feature_disabled`. Turn it back on — globally, or for one tester — from the `/admin` portal:
+> [`feature-flags.md`](feature-flags.md).
+
 ## How it works
 
 ```

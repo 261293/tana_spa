@@ -84,6 +84,7 @@ fun SignUpScreen(
     effects: Flow<SignUpEffect>,
     onEvent: (SignUpEvent) -> Unit,
     onNavigateToVerifyPhone: () -> Unit,
+    onNavigateHome: () -> Unit,
     onNavigateToLogin: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -92,6 +93,8 @@ fun SignUpScreen(
         effects.collect { effect ->
             when (effect) {
                 SignUpEffect.NavigateToVerifyPhone -> onNavigateToVerifyPhone()
+
+                SignUpEffect.NavigateHome -> onNavigateHome()
 
                 SignUpEffect.NavigateToLogin -> onNavigateToLogin()
 

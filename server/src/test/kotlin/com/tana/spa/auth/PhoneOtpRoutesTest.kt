@@ -4,6 +4,7 @@ import com.tana.spa.auth.otp.DevPhoneVerificationProvider
 import com.tana.spa.auth.otp.OtpConfig
 import com.tana.spa.auth.otp.PhoneVerificationProvider
 import com.tana.spa.auth.otp.ProviderException
+import com.tana.spa.featureflags.InMemoryFeatureFlagRepository
 import com.tana.spa.module
 import com.tana.spa.shared.auth.AuthApi
 import com.tana.spa.shared.auth.AuthErrorCodes
@@ -13,6 +14,9 @@ import com.tana.spa.shared.auth.PhoneOtpSendResponse
 import com.tana.spa.shared.auth.PhoneOtpVerifyRequest
 import com.tana.spa.shared.auth.RegisterRequest
 import com.tana.spa.shared.auth.UserDto
+import com.tana.spa.shared.featureflags.ConfigurableFeatureFlags
+import com.tana.spa.shared.featureflags.FeatureFlag
+import com.tana.spa.shared.featureflags.FeatureFlags
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -38,12 +42,23 @@ class PhoneOtpRoutesTest {
 
     private val dev = DevPhoneVerificationProvider()
 
-    private fun services(provider: PhoneVerificationProvider = dev, otp: OtpConfig = OtpConfig()) = AuthServices.create(
+    private val flagStore = InMemoryFeatureFlagRepository()
+
+    /** The feature is on unless a test turns it off. */
+    private fun services(
+        provider: PhoneVerificationProvider = dev,
+        otp: OtpConfig = OtpConfig(),
+        flags: FeatureFlags = otpVerification(enabled = true),
+    ) = AuthServices.create(
         config = AuthConfig(jwtSecret = "x".repeat(40)),
         hasher = FakeHasher(),
         otpProvider = provider,
         otpConfig = otp,
+        flagRepository = flagStore,
+        flagDefaults = flags,
     )
+
+    private fun otpVerification(enabled: Boolean) = ConfigurableFeatureFlags(mapOf(FeatureFlag.PHONE_OTP_VERIFICATION to enabled))
 
     private fun ApplicationTestBuilder.jsonClient(): HttpClient = createClient { install(ContentNegotiation) { json() } }
 
@@ -75,6 +90,49 @@ class PhoneOtpRoutesTest {
                 setBody(PhoneOtpVerifyRequest("123456"))
             }.status,
         )
+    }
+
+    @Test
+    fun bothEndpointsAreOutOfServiceWhileTheFeatureFlagIsOff() = testApplication {
+        application { module(services(flags = otpVerification(enabled = false))) }
+        val client = jsonClient()
+        val auth = client.signUp("off@example.com", "0333 433 969")
+        assertEquals(false, auth.user.phoneVerified)
+
+        val sent = client.sendOtp(auth.accessToken)
+        assertEquals(HttpStatusCode.ServiceUnavailable, sent.status)
+        assertEquals(AuthErrorCodes.FEATURE_DISABLED, sent.body<ErrorResponse>().code)
+        assertNull(dev.peekCode("+84333433969"), "no code may be created for a switched-off feature")
+
+        val verified = client.verifyOtp(auth.accessToken, "123456")
+        assertEquals(HttpStatusCode.ServiceUnavailable, verified.status)
+        assertEquals(AuthErrorCodes.FEATURE_DISABLED, verified.body<ErrorResponse>().code)
+
+        assertEquals(false, client.get(AuthApi.ME) { bearerAuth(auth.accessToken) }.body<UserDto>().phoneVerified)
+    }
+
+    @Test
+    fun aPerUserOverrideLetsOneTesterUseAFeatureThatIsOffForEverybodyElse() = testApplication {
+        application { module(services(flags = otpVerification(enabled = false))) }
+        val client = jsonClient()
+        val tester = client.signUp("tester@example.com", "0333 433 969")
+        val everybodyElse = client.signUp("other@example.com", "0333 433 970")
+        flagStore.setOverride(
+            key = FeatureFlag.PHONE_OTP_VERIFICATION.key,
+            userId = tester.user.id,
+            enabled = true,
+            note = "verifying the fix",
+            updatedBy = "test",
+        )
+
+        assertEquals(HttpStatusCode.Accepted, client.sendOtp(tester.accessToken).status)
+        assertEquals(HttpStatusCode.ServiceUnavailable, client.sendOtp(everybodyElse.accessToken).status)
+    }
+
+    @Test
+    fun aDisabledFeatureStillAnswersUnauthenticatedCallersWithUnauthorized() = testApplication {
+        application { module(services(flags = otpVerification(enabled = false))) }
+        assertEquals(HttpStatusCode.Unauthorized, jsonClient().sendOtp(null).status)
     }
 
     @Test
