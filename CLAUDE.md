@@ -48,6 +48,16 @@ Read `ARCHITECTURE.md` and `docs/architecture.md` for the layer rules. The parts
 
 Use `AppLog` from `core:logging`; no `println`/Timber, and never log passwords, tokens, OTP codes, bodies or full emails/phones. HTTP calls (`RequestTracing`), navigation and ViewModel effects are logged automatically; add business-outcome logs in ViewModels/repositories and SLF4J logs in server routes. New feature modules need `implementation(projects.core.logging)`. The client sends `X-Request-Id`/`X-Session-Id` and the server puts them in every log line (`[req=… sid=…]`); a new custom header sent from the browser must also be added to the CORS allow-list. Details: `.claude/skills/kmp-compose-multiplatform/references/logging.md`.
 
+## Code style (required for new code)
+
+Names carry the meaning; comments do not. Don't narrate code — if a function needs a comment to
+break it into stages, extract those stages into named functions instead. Write a comment **only**
+for logic that is genuinely hard: a security or ordering constraint, a non-obvious reason for an
+unusual choice, a protocol/domain fact not visible locally, an atomicity guarantee, or a
+workaround. A one-line KDoc is allowed on `shared/` public API where the signature cannot say it
+(units, what null means, an invariant). Full rules and examples: the `self-documenting-code`
+skill. This overrides the heavier comment style in older files; don't copy it.
+
 ## Gotchas
 
 - Files are edited on Windows: `settings.gradle.kts` uses CRLF while most sources are LF. Preserve each file's line endings when scripting edits.
