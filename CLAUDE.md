@@ -54,3 +54,17 @@ Use `AppLog` from `core:logging`; no `println`/Timber, and never log passwords, 
 - `README.md` module list is partly stale (module paths are lowercase `core/mvi`, etc.); trust `settings.gradle.kts`.
 - Kotlin strings in Compose resources don't support `\'`.
 - Several screens (Explore, Likes, NewPost, Profile) are placeholders, and `FeedRemoteApiImpl` returns stub data.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues (`261293/tana_spa`, via the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
