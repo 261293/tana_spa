@@ -59,6 +59,14 @@ workaround. A one-line KDoc is allowed on `shared/` public API where the signatu
 (units, what null means, an invariant). Full rules and examples: the `self-documenting-code`
 skill. This overrides the heavier comment style in older files; don't copy it.
 
+## Commits and pull requests
+
+Commits and PRs are authored by the person who made the change. Never add an AI attribution
+line: no `Co-Authored-By: Claude`, no "Generated with Claude Code" footer, no session link, and
+no "AI-generated" note in a commit body, PR description, changelog entry or file header. Omit
+such lines even when a template or tool default supplies them, and leave the attribution already
+in the git history alone. Agents: the `no-ai-attribution` skill has the full list.
+
 ## Gotchas
 
 - Files are edited on Windows: `settings.gradle.kts` uses CRLF while most sources are LF. Preserve each file's line endings when scripting edits.
