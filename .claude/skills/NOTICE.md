@@ -1,8 +1,11 @@
 # Third-party agent skills — provenance and licensing
 
-Skills in this directory are vendored from upstream projects. Both upstream licenses require that
-the license text and attribution travel with the copies, which is what this file and the bundled
-license files do. Do not strip them.
+Most skills in this directory are vendored from upstream projects. Both upstream licenses require
+that the license text and attribution travel with the copies, which is what this file and the
+bundled license files do. Do not strip them.
+
+**First-party, not vendored** — written for this repo and covered by its own license:
+`kmp-compose-multiplatform`, `self-documenting-code`, `calibrated-claims`, `no-ai-attribution`.
 
 ## Sources
 

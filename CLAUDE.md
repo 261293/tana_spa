@@ -67,6 +67,15 @@ no "AI-generated" note in a commit body, PR description, changelog entry or file
 such lines even when a template or tool default supplies them, and leave the attribution already
 in the git history alone. Agents: the `no-ai-attribution` skill has the full list.
 
+## Stating what you know (required)
+
+Be transparent about what is verified, what is assumed and what is inferred. Never present an
+uncertain claim as fact, never invent a source or a figure, and check anything that moves (a
+version, a config value, a published behaviour) instead of recalling it. Equally, do not hedge
+what you did verify: say what you ran and what it does not cover — "the gate passes; I did not
+exercise it in the running app" rather than either extreme. Report failures with their output and
+name any step you skipped. Full rules: the `calibrated-claims` skill.
+
 ## UI (required for new screens)
 
 Colours come from `MaterialTheme.colorScheme` or `SpaTheme.extraColors`, text styles from
@@ -91,7 +100,8 @@ WCAG 2.2 checks, screen templates): `core:ui` plus the `kmp-compose-multiplatfor
 
 `.claude/skills/` is version controlled, so these apply to everyone. Project-specific:
 `kmp-compose-multiplatform` (architecture, logging, **UI design rules**, **library choices**),
-`self-documenting-code` (comment style). Vendored from upstream: `frontend-design`,
+`self-documenting-code` (comment style), `calibrated-claims` (how to state what is known vs
+inferred), `no-ai-attribution` (authorship). Vendored from upstream: `frontend-design`,
 `security-audit`, `env-secrets-manager`, `pr-review-expert`, `spec-driven-workflow`,
 `focused-fix`, `doc-drift-detector`, `feature-flags-architect`, `migration-architect`,
 `database-schema-designer`, `mcp-builder`, `design-auditor`, `apple-hig-expert`,
