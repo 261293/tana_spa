@@ -998,6 +998,8 @@ See `references/logging.md` for the per-layer checklist, levels, redaction rules
 - `references/build-system.md` — convention plugins, R8/ProGuard, publishing to Maven, CI Gradle daemon, KSP config, `gradle.properties`, build performance
 - `references/logging.md` — **project logging rules**: `AppLog`, per-layer checklist for new features, never-log list, request/session-id tracing, server logging, tests
 - `references/i18n.md` — string resources, plurals, RTL support, dynamic locale change, locale-aware number/currency formatting
+- `references/ui-design.md` — **UI design rules**: tokens over literals, per-target rules (iOS fidelity, wasm canvas), responsive breakpoints, WCAG 2.2 checks, the four screen templates, review checklist
+- `references/libraries.md` — KMP library shortlist curated from kmp-awesome: how to vet a target set, what is already chosen and why, candidates per need (images, theming, responsive, iOS, media picking, recomposition debugging)
 
 ## Official References
 

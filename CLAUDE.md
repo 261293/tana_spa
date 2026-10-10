@@ -76,6 +76,22 @@ in the git history alone. Agents: the `no-ai-attribution` skill has the full lis
 
 ## Agent skills
 
+### Installed skills
+
+`.claude/skills/` is version controlled, so these apply to everyone. Project-specific:
+`kmp-compose-multiplatform` (architecture, logging, **UI design rules**, **library choices**),
+`self-documenting-code` (comment style). Vendored from upstream: `frontend-design`,
+`security-audit`, `env-secrets-manager`, `pr-review-expert`, `spec-driven-workflow`,
+`focused-fix`, `doc-drift-detector`, `feature-flags-architect`, `migration-architect`,
+`database-schema-designer`, `mcp-builder`, `design-auditor`, `apple-hig-expert`,
+`ui-design-system`. Their bundled Python scripts target non-JVM ecosystems and mostly do not
+work on Kotlin/Gradle — the methodology is the useful part. Provenance, licenses and the list
+of what was deliberately rejected: `.claude/skills/NOTICE.md`.
+
+A `PreToolUse` hook (`.claude/hooks/pre_tool_secret_scan.py`, wired in `.claude/settings.json`)
+blocks shell commands carrying credential-shaped strings or writing a secret into `.env`. It
+needs `python` on `PATH`; without it the hook warns and the command proceeds.
+
 ### Issue tracker
 
 GitHub Issues (`261293/tana_spa`, via the `gh` CLI). See `docs/agents/issue-tracker.md`.
