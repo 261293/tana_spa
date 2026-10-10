@@ -267,7 +267,8 @@ Release builds of the clients: see the [README](../README.md#release-builds).
 | Symptom | Cause and fix |
 |---|---|
 | `Could not find a JDK` / toolchain error | JDK 21 is not installed and Gradle cannot provision one here. Install it, or point your IDE at it. |
-| `Address already in use` on 8081 | another `:server:run` is still going. Stop it, or set `PORT` in `.env`. |
+| `Address already in use` on 8081, or Docker says `ports are not available: … bind: Only one usage of each socket address` | something on the host already holds 8081, usually a `:server:run` you thought you stopped — stopping the Gradle wrapper (Ctrl+C in some shells, or killing the wrapper process) can leave the forked application JVM running. Find and stop the real holder:<br>`netstat -ano \| grep ":8081 "` then, in PowerShell, `Get-CimInstance Win32_Process -Filter "ProcessId=<pid>"` to confirm it is the app, and `Stop-Process -Id <pid> -Force`. Or set `PORT` in `.env` and let both run. |
+| The container starts but a new endpoint 404s or returns nothing | the image holds an older jar. `server/Dockerfile` copies a jar built **outside** the image, so rebuild both: `./gradlew :server:buildFatJar && docker compose --profile app up -d --build`. |
 | `DATABASE_URL must be set when APP_ENV=production` | you set `APP_ENV=production` locally. Use `development`. |
 | `store=in-memory` in the log, accounts vanish on restart | `DATABASE_URL` is not in the server's environment. Gradle does not read `.env`: `set -a; . ./.env; set +a` first, or use `devbox run server`. Then check the database is up. |
 | `Validate failed: Migration checksum mismatch` | an applied migration was edited. `devbox run db:reset`, and add a new `V<N>__…sql` instead. |
