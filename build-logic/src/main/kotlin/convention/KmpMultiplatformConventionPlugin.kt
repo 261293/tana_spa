@@ -40,6 +40,10 @@ class KmpMultiplatformConventionPlugin : Plugin<Project> {
                 namespace = "com.tana.spa.${project.name.lowercase()}"
                 compileSdk = libs.findVersion("android-compileSdk").get().requiredVersion.toInt()
                 minSdk = libs.findVersion("android-minSdk").get().requiredVersion.toInt()
+                // Compose Multiplatform ships a module's resources as Android assets; the KMP
+                // library plugin leaves Android resources off, so without this the APK has no
+                // composeResources and the first stringResource() call crashes at launch.
+                androidResources { enable = true }
             }
 
             sourceSets.apply {
