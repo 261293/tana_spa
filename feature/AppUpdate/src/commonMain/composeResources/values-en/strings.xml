@@ -1,0 +1,9 @@
+<resources>
+    <!-- App update gate -->
+    <string name="update_force_title">Update required</string>
+    <string name="update_force_body">Version %1$s is available. Please update to carry on using the app.</string>
+    <string name="update_optional_title">Update available</string>
+    <string name="update_optional_body">Version %1$s is available. You can update now or later.</string>
+    <string name="update_action">Update</string>
+    <string name="update_later">Later</string>
+</resources>

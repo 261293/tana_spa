@@ -1,6 +1,10 @@
 package com.tana.spa
 
 import com.tana.spa.admin.adminModule
+import com.tana.spa.appupdate.AppUpdateRepository
+import com.tana.spa.appupdate.InMemoryAppUpdateRepository
+import com.tana.spa.appupdate.PostgresAppUpdateRepository
+import com.tana.spa.appupdate.appUpdateModule
 import com.tana.spa.auth.AuthConfig
 import com.tana.spa.auth.AuthServices
 import com.tana.spa.auth.InMemoryUserRepository
@@ -52,6 +56,8 @@ fun main() {
     val flagDefaults = ConfigurableFeatureFlags.fromEnvironment(System.getenv())
     val flagRepository: FeatureFlagRepository =
         dataSource?.let { PostgresFeatureFlagRepository(it) } ?: InMemoryFeatureFlagRepository()
+    val appUpdateRepository: AppUpdateRepository =
+        dataSource?.let { PostgresAppUpdateRepository(it) } ?: InMemoryAppUpdateRepository()
     // Built here, not inside AuthServices, so the same hasher seeds the administrators.
     val hasher = Pbkdf2PasswordHasher()
     val auth = AuthServices.create(
@@ -63,6 +69,7 @@ fun main() {
         otpConfig = otpConfig,
         flagRepository = flagRepository,
         flagDefaults = flagDefaults,
+        appUpdateRepository = appUpdateRepository,
     )
     seedAdmins(users, hasher)
 
@@ -92,6 +99,7 @@ fun Application.module(authServices: AuthServices = AuthServices.create(AuthConf
     authModule(authServices)
     // After authModule: it installs the plugins and the JWT realm that both of these use.
     featureFlagModule(authServices.featureFlags, authServices.tokens, authServices.authService)
+    appUpdateModule(authServices.appUpdate, authServices.featureFlags, authServices.authService)
     adminModule(authServices.authService)
     demoRoutes()
     routing {

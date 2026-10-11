@@ -21,6 +21,8 @@ core/
   network/                   Ktor client + per-platform engine (PlatformClientEngine)
   ui/                        AppTheme, SpaColors/SpaTheme tokens, AppScaffold, NavBar, AppBars
 feature/
+  AppUpdate/                 Force/optional update gate: an overlay above every route, not a
+                             destination, so it has no FeatureEntry (docs/adr/0003)
   Assistant, Auth, Explore,  Entry + Screen per feature
   Likes, NewPost, Profile
   Feed/                      Full clean-arch reference: data (remote/cache/repository),

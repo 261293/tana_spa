@@ -24,8 +24,10 @@ unusable session as anonymity rather than as an error.
 
 ## Feature flags
 
-**Feature flag** — a named switch that takes a feature out of service without a deploy. Temporary
-by intent: it exists while something is broken or unfinished, and is deleted afterwards.
+**Feature flag** — a named switch that takes a feature out of service without a deploy. Usually
+temporary by intent: it exists while something is broken or unfinished, and is deleted
+afterwards. A few are permanent **kill switches** for machinery that can lock users out, where
+the switch is the recovery path and so outlives the feature.
 
 **Flag catalog** — the compiled list of flags, shared by the apps and the server. The catalog is
 the authority on which flags exist; anything not in it is unknown, not merely unset.
@@ -54,3 +56,24 @@ because whoever proves control first owns it.
 **One-time code (OTP)** — a six-digit code sent by SMS. Never stored here; it lives with the
 provider. Its destination is always the number already on the account, never one supplied in a
 request.
+
+## App updates
+
+**Update gate** — the check an app makes on launch to decide whether its own build is still
+welcome. It can prompt, block, or say nothing; saying nothing is the default whenever anything is
+unknown.
+
+**Supported floor** — the oldest build still allowed to run (`minimumVersion`). A build below it
+is blocked; a build exactly at it is not, because equality is not below.
+
+**Latest release** — the newest build available in the stores (`latestVersion`). It decides whether
+there is anything worth offering: a user already on it is never prompted.
+
+**Forced update** — a prompt with no way past it. Reached by falling below the supported floor, or
+by *escalation*.
+
+**Escalation** — `forceUpdate`, which turns an optional prompt into a forced one without moving the
+supported floor. For a release that turns out to be bad.
+
+**Optional update** — a prompt the user may dismiss. Dismissal lasts the app session; the next cold
+start asks again.

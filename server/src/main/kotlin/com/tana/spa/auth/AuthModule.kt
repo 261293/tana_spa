@@ -1,5 +1,8 @@
 package com.tana.spa.auth
 
+import com.tana.spa.appupdate.AppUpdateRepository
+import com.tana.spa.appupdate.AppUpdateService
+import com.tana.spa.appupdate.InMemoryAppUpdateRepository
 import com.tana.spa.auth.otp.DevPhoneVerificationProvider
 import com.tana.spa.auth.otp.InMemoryPhoneVerificationRepository
 import com.tana.spa.auth.otp.OtpConfig
@@ -68,6 +71,7 @@ class AuthServices(
     val tokens: TokenService,
     val phoneVerification: PhoneVerificationService,
     val featureFlags: FeatureFlagService,
+    val appUpdate: AppUpdateService,
 ) {
     companion object {
         fun create(
@@ -79,12 +83,14 @@ class AuthServices(
             otpConfig: OtpConfig = OtpConfig(),
             flagRepository: FeatureFlagRepository = InMemoryFeatureFlagRepository(),
             flagDefaults: FeatureFlags = FeatureFlags.defaults,
+            appUpdateRepository: AppUpdateRepository = InMemoryAppUpdateRepository(),
         ) = AuthServices(
             config = config,
             authService = AuthService(users, hasher, defaultPhoneRegion = otpConfig.defaultPhoneRegion),
             tokens = TokenService(config),
             phoneVerification = PhoneVerificationService(users, verifications, otpProvider, otpConfig),
             featureFlags = FeatureFlagService(flagRepository, users, flagDefaults),
+            appUpdate = AppUpdateService(appUpdateRepository),
         )
     }
 }
@@ -412,7 +418,7 @@ private fun AuthServices.authResponse(user: User) = AuthResponse(
  * @return true when the handler must stop. Inside the route rather than around it, so the path
  *   keeps existing: a client can tell "switched off" (503) from "wrong URL" (404).
  */
-private suspend fun ApplicationCall.refuseIfDisabled(flags: FeatureFlagService, flag: FeatureFlag, userId: String?): Boolean {
+internal suspend fun ApplicationCall.refuseIfDisabled(flags: FeatureFlagService, flag: FeatureFlag, userId: String?): Boolean {
     if (flags.isEnabled(flag, userId)) return false
     log.info("{} refused: feature {} is switched off", request.path(), flag.key)
     respondError(

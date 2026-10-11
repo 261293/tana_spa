@@ -118,11 +118,30 @@
         </table>
       </div>
     </section>
+
+    <section>
+      <h2>App update gate</h2>
+      <p class="muted small">
+        One row, edited in place. <strong>Minimum</strong> is the oldest build still supported,
+        <strong>Latest</strong> the newest released, both <code>1.2.3</code>. <strong>Force</strong> turns an
+        optional prompt into a mandatory one without moving the minimum. A minimum newer than the latest is
+        refused, because it would point every client at a version no store has. A client that cannot reach
+        this shows no prompt at all, and the <code>app_update_gate</code> flag above switches it off entirely.
+      </p>
+      <form id="update-form" class="row">
+        <label style="margin:0"><span>Minimum</span><input id="minimum-version" type="text" placeholder="1.0.0" required></label>
+        <label style="margin:0"><span>Latest</span><input id="latest-version" type="text" placeholder="1.0.0" required></label>
+        <label style="margin:0"><span>Force</span><input id="force-update" type="checkbox"></label>
+        <button class="primary" type="submit">Save</button>
+      </form>
+      <p class="muted small" id="update-current"></p>
+    </section>
   </div>
 
   <p class="muted small">
     Server: <code id="origin"></code> · If no administrator can sign in, flags can still be changed with SQL
-    (<code>UPDATE feature_flags SET enabled = true WHERE key = '…'</code>).
+    (<code>UPDATE feature_flags SET enabled = true WHERE key = '…'</code>, or
+    <code>UPDATE app_update_config SET minimum_version = '…'</code>).
   </p>
 </div>
 
@@ -133,6 +152,7 @@ var TOKEN_KEY = 'tana.admin.token';
 var token = sessionStorage.getItem(TOKEN_KEY);
 var view = null;          // last /feature-flags/admin response
 var selected = null;      // the user whose overrides are on screen
+var updateConfig = null;  // last /app-update response, null when nothing is stored
 
 var el = function (id) { return document.getElementById(id); };
 
@@ -233,6 +253,23 @@ function renderUser() {
   el('user-rows').innerHTML = rows.join('');
 }
 
+function renderUpdateConfig() {
+  if (!updateConfig) {
+    el('update-current').textContent = 'Nothing stored yet, so no client shows a prompt.';
+    return;
+  }
+  el('minimum-version').value = updateConfig.minimumVersion;
+  el('latest-version').value = updateConfig.latestVersion;
+  el('force-update').checked = updateConfig.forceUpdate;
+  el('update-current').textContent = 'Stored: minimum ' + updateConfig.minimumVersion + ', latest ' +
+    updateConfig.latestVersion + ', force ' + (updateConfig.forceUpdate ? 'on' : 'off') + '.';
+}
+
+async function loadUpdateConfig() {
+  updateConfig = await api('GET', '/api/v1/app-update');
+  renderUpdateConfig();
+}
+
 async function loadFlags() {
   view = await api('GET', '/api/v1/feature-flags/admin');
   renderFlags();
@@ -244,6 +281,7 @@ function signOut(message) {
   sessionStorage.removeItem(TOKEN_KEY);
   view = null;
   selected = null;
+  updateConfig = null;
   el('console').hidden = true;
   el('signin').hidden = false;
   el('signout').hidden = true;
@@ -274,6 +312,7 @@ async function start() {
   showNotice('');
   try {
     await loadFlags();
+    await loadUpdateConfig();
   } catch (e) {
     showError(e.message);
   }
@@ -292,6 +331,23 @@ el('signin-form').addEventListener('submit', async function (event) {
     sessionStorage.setItem(TOKEN_KEY, token);
     el('password').value = '';
     await start();
+  } catch (e) {
+    showError(e.message);
+  }
+});
+
+el('update-form').addEventListener('submit', async function (event) {
+  event.preventDefault();
+  showError('');
+  showNotice('');
+  try {
+    updateConfig = await api('PUT', '/api/v1/app-update', {
+      minimumVersion: el('minimum-version').value.trim(),
+      latestVersion: el('latest-version').value.trim(),
+      forceUpdate: el('force-update').checked
+    });
+    renderUpdateConfig();
+    showNotice('Update gate saved.');
   } catch (e) {
     showError(e.message);
   }
