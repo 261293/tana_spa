@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.feature.assistant.resources.Res
+import com.tana.spa.feature.assistant.resources.chat_close
+import com.tana.spa.feature.assistant.resources.ic_close
 import com.tana.spa.feature.assistant.resources.welcome_accept
 import com.tana.spa.feature.assistant.resources.welcome_body
 import com.tana.spa.feature.assistant.resources.welcome_brand
@@ -46,7 +48,7 @@ import org.jetbrains.compose.resources.stringResource
  * Stateless; the checkbox state lives with the caller.
  */
 @Composable
-fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onContinue: () -> Unit) {
+fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onContinue: () -> Unit, onClose: () -> Unit) {
     ScreenCard(maxWidth = 520.dp) {
         Column(Modifier.fillMaxSize()) {
             // Hero: soft pink gradient with the assistant and its greeting bubble.
@@ -70,6 +72,13 @@ fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onCont
                     )
                     AssistantAvatar(size = 112.dp, modifier = Modifier.padding(top = 14.dp))
                 }
+                IconSquareButton(
+                    icon = Res.drawable.ic_close,
+                    description = stringResource(Res.string.chat_close),
+                    onClick = onClose,
+                    round = true,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
+                )
             }
 
             Column(

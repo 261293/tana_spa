@@ -1,3 +1,5 @@
 package com.tana.spa.core.ui.model
 
-data class NavConfig(val route: String, val label: String)
+import org.jetbrains.compose.resources.DrawableResource
+
+data class NavConfig(val route: String, val label: String, val icon: DrawableResource? = null)

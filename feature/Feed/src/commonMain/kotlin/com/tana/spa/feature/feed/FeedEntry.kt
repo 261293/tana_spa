@@ -17,6 +17,12 @@ object FeedEntry : FeatureEntry {
     override fun Content(navigator: Navigator) {
         val viewModel: FeedViewmodel = koinViewModel()
         val state by viewModel.state.collectAsStateWithLifecycle()
-        FeedScreen(state = state, effects = viewModel.effects, onEvent = viewModel::onEvent)
+        FeedScreen(
+            state = state,
+            effects = viewModel.effects,
+            onEvent = viewModel::onEvent,
+            // The welcome screen opens the assistant flow; going straight to the chat would skip consent.
+            onOpenAssistant = { navigator.navigate(Routes.WELCOME) },
+        )
     }
 }

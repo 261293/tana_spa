@@ -3,20 +3,26 @@ package com.tana.spa.feature.feed.presentation.manipulator
 import androidx.lifecycle.viewModelScope
 import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
+import com.tana.spa.feature.feed.domain.HomeUserName
+import com.tana.spa.feature.feed.domain.model.HomeContent
+import com.tana.spa.feature.feed.domain.model.HomeSection
 import com.tana.spa.feature.feed.domain.repository.FeedRepository
 import com.tana.spa.feature.feed.presentation.mapper.toUi
-import com.tana.spa.shared.result.AppResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
-class FeedViewmodel(private val repository: FeedRepository) : MviViewModel<FeedState, FeedEvent, FeedEffect>(FeedState()) {
+class FeedViewmodel(private val repository: FeedRepository, userName: HomeUserName) :
+    MviViewModel<FeedState, FeedEvent, FeedEffect>(FeedState(greetingName = userName.current())) {
+
+    /** Null until a refresh has finished, which is what separates "still loading" from "nothing to show". */
+    private val failedSections = MutableStateFlow<Set<HomeSection>?>(null)
 
     init {
-        repository.feed
-            .map { feed -> feed.map { it.toUi() } }
-            .onEach { items -> setState { copy(items = items) } }
+        combine(repository.home, failedSections) { content, failed -> content to failed }
+            .onEach { (content, failed) -> setState { content.applyTo(this, failed) } }
             .launchIn(viewModelScope)
         refresh()
     }
@@ -24,27 +30,32 @@ class FeedViewmodel(private val repository: FeedRepository) : MviViewModel<FeedS
     override fun handleEvent(event: FeedEvent) {
         when (event) {
             FeedEvent.Refresh -> refresh()
+            FeedEvent.AssistantClicked -> sendEffect(FeedEffect.OpenAssistant)
+            FeedEvent.ItemClicked -> sendEffect(FeedEffect.ShowComingSoon)
         }
     }
 
     private fun refresh() {
-        setState { copy(isRefreshing = true, error = null) }
+        failedSections.value = null
         viewModelScope.launch {
-            val result = repository.refresh()
-            setState { copy(isRefreshing = false) }
-            if (result is AppResult.Success) {
-                AppLog.i(logTag) { "feed refreshed: ${state.value.items.size} items" }
-            } else if (result is AppResult.Failure) {
-                AppLog.w(logTag, result.error.cause) {
-                    "feed refresh failed (cached items=${state.value.items.size}): ${result.error.message}"
-                }
-                val message = result.error.message ?: "Could not load feed"
-                if (state.value.items.isEmpty()) {
-                    setState { copy(error = message) }
-                } else {
-                    sendEffect(FeedEffect.ShowMessage(message))
-                }
-            }
+            val failed = repository.refresh()
+            failedSections.value = failed
+            AppLog.i(logTag) { "home refreshed, failed sections=${failed.map { it.name }}" }
         }
+    }
+
+    private fun HomeContent.applyTo(state: FeedState, failed: Set<HomeSection>?) = state.copy(
+        appointments = section(HomeSection.APPOINTMENTS, appointments.map { it.toUi() }, failed),
+        banners = section(HomeSection.BANNERS, banners.map { it.toUi() }, failed),
+        categories = section(HomeSection.CATEGORIES, categories.map { it.toUi() }, failed),
+        featuredServices = section(HomeSection.FEATURED_SERVICES, featuredServices.map { it.toUi() }, failed),
+        products = section(HomeSection.PRODUCTS, products.map { it.toUi() }, failed),
+    )
+
+    private fun <T> section(section: HomeSection, items: List<T>, failed: Set<HomeSection>?): SectionState<T> = when {
+        items.isNotEmpty() -> SectionState.Ready(items)
+        failed == null -> SectionState.Loading
+        section in failed -> SectionState.Failed
+        else -> SectionState.Ready(emptyList())
     }
 }
