@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -117,6 +118,7 @@ internal fun IconSquareButton(
     val mirror = mirrorInRtl && LocalLayoutDirection.current == LayoutDirection.Rtl
     Box(
         modifier = modifier
+            .minimumInteractiveComponentSize()
             .size(40.dp)
             .clip(shape)
             .background(MaterialTheme.colorScheme.surface)

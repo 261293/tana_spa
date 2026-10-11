@@ -26,6 +26,7 @@ object WelcomeEntry : FeatureEntry {
             accepted = accepted,
             onAcceptedChange = { accepted = it },
             onContinue = { navigator.navigate(Routes.CONSENT) },
+            onClose = { navigator.replaceAll(Routes.FEED) },
         )
     }
 }

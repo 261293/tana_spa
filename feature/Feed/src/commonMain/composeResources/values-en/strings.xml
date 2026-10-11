@@ -1,0 +1,23 @@
+<resources>
+    <string name="home_greeting">Hello</string>
+    <string name="home_greeting_named">Hello, %1$s</string>
+    <string name="home_subtitle">How would you like to unwind today?</string>
+
+    <string name="home_assistant_overline">Tana assistant</string>
+    <string name="home_assistant_title">Services that suit your skin</string>
+    <string name="home_assistant_action">Start</string>
+
+    <string name="home_assistant_fab">Ask the Tana assistant</string>
+    <string name="home_section_appointments">Upcoming appointment</string>
+    <string name="home_section_categories">Categories</string>
+    <string name="home_section_services">Featured services</string>
+    <string name="home_section_products">Recommended products</string>
+
+    <string name="home_appointment_upcoming">Upcoming</string>
+    <string name="home_combo">Combo</string>
+    <string name="home_duration">%1$d min</string>
+
+    <string name="home_load_failed">Couldn’t load this</string>
+    <string name="home_retry">Try again</string>
+    <string name="home_coming_soon">Coming soon, check back later</string>
+</resources>

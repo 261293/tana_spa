@@ -12,6 +12,12 @@ import com.tana.spa.core.navigation.Routes
 import com.tana.spa.core.navigation.rememberNavigator
 import com.tana.spa.core.ui.AppTheme
 import com.tana.spa.core.ui.model.NavConfig
+import com.tana.spa.core.ui.resources.Res
+import com.tana.spa.core.ui.resources.ic_nav_explore
+import com.tana.spa.core.ui.resources.ic_nav_home
+import com.tana.spa.core.ui.resources.ic_nav_likes
+import com.tana.spa.core.ui.resources.ic_nav_new
+import com.tana.spa.core.ui.resources.ic_nav_profile
 import com.tana.spa.core.ui.scafold.AppScaffold
 import com.tana.spa.feature.appupdate.AppUpdateGate
 import org.koin.compose.koinInject
@@ -57,11 +63,11 @@ private fun CurrentRoute(navigator: Navigator, current: String) {
     }
 
     val navItems = listOf(
-        NavConfig(Routes.FEED, "Feed"),
-        NavConfig(Routes.EXPLORE, "Explore"),
-        NavConfig(Routes.NEW_POST, "New"),
-        NavConfig(Routes.LIKES, "Likes"),
-        NavConfig(Routes.PROFILE, "Profile"),
+        NavConfig(Routes.FEED, "Home", Res.drawable.ic_nav_home),
+        NavConfig(Routes.EXPLORE, "Explore", Res.drawable.ic_nav_explore),
+        NavConfig(Routes.NEW_POST, "New", Res.drawable.ic_nav_new),
+        NavConfig(Routes.LIKES, "Likes", Res.drawable.ic_nav_likes),
+        NavConfig(Routes.PROFILE, "Profile", Res.drawable.ic_nav_profile),
     )
 
     AppScaffold(
