@@ -25,6 +25,11 @@ import com.tana.spa.featureflags.FeatureFlagRepository
 import com.tana.spa.featureflags.InMemoryFeatureFlagRepository
 import com.tana.spa.featureflags.PostgresFeatureFlagRepository
 import com.tana.spa.featureflags.featureFlagModule
+import com.tana.spa.notifications.InMemoryNotificationRepository
+import com.tana.spa.notifications.NotificationRepository
+import com.tana.spa.notifications.PostgresNotificationRepository
+import com.tana.spa.notifications.notificationModule
+import com.tana.spa.notifications.push.PushSender
 import com.tana.spa.shared.Constants
 import com.tana.spa.shared.featureflags.ConfigurableFeatureFlags
 import com.tana.spa.shared.featureflags.describe
@@ -58,6 +63,8 @@ fun main() {
         dataSource?.let { PostgresFeatureFlagRepository(it) } ?: InMemoryFeatureFlagRepository()
     val appUpdateRepository: AppUpdateRepository =
         dataSource?.let { PostgresAppUpdateRepository(it) } ?: InMemoryAppUpdateRepository()
+    val notificationRepository: NotificationRepository =
+        dataSource?.let { PostgresNotificationRepository(it) } ?: InMemoryNotificationRepository()
     // Built here, not inside AuthServices, so the same hasher seeds the administrators.
     val hasher = Pbkdf2PasswordHasher()
     val auth = AuthServices.create(
@@ -70,6 +77,8 @@ fun main() {
         flagRepository = flagRepository,
         flagDefaults = flagDefaults,
         appUpdateRepository = appUpdateRepository,
+        notificationRepository = notificationRepository,
+        pushSender = PushSender.fromEnvironment(),
     )
     seedAdmins(users, hasher)
 
@@ -100,6 +109,7 @@ fun Application.module(authServices: AuthServices = AuthServices.create(AuthConf
     // After authModule: it installs the plugins and the JWT realm that both of these use.
     featureFlagModule(authServices.featureFlags, authServices.tokens, authServices.authService)
     appUpdateModule(authServices.appUpdate, authServices.featureFlags, authServices.authService)
+    notificationModule(authServices.notifications, authServices.featureFlags, authServices.authService)
     adminModule(authServices.authService)
     demoRoutes()
     routing {

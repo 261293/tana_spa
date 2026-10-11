@@ -10,7 +10,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
- * Applies V1..V5 to a throw-away PostgreSQL and checks that the constraints in the schema
+ * Applies every migration to a throw-away PostgreSQL and checks that the constraints in the schema
  * really reject bad data, since those rules are the last line of defence behind the app code.
  */
 class MigrationsTest {
@@ -75,7 +75,7 @@ class MigrationsTest {
             "products", "product_variants", "product_images", "favorites", "banners",
             "vouchers", "user_vouchers", "carts", "cart_items", "orders", "order_items",
             "bookings", "booking_items", "payments", "voucher_redemptions",
-            "feedback", "notifications", "phone_verifications", "v_user_history",
+            "feedback", "notifications", "phone_verifications", "device_tokens", "v_user_history",
         )
         assertTrue(tables.containsAll(expected), "missing: ${expected - tables}")
     }

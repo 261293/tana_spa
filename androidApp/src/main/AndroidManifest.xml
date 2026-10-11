@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Android 13+ asks the user before an app may post notifications; the app requests it from
+         the notification centre, not at launch (docs/notifications.md). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- allowBackup=false keeps the stored session out of `adb backup` and cloud backups, so a
          decompiled APK cannot be paired with a copy of someone else's app data.
          usesCleartextTraffic=false blocks plain HTTP; src/debug overrides it so the emulator can
@@ -21,6 +25,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Receives rotated tokens and messages that arrive while the app is in the foreground.
+             Firebase posts background notifications itself. -->
+        <service
+            android:name=".notifications.TanaMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- The channel a background notification lands in when the message does not name one.
+             Must match PushChannels.DEFAULT, which the server sends. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="tana_default" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
     </application>
 
 </manifest>

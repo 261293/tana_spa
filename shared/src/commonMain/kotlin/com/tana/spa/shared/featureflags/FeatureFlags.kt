@@ -15,6 +15,13 @@ enum class FeatureFlag(val key: String, val defaultEnabled: Boolean, val descrip
         defaultEnabled = true,
         description = "Force and optional app-update prompts driven by app_update_config",
     ),
+    NOTIFICATIONS(
+        key = "notifications",
+        // Off until a Firebase project is configured: with no credentials the server stores
+        // tokens and delivers nothing, and the bell would show a list that never fills.
+        defaultEnabled = false,
+        description = "Notification centre and push delivery to registered devices",
+    ),
     ;
 
     val envName: String = "FEATURE_" + key.uppercase()

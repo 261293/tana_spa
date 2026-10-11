@@ -1,0 +1,5 @@
+<resources>
+    <!-- Shown in the system notification settings for this app, so it is user-facing text. -->
+    <string name="notification_channel_name">Đơn hàng và lịch hẹn</string>
+    <string name="notification_channel_description">Thông báo về đơn hàng, lịch hẹn và ưu đãi.</string>
+</resources>

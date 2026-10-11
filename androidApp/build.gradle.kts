@@ -33,6 +33,17 @@ val canSignRelease = releaseKeystore?.isFile == true &&
 apply(plugin = "org.jetbrains.kotlin.plugin.compose")
 apply(plugin = "org.jetbrains.compose")
 
+// Firebase Cloud Messaging is configured per environment, and google-services.json is gitignored
+// (it is generated from a Firebase project, not source). Applying the plugin unconditionally would
+// fail every build that has no key file, so a clone without one still builds and runs - with push
+// simply unavailable. See docs/notifications.md.
+val firebaseConfig = file("google-services.json")
+if (firebaseConfig.isFile) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.lifecycle("androidApp: no google-services.json, building without Firebase (push notifications stay off)")
+}
+
 android {
     namespace = "com.tana.spa"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -159,6 +170,13 @@ tasks.register("verifyReleaseObfuscation") {
 dependencies {
     implementation(projects.composeApp)
     implementation(projects.core.logging)
+    // The messaging service and the permission prompt live here: both need the app's manifest
+    // and an Activity, which a KMP library module does not have.
+    implementation(projects.core.notifications)
+    implementation(projects.shared)
+    implementation(libs.firebase.messaging)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.koin.core)
     implementation(libs.androidx.activity.compose)
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.koin.android)

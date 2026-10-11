@@ -13,4 +13,5 @@ object Routes {
     const val NEW_POST = "newPost"
     const val LIKES = "likes"
     const val PROFILE = "profile"
+    const val NOTIFICATIONS = "notifications"
 }

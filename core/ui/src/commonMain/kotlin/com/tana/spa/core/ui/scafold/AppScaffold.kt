@@ -1,6 +1,7 @@
 package com.tana.spa.core.ui.scafold
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -15,10 +16,11 @@ fun AppScaffold(
     navItems: List<NavConfig>,
     selectedRoute: String,
     onSelect: (String) -> Unit,
+    topBarActions: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     Scaffold(
-        topBar = { AppTopBar(title) },
+        topBar = { AppTopBar(title, actions = topBarActions) },
         bottomBar = { if (navItems.isNotEmpty()) NavBar(navItems, selectedRoute, onSelect) },
     ) { padding ->
         Box(Modifier.padding(padding)) {

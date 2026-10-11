@@ -81,6 +81,12 @@ object AuthErrorCodes {
     /** Switched off by a feature flag. Retrying will not help; skip the feature instead. */
     const val FEATURE_DISABLED = "feature_disabled"
 
+    /** No notification with that id on this account (or it belongs to someone else). */
+    const val NOTIFICATION_NOT_FOUND = "notification_not_found"
+
+    /** The push provider is down or misconfigured; the notification was still stored. */
+    const val PUSH_UNAVAILABLE = "push_unavailable"
+
     /** A key that is not in this server's `FeatureFlag` catalog. */
     const val UNKNOWN_FLAG = "unknown_flag"
     const val TOO_MANY_REQUESTS = "too_many_requests"

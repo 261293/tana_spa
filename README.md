@@ -19,10 +19,13 @@ core/
   mvi/                       MviViewModel base (State / Event / Effect)
   navigation/                FeatureEntry / Navigator / Routes
   network/                   Ktor client + per-platform engine (PlatformClientEngine)
+  notifications/             Push permission/token per platform, device registration, unread badge
   ui/                        AppTheme, SpaColors/SpaTheme tokens, AppScaffold, NavBar, AppBars
 feature/
   AppUpdate/                 Force/optional update gate: an overlay above every route, not a
                              destination, so it has no FeatureEntry (docs/adr/0003)
+  Notifications/             Notification centre: list, unread state, in-context push opt-in
+                             (docs/notifications.md)
   Assistant, Auth, Explore,  Entry + Screen per feature
   Likes, NewPost, Profile
   Feed/                      Full clean-arch reference: data (remote/cache/repository),

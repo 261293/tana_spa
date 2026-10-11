@@ -23,12 +23,3 @@ class FeatureFlagRemoteApiImpl(private val networkClient: NetworkClient, private
         return response.body<FeatureFlagsResponse>().flags
     }
 }
-
-/** The session lives in `feature:Auth`, which `core` cannot depend on; `composeApp` binds this. */
-fun interface AccessTokenSource {
-    fun accessToken(): String?
-
-    companion object {
-        val none: AccessTokenSource = AccessTokenSource { null }
-    }
-}

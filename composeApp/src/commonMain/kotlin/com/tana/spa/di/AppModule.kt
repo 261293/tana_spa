@@ -1,6 +1,6 @@
 package com.tana.spa.di
 
-import com.tana.spa.core.featureflags.AccessTokenSource
+import com.tana.spa.core.network.AccessTokenSource
 import com.tana.spa.feature.auth.data.local.SessionStore
 import com.tana.spa.feature.feed.domain.HomeUserName
 import org.koin.core.module.Module

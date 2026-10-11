@@ -11,6 +11,7 @@ import com.tana.spa.feature.explore.ExploreEntry
 import com.tana.spa.feature.feed.FeedEntry
 import com.tana.spa.feature.likes.LikesEntry
 import com.tana.spa.feature.newpost.NewPostEntry
+import com.tana.spa.feature.notifications.NotificationsEntry
 import com.tana.spa.feature.profile.ProfileEntry
 
 /** Aggregates every feature module's navigable entry for the app to render. */
@@ -21,6 +22,7 @@ object FeaturesRegistry {
         NewPostEntry,
         LikesEntry,
         ProfileEntry,
+        NotificationsEntry,
         AuthEntry,
         SignUpEntry,
         VerifyPhoneEntry,
