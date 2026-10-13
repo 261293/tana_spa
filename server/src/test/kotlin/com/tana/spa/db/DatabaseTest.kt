@@ -23,9 +23,9 @@ class DatabaseTest {
                         rs.next()
                         rs.getInt(1)
                     }
-                    assertEquals(7, applied)
+                    assertEquals(8, applied)
                     // A table from the last migration proves the whole chain ran in order.
-                    c.createStatement().executeQuery("SELECT count(*) FROM app_update_config").use { rs -> assertTrue(rs.next()) }
+                    c.createStatement().executeQuery("SELECT count(*) FROM device_tokens").use { rs -> assertTrue(rs.next()) }
                 }
                 assertEquals("tana-spa", pool.poolName)
             }
@@ -43,7 +43,7 @@ class DatabaseTest {
                         rs.next()
                         rs.getInt(1)
                     }
-                    assertEquals(7, applied, "a second start must not re-run migrations")
+                    assertEquals(8, applied, "a second start must not re-run migrations")
                 }
             }
         }

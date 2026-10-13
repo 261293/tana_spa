@@ -5,6 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Tana SPA</title>
     <link type="text/css" rel="stylesheet" href="styles.css">
+
+    <!-- Web Push, off until a Firebase project is configured. Uncomment, fill in the values from
+         "Project settings -> General -> Your apps -> Web app", paste the Web Push certificate key
+         pair into TANA_PUSH_VAPID_KEY, and put the same config in firebase-messaging-sw.js.
+         None of these values is a secret; they identify the project to the browser.
+         The app checks for the SDK at runtime, so leaving this commented out simply means no push.
+         Steps and the server side: docs/notifications.md. -->
+    <!--
+    <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/13.0.0/firebase-messaging-compat.js"></script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "REPLACE_ME",
+            authDomain: "REPLACE_ME.firebaseapp.com",
+            projectId: "REPLACE_ME",
+            messagingSenderId: "REPLACE_ME",
+            appId: "REPLACE_ME"
+        });
+        window.TANA_PUSH_VAPID_KEY = "REPLACE_ME";
+    </script>
+    -->
+
     <script type="application/javascript" src="composeApp.js"></script>
 </head>
 <body></body>

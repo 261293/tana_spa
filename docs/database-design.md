@@ -36,6 +36,7 @@ erDiagram
     users ||--o{ refresh_tokens : has
     users ||--o{ user_addresses : saves
     users ||--o{ notifications : receives
+    users ||--o{ device_tokens : "registers (push)"
     users ||--o{ favorites : "hearts"
     users ||--o| carts : owns
     users ||--o{ orders : places
@@ -113,7 +114,8 @@ erDiagram
 
 - **Staff / technician scheduling and double-booking prevention.** The design doesn't show staff pick or slot capacity. When it does, add `staff` + a `btree_gist` exclusion constraint on `(staff_id, tstzrange(start_at, end_at))`.
 - **Inventory movements ledger** (only `stock_qty` today).
-- **Push device tokens**, **product categories**, **multi-currency**, **tax rates table** (tax is a stored amount, `0` in the design).
+- **Product categories**, **multi-currency**, **tax rates table** (tax is a stored amount, `0` in the design).
+- **Per-type notification preferences** (mute promotions, keep order updates): the `notifications` feature flag is all-or-nothing per user today.
 - **Row-level security** — authorization is done in the API layer.
 
 ## Rollout plan
@@ -143,6 +145,24 @@ Two tables let a feature be switched off while the system runs:
 A **missing row means "no opinion"**, not "off" — resolution falls through to the `FEATURE_<KEY>` environment variable and then to the state compiled into the app, so `DELETE` is an undo rather than an off switch. `flag_key` deliberately has **no** foreign key to `feature_flags`: an override must be settable for a flag with no global row, and a flag deleted from the code must not make these tables unwritable. The application validates keys against its own catalog instead. V6 seeds `phone_otp_verification = false`.
 
 Changes are made through the `/admin` portal by an account with `role = 'admin'`; two are created on every start-up (`sanghtruong@tana.local`, `duchnguyen@tana.local`) with a password that is public in the repository — change or delete them before the server is exposed. `updated_by` holds the acting administrator's id. Full design: [`feature-flags.md`](feature-flags.md).
+
+## Push notifications (V8)
+
+`device_tokens` holds one row per app install that asked to be notified.
+
+| Column | Why it looks like that |
+|---|---|
+| `token` | The provider's registration token, **globally unique**. It identifies the *device*, not the account, so registering it moves it to the signed-in user with `ON CONFLICT (token) DO UPDATE`. Without that, the previous user of a shared phone keeps receiving the next user's notifications. |
+| `platform` / `provider` | `android` / `ios` / `web` / `desktop`, and `fcm` — both `CHECK`-constrained, so an unknown value is a `400` from the API rather than a silent row nobody can deliver to. |
+| `last_seen_at` | Refreshed on every registration, so stale installs can be pruned. |
+
+A row here is a cache, never a source of truth: the sender deletes any token FCM reports as
+`UNREGISTERED` or `SENDER_ID_MISMATCH`. Everything cascades on user delete.
+
+The same migration bounds `notifications.title` (1–120) and `body` (≤500) now that an API writes
+them, and adds `sent_push_at` — a row with it null was stored but never pushed, which is a normal
+state (no device, or no permission), not an error. Full design:
+[`notifications.md`](notifications.md) and [`adr/0004-notifications-and-push.md`](adr/0004-notifications-and-push.md).
 
 ## Running it
 

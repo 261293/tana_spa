@@ -1,9 +1,9 @@
 package com.tana.spa.core.featureflags.di
 
-import com.tana.spa.core.featureflags.AccessTokenSource
 import com.tana.spa.core.featureflags.FeatureFlagRemoteApi
 import com.tana.spa.core.featureflags.FeatureFlagRemoteApiImpl
 import com.tana.spa.core.featureflags.FeatureFlagStore
+import com.tana.spa.core.network.AccessTokenSource
 import com.tana.spa.shared.Constants
 import com.tana.spa.shared.Platform
 import com.tana.spa.shared.featureflags.FeatureFlags

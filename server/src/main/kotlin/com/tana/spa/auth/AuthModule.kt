@@ -14,6 +14,11 @@ import com.tana.spa.auth.otp.VerifyResult
 import com.tana.spa.featureflags.FeatureFlagRepository
 import com.tana.spa.featureflags.FeatureFlagService
 import com.tana.spa.featureflags.InMemoryFeatureFlagRepository
+import com.tana.spa.notifications.InMemoryNotificationRepository
+import com.tana.spa.notifications.NotificationRepository
+import com.tana.spa.notifications.NotificationService
+import com.tana.spa.notifications.push.DevPushSender
+import com.tana.spa.notifications.push.PushSender
 import com.tana.spa.shared.auth.AuthApi
 import com.tana.spa.shared.auth.AuthErrorCodes
 import com.tana.spa.shared.auth.AuthResponse
@@ -72,6 +77,7 @@ class AuthServices(
     val phoneVerification: PhoneVerificationService,
     val featureFlags: FeatureFlagService,
     val appUpdate: AppUpdateService,
+    val notifications: NotificationService,
 ) {
     companion object {
         fun create(
@@ -84,14 +90,21 @@ class AuthServices(
             flagRepository: FeatureFlagRepository = InMemoryFeatureFlagRepository(),
             flagDefaults: FeatureFlags = FeatureFlags.defaults,
             appUpdateRepository: AppUpdateRepository = InMemoryAppUpdateRepository(),
-        ) = AuthServices(
-            config = config,
-            authService = AuthService(users, hasher, defaultPhoneRegion = otpConfig.defaultPhoneRegion),
-            tokens = TokenService(config),
-            phoneVerification = PhoneVerificationService(users, verifications, otpProvider, otpConfig),
-            featureFlags = FeatureFlagService(flagRepository, users, flagDefaults),
-            appUpdate = AppUpdateService(appUpdateRepository),
-        )
+            notificationRepository: NotificationRepository = InMemoryNotificationRepository(),
+            pushSender: PushSender = DevPushSender(),
+        ): AuthServices {
+            // Built once: the notification service resolves the same flags as the routes do.
+            val featureFlags = FeatureFlagService(flagRepository, users, flagDefaults)
+            return AuthServices(
+                config = config,
+                authService = AuthService(users, hasher, defaultPhoneRegion = otpConfig.defaultPhoneRegion),
+                tokens = TokenService(config),
+                phoneVerification = PhoneVerificationService(users, verifications, otpProvider, otpConfig),
+                featureFlags = featureFlags,
+                appUpdate = AppUpdateService(appUpdateRepository),
+                notifications = NotificationService(notificationRepository, users, pushSender, featureFlags),
+            )
+        }
     }
 }
 

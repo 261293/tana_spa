@@ -52,6 +52,7 @@ kotlin {
             implementation(projects.core.network)
             implementation(projects.core.cache)
             implementation(projects.core.featureflags)
+            implementation(projects.core.notifications)
             implementation(projects.feature.appUpdate)
             implementation(projects.feature.assistant)
             implementation(projects.feature.auth)
@@ -59,6 +60,7 @@ kotlin {
             implementation(projects.feature.feed)
             implementation(projects.feature.likes)
             implementation(projects.feature.newPost)
+            implementation(projects.feature.notifications)
             implementation(projects.feature.profile)
 
             implementation(libs.compose.runtime)

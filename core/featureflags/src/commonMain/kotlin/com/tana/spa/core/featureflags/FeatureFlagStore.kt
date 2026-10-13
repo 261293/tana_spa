@@ -2,6 +2,7 @@ package com.tana.spa.core.featureflags
 
 import com.tana.spa.core.cache.KeyValueCache
 import com.tana.spa.core.logging.AppLog
+import com.tana.spa.core.network.AccessTokenSource
 import com.tana.spa.shared.featureflags.FeatureFlag
 import com.tana.spa.shared.featureflags.FeatureFlags
 import com.tana.spa.shared.featureflags.describe

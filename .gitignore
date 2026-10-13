@@ -31,3 +31,7 @@ node_modules/
 keystore.properties
 *.p12
 *.mobileprovision
+
+# Firebase project key for the Android app: generated per environment, never source.
+google-services.json
+GoogleService-Info.plist

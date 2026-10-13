@@ -1,0 +1,26 @@
+<resources>
+    <!-- Notification centre -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_mark_all_read">Mark all as read</string>
+    <string name="notifications_unread">Unread</string>
+    <string name="notifications_empty_title">No notifications yet</string>
+    <string name="notifications_empty_body">Updates about your orders, bookings and offers will show up here.</string>
+    <string name="notifications_failed_title">Could not load your notifications</string>
+    <string name="notifications_retry">Try again</string>
+    <string name="notifications_load_more">Load more</string>
+    <string name="notifications_load_failed">Could not load your notifications, please try again.</string>
+
+    <!-- Asked for in the centre, not at launch: the system prompt only appears once -->
+    <string name="notifications_enable_title">Turn on notifications</string>
+    <string name="notifications_enable_body">Get updates about your orders and bookings on this device.</string>
+    <string name="notifications_enable_action">Turn on</string>
+    <string name="notifications_enabled_message">Notifications are on for this device.</string>
+    <string name="notifications_refused_message">Notifications are still off. You can turn them on in your device settings.</string>
+
+    <!-- Relative time -->
+    <string name="notifications_time_now">Just now</string>
+    <string name="notifications_time_minutes">%1$d min ago</string>
+    <string name="notifications_time_hours">%1$d h ago</string>
+    <string name="notifications_time_days">%1$d d ago</string>
+    <string name="notifications_time_weeks">%1$d w ago</string>
+</resources>

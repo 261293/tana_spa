@@ -32,6 +32,7 @@ that matter, and accept the delay that comes with it.
 |---|---|---|
 | `phone_otp_verification` | **off** | `POST /auth/phone/otp/send` and `/verify`, and the "verify phone" screen sign-up leads into |
 | `app_update_gate` | **on** | `GET /api/v1/app-update` and the force/optional update prompts. See `docs/adr/0003-app-update-gate.md` |
+| `notifications` | **off** | every `/api/v1/notifications` route, the fan-out inside `NotificationService.send` (resolved for the *recipient*), the bell in the app bar and device registration. See `docs/notifications.md` |
 
 Most flags are temporary switches, not architecture: delete the entry once the feature is
 either healthy or gone for good, and the stored rows become "no opinion" and stop being read.

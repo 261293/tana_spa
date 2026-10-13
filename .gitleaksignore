@@ -1,0 +1,10 @@
+# Findings reviewed and cleared, pinned to one commit:file:rule:line each, so they can never hide
+# a different finding. Prefer fixing the source; use this only for a commit already pushed.
+#
+# gitleaks' private-key rule matches from the first PEM header in a file to the last one and reports
+# everything between as a single secret. FcmConfigTest spelled two deliberately invalid keys
+# ("not base64!" and "AAAA"), so the 449-character "secret" was the test code between them. No key
+# material was ever committed: FcmTestKeys generates a throw-away RSA pair per test run. The headers
+# now come from FcmTestKeys.pem(), which leaves one per file, so only this pushed commit needs the
+# exception.
+1ba5ec84a89e780d5866384f4592a20ddd9417bf:server/src/test/kotlin/com/tana/spa/notifications/push/FcmConfigTest.kt:private-key:88
