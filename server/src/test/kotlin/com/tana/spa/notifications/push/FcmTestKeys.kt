@@ -14,8 +14,15 @@ internal object FcmTestKeys {
     /** PKCS#8 PEM, the format the Firebase console puts in `private_key`. */
     fun privateKeyPem(): String {
         val base64 = Base64.getMimeEncoder(64, "\n".toByteArray()).encodeToString(keyPair.private.encoded)
-        return "-----BEGIN PRIVATE KEY-----\n$base64\n-----END PRIVATE KEY-----\n"
+        return pem(base64) + "\n"
     }
+
+    /**
+     * A PEM envelope around arbitrary body text, for the invalid keys the parser must reject.
+     * Centralised because the secret scanner's private-key rule spans from the first header in a
+     * file to the last and reports everything between the two as one secret.
+     */
+    fun pem(body: String): String = "-----BEGIN PRIVATE KEY-----\n$body\n-----END PRIVATE KEY-----"
 
     /** As it appears inside a JSON key file or an environment variable: newlines escaped. */
     fun serviceAccountJson(

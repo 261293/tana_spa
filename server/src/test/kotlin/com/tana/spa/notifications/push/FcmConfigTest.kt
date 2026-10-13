@@ -84,15 +84,13 @@ class FcmConfigTest {
     @Test
     fun aKeyThatIsNotAPkcs8RsaKeyIsRejectedWithoutQuotingIt() {
         val notBase64 = assertFailsWith<IllegalArgumentException> {
-            FcmConfig.parse(
-                FcmTestKeys.serviceAccountJson(privateKey = "-----BEGIN PRIVATE KEY-----\nnot base64!\n-----END PRIVATE KEY-----"),
-            )
+            FcmConfig.parse(FcmTestKeys.serviceAccountJson(privateKey = FcmTestKeys.pem("not base64!")))
         }
         assertTrue(notBase64.message!!.contains("Base64"), notBase64.message!!)
         assertTrue(!notBase64.message!!.contains("not base64!"), "the message must not echo key material")
 
         val notAKey = assertFailsWith<IllegalArgumentException> {
-            FcmConfig.parse(FcmTestKeys.serviceAccountJson(privateKey = "-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----"))
+            FcmConfig.parse(FcmTestKeys.serviceAccountJson(privateKey = FcmTestKeys.pem("AAAA")))
         }
         assertTrue(notAKey.message!!.contains("PKCS#8"), notAKey.message!!)
     }

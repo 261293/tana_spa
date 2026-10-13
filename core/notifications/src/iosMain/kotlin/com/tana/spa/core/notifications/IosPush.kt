@@ -13,6 +13,8 @@ import platform.Foundation.NSBundle
 import platform.Foundation.NSLocale
 import platform.Foundation.preferredLanguages
 import platform.UIKit.UIApplication
+import platform.UIKit.registerForRemoteNotifications
+import platform.UIKit.unregisterForRemoteNotifications
 import platform.UserNotifications.UNAuthorizationOptionAlert
 import platform.UserNotifications.UNAuthorizationOptionBadge
 import platform.UserNotifications.UNAuthorizationOptionSound
