@@ -10,7 +10,7 @@ Workflow: `.github/workflows/ci.yml`. It runs on each pull request into `main` a
 | **Unit tests** | Regressions in shared code, features and the backend (real embedded PostgreSQL) | `./gradlew jvmTest :server:test` |
 | **Build (web, Android, server)** | Code that compiles in tests but not in the shipped app; a stale `kotlin-js-store/wasm/yarn.lock`; source maps in the web bundle | `./gradlew :composeApp:verifyWebDistributionStripped :androidApp:assembleDebug :server:assemble` |
 | ↳ same job, release hardening | A release APK or desktop jar that ships unobfuscated — minification turned off, a keep rule grown too broad ([docs/code-hardening.md](code-hardening.md)) | `./gradlew :androidApp:verifyReleaseObfuscation :composeApp:proguardReleaseJars` |
-| **Build (iOS)** | iOS-only compile or link errors (macOS runner) | on a Mac: `./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64` |
+| **Build (iOS)** | iOS-only compile or link errors (macOS runner) | `./gradlew :composeApp:compileKotlinIosSimulatorArm64` on any host catches the Kotlin errors; only the link step needs a Mac: `./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64` |
 | **CI passed** | Aggregates all of the above into one check | n/a |
 
 ## Make the checks required (one-time, in GitHub)
@@ -30,6 +30,7 @@ Settings → Code security: turn on **Secret scanning** and **Push protection** 
 - `gitleaks` scans only the commits a PR adds, with the maintained default ruleset plus `.gitleaks.toml`. Output is `--redact`ed so a leaked value is not copied into the public job log.
 - **If a real secret is ever committed, deleting it in a later commit is not enough**: it stays in history and may already be cached or scraped. Revoke/rotate it at the provider first, then clean the history if needed.
 - Allowlist entries in `.gitleaks.toml` must be narrow (path **and** value) and carry a comment. The one entry today is a documented fake key in an agent-skill example.
+- A finding that is a false positive is best removed at the source. For a commit that is already pushed, `.gitleaksignore` clears one finding at a time by its `commit:file:rule:line` fingerprint, so an entry cannot hide anything else; each one carries a comment saying why it is safe.
 - The workflow itself needs **no secrets**. Real secrets (`JWT_SECRET`, `DATABASE_PASSWORD`, `TWILIO_API_KEY_SECRET`) belong in the hosting platform's secret store, never in the repo.
 
 ## Security properties of the pipeline
