@@ -48,7 +48,8 @@ class FeatureFlagStore(
             adopt(remote.fetch(token), token)
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // Ktor's wasm engine reports a failed fetch as kotlin.Error, which is not an Exception.
             // Offline, a 5xx or an unreadable body: a flag that is off must stay off rather than
             // come back because the network dropped.
             AppLog.w(TAG, e) { "flag refresh failed (${e::class.simpleName}), keeping: ${describe()}" }

@@ -87,7 +87,8 @@ class PushRegistrar(
             AppLog.i(TAG) { "device unregistered" }
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // Ktor's wasm engine reports a failed fetch as kotlin.Error, which is not an Exception.
             // The server may still push here until the token is rejected or re-registered. Not
             // worth blocking sign-out for; the token is dropped locally either way.
             AppLog.w(TAG, e) { "could not unregister the device (${e::class.simpleName})" }
@@ -101,7 +102,7 @@ class PushRegistrar(
             tokens.current()
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             // No Firebase configuration, no Play services, a browser that blocked the service
             // worker: all of them mean "no push on this device", not a broken app.
             AppLog.w(TAG, e) { "no push token available (${e::class.simpleName})" }
@@ -131,7 +132,7 @@ class PushRegistrar(
             } else {
                 failed("HTTP ${e.status}${e.code?.let { " ($it)" } ?: ""}")
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             failed(e::class.simpleName ?: "unknown error")
         }
     }

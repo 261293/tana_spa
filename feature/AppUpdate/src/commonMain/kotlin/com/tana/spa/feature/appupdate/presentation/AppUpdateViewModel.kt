@@ -49,7 +49,8 @@ class AppUpdateViewModel(
         remote.fetch()
     } catch (e: CancellationException) {
         throw e
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
+        // Ktor's wasm engine reports a failed fetch as kotlin.Error, which is not an Exception.
         // Offline, a 5xx, or the 503 the server answers while the gate flag is off. None of those
         // is a reason to stand between the user and the app, so there is simply no prompt.
         AppLog.w(logTag, e) { "update config unavailable (${e::class.simpleName}), no prompt" }

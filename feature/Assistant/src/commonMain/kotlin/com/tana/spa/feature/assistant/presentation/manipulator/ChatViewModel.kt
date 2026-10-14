@@ -68,7 +68,8 @@ class ChatViewModel(private val startChat: StartChatUseCase, private val sendMes
                 call()
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                // Ktor's wasm engine reports a failed fetch as kotlin.Error, which is not an Exception.
                 // Any gateway failure (offline, timeout, model error) is retryable.
                 AppLog.w(logTag, e) { "assistant request failed" }
                 null

@@ -34,7 +34,8 @@ class NotificationBadge(
             state.value = remote.unreadCount()
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // Ktor's wasm engine reports a failed fetch as kotlin.Error, which is not an Exception.
             AppLog.w(TAG, e) { "unread count unavailable (${e::class.simpleName})" }
         }
     }

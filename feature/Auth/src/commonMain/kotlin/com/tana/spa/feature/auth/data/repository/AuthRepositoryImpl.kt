@@ -40,7 +40,8 @@ class AuthRepositoryImpl(
         val failure = e.toAuthFailure()
         AppLog.w(TAG) { "authentication rejected: ${e.describe()} -> $failure" }
         AuthOutcome.Failure(failure)
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
+        // Ktor's wasm engine reports a failed fetch as kotlin.Error, which is not an Exception.
         // No response at all: offline, DNS, TLS, timeout, or an undecodable body.
         AppLog.w(TAG, e) { "authentication failed without a usable response: ${e::class.simpleName}" }
         AuthOutcome.Failure(AuthFailure.NETWORK)
@@ -80,7 +81,7 @@ class AuthRepositoryImpl(
                     AppLog.w(TAG) { "OTP send rejected: ${e.describe()} -> ${it.reason}" }
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             AppLog.w(TAG, e) { "OTP send failed without a usable response: ${e::class.simpleName}" }
             OtpSendResult.Failed(OtpFailure.NETWORK)
         }
@@ -105,7 +106,7 @@ class AuthRepositoryImpl(
                     AppLog.w(TAG) { "OTP verify rejected: ${e.describe()} -> ${it.reason}" }
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             AppLog.w(TAG, e) { "OTP verify failed without a usable response: ${e::class.simpleName}" }
             OtpVerifyResult.Failed(OtpFailure.NETWORK)
         }

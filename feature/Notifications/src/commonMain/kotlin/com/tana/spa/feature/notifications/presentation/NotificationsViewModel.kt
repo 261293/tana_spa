@@ -134,7 +134,8 @@ class NotificationsViewModel(
         Result.success(block())
     } catch (e: CancellationException) {
         throw e
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
+        // Ktor's wasm engine reports a failed fetch as kotlin.Error, which is not an Exception.
         AppLog.w(logTag, e) { "notification call failed (${e::class.simpleName})" }
         Result.failure(e)
     }
