@@ -35,3 +35,8 @@ keystore.properties
 # Firebase project key for the Android app: generated per environment, never source.
 google-services.json
 GoogleService-Info.plist
+
+# Vercel CLI: project link, and the env pull that writes VERCEL_OIDC_TOKEN.
+.vercel
+.env*
+!.env.example
