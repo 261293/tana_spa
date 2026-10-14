@@ -10,11 +10,12 @@ object Constants {
     const val SERVER_PORT = 8081
 
     /**
-     * Backend base URL for local development. The Android emulator reaches the host machine
-     * through 10.0.2.2; the iOS simulator and the browser share the host's `localhost`.
-     * Replace with the deployed HTTPS URL for release builds.
+     * Backend base URL, without a trailing slash. The Android emulator reaches the host machine
+     * through 10.0.2.2; the iOS simulator and the browser share the host's `localhost`. The
+     * browser build is pointed at a deployed backend by the page instead, so the same bundle can
+     * be published anywhere without rebuilding; see [configuredApiBaseUrl].
      */
-    fun apiBaseUrl(platform: PlatformEnum): String = when (platform) {
+    fun apiBaseUrl(platform: PlatformEnum): String = configuredApiBaseUrl() ?: when (platform) {
         PlatformEnum.ANDROID -> "http://10.0.2.2:$SERVER_PORT"
         PlatformEnum.IOS, PlatformEnum.JVM, PlatformEnum.WEB -> "http://localhost:$SERVER_PORT"
     }

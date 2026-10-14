@@ -8,3 +8,5 @@ class JVMPlatform : Platform {
 }
 
 actual fun getPlatform(): Platform = JVMPlatform()
+
+actual fun configuredApiBaseUrl(): String? = null
