@@ -1,7 +1,7 @@
 [versions]
 ktlint = "1.8.0"
 ktlint-gradle = "14.2.0"
-flyway = "13.9.0"
+flyway = "13.10.0"
 embedded-postgres = "2.2.2"
 postgresql = "42.7.13"
 hikari = "7.1.0"
