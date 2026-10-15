@@ -1,5 +1,3 @@
 <resources>
-    <!-- App bar -->
-    <string name="bell_notifications">Notifications</string>
-    <string name="bell_notifications_unread">Notifications, %1$d unread</string>
+    <string name="brand_name">Jade Bathhouse</string>
 </resources>

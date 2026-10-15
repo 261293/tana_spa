@@ -15,7 +15,7 @@ fun rememberNavigator(start: String): MutableNavigator = remember { MutableNavig
 class MutableNavigator(start: String) : Navigator {
     private val stack = mutableListOf(start)
 
-    var current: String by mutableStateOf(start)
+    override var current: String by mutableStateOf(start)
         private set
 
     override fun navigate(route: String) {

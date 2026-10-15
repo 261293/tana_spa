@@ -22,7 +22,9 @@ import androidx.compose.ui.unit.sp
 @Immutable
 data class SpaTextStyles(
     val brandTitle: TextStyle,
+    val displayTitle: TextStyle,
     val screenTitle: TextStyle,
+    val cardTitle: TextStyle,
     val prompt: TextStyle,
     val sectionLead: TextStyle,
     val body: TextStyle,
@@ -43,7 +45,9 @@ internal fun spaTextStyles(typography: Typography): SpaTextStyles {
     val bare = TextStyle(fontFamily = base.fontFamily)
     return SpaTextStyles(
         brandTitle = base.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+        displayTitle = base.copy(fontSize = 28.sp, fontWeight = FontWeight.SemiBold, lineHeight = 34.sp),
         screenTitle = base.copy(fontSize = 22.sp, fontWeight = FontWeight.Bold),
+        cardTitle = base.copy(fontSize = 17.sp, fontWeight = FontWeight.Medium, lineHeight = 22.sp),
         prompt = base.copy(fontSize = 16.sp),
         sectionLead = base.copy(fontSize = 15.sp),
         body = base.copy(fontSize = 14.sp),

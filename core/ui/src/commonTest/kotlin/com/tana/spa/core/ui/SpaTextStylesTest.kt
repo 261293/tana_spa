@@ -14,6 +14,8 @@ class SpaTextStylesTest {
     @Test
     fun sizes_match_the_design_file() {
         assertEquals(24.sp, styles.brandTitle.fontSize)
+        assertEquals(28.sp, styles.displayTitle.fontSize)
+        assertEquals(17.sp, styles.cardTitle.fontSize)
         assertEquals(22.sp, styles.screenTitle.fontSize)
         assertEquals(16.sp, styles.prompt.fontSize)
         assertEquals(15.sp, styles.sectionLead.fontSize)
@@ -34,6 +36,8 @@ class SpaTextStylesTest {
     fun weights_match_the_design_file() {
         assertEquals(FontWeight.Bold, styles.brandTitle.fontWeight)
         assertEquals(FontWeight.Bold, styles.screenTitle.fontWeight)
+        assertEquals(FontWeight.SemiBold, styles.displayTitle.fontWeight)
+        assertEquals(FontWeight.Medium, styles.cardTitle.fontWeight)
         assertEquals(FontWeight.SemiBold, styles.buttonLabel.fontWeight)
         assertEquals(FontWeight.SemiBold, styles.otpDigit.fontWeight)
         assertEquals(FontWeight.Normal, styles.fieldText.fontWeight)
@@ -41,6 +45,8 @@ class SpaTextStylesTest {
 
     @Test
     fun explicit_line_heights_are_kept() {
+        assertEquals(34.sp, styles.displayTitle.lineHeight)
+        assertEquals(22.sp, styles.cardTitle.lineHeight)
         assertEquals(20.sp, styles.bodyRelaxed.lineHeight)
         assertEquals(22.sp, styles.bodyLoose.lineHeight)
     }
@@ -69,7 +75,7 @@ class SpaTextStylesTest {
         val family = typography.bodyLarge.fontFamily
         val all = with(styles) {
             listOf(
-                brandTitle, screenTitle, prompt, sectionLead, body, bodyRelaxed, bodyLoose,
+                brandTitle, displayTitle, screenTitle, cardTitle, prompt, sectionLead, body, bodyRelaxed, bodyLoose,
                 caption, label, overline, buttonLabel, fieldText, fieldError, otpDigit, chatInput,
             )
         }
