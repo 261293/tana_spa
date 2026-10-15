@@ -77,3 +77,10 @@ usual notification rules, including the recipient's `notifications` flag.
 Signing in as the owner opens the console; every other role lands in the guest app, and the
 console destination is only offered to an owner. That gating is a convenience, not a defence: the
 server refuses the calls regardless, which is what makes tampering with the client pointless.
+
+## In the console
+
+The owner's console has three sections: the **queue** (confirm, decline, record a visit), the
+**menu** (add a treatment or a therapist, validated by the same `SpaValidation` the routes use)
+and the **codes**, which remain the administrator's. A guest reaches none of it, and the server
+refuses the calls whatever the client shows.

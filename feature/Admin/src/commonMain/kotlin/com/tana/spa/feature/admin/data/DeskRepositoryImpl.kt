@@ -12,9 +12,13 @@ import com.tana.spa.shared.booking.BookingApi
 import com.tana.spa.shared.booking.BookingDto
 import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.booking.ConfirmBookingRequest
+import com.tana.spa.shared.booking.CreateServiceRequest
+import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineBookingRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.booking.ServiceDto
 import com.tana.spa.shared.booking.StaffQueueResponse
+import com.tana.spa.shared.booking.TherapistDto
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.bearerAuth
@@ -65,6 +69,24 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
         val path = if (attended) BookingApi.complete(id) else BookingApi.noShow(id)
         val response = networkClient.httpClient.post(baseUrl + path) { authorize() }
         return response.requireSuccess().body<BookingDto>().toRequest(nowEpochMillis())
+    }
+
+    override suspend fun createService(request: CreateServiceRequest): ServiceDto {
+        val response = networkClient.httpClient.post(baseUrl + BookingApi.OWNER_SERVICES) {
+            authorize()
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return response.requireSuccess().body()
+    }
+
+    override suspend fun createTherapist(request: CreateTherapistRequest): TherapistDto {
+        val response = networkClient.httpClient.post(baseUrl + BookingApi.OWNER_THERAPISTS) {
+            authorize()
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return response.requireSuccess().body()
     }
 
     private fun nowEpochMillis(): Long = Clock.System.now().toEpochMilliseconds()

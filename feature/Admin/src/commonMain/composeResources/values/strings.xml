@@ -1,6 +1,37 @@
 <resources>
     <string name="admin_nav_requests">Requests</string>
     <string name="admin_nav_codes">Codes</string>
+    <string name="admin_nav_menu">Menu</string>
+
+    <string name="admin_menu_title">The</string>
+    <string name="admin_menu_title_accent">menu</string>
+    <string name="admin_menu_subtitle">Anything you add here is bookable by guests straight away.</string>
+    <string name="admin_menu_service_title">New treatment</string>
+    <string name="admin_menu_therapist_title">New therapist</string>
+    <string name="admin_menu_name">Name</string>
+    <string name="admin_menu_name_hint">Warm Stone Massage</string>
+    <string name="admin_menu_description">What it includes</string>
+    <string name="admin_menu_description_hint">Basalt stones, full-body pressure work, scalp finish</string>
+    <string name="admin_menu_minutes">Minutes</string>
+    <string name="admin_menu_minutes_hint">90</string>
+    <string name="admin_menu_price">Price ($)</string>
+    <string name="admin_menu_price_hint">165</string>
+    <string name="admin_menu_category">Category</string>
+    <string name="admin_menu_add_service">Add to the menu</string>
+    <string name="admin_menu_therapist_name">Name</string>
+    <string name="admin_menu_therapist_hint">Mai Tran</string>
+    <string name="admin_menu_focus">Focus</string>
+    <string name="admin_menu_focus_hint">Stone &amp; deep tissue</string>
+    <string name="admin_menu_add_therapist">Add to the team</string>
+    <string name="admin_menu_service_added">%1$s is on the menu</string>
+    <string name="admin_menu_therapist_added">%1$s joined the team</string>
+    <string name="admin_menu_error_empty">This can’t be empty.</string>
+    <string name="admin_menu_error_long">That’s too long.</string>
+    <string name="admin_menu_error_duration_zero">A treatment needs a length.</string>
+    <string name="admin_menu_error_duration_long">That’s longer than a working day.</string>
+    <string name="admin_menu_error_duration_step">Use a multiple of 15 minutes.</string>
+    <string name="admin_menu_error_price_negative">A price can’t be negative.</string>
+    <string name="admin_menu_error_price_large">That price looks wrong.</string>
     <string name="admin_open_guest_app">Open guest app</string>
 
     <string name="admin_requests_title">Booking</string>

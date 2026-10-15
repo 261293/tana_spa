@@ -10,7 +10,11 @@ import com.tana.spa.feature.admin.presentation.AdminRequestsEvent
 import com.tana.spa.feature.admin.presentation.AdminRequestsViewModel
 import com.tana.spa.feature.admin.presentation.AlternativeOffer
 import com.tana.spa.shared.booking.BookingErrorCodes
+import com.tana.spa.shared.booking.CreateServiceRequest
+import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.booking.ServiceDto
+import com.tana.spa.shared.booking.TherapistDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -87,6 +91,11 @@ class AdminRequestsViewModelTest {
             refusal?.let { throw it }
             return decided(id, if (attended) DeskStatus.COMPLETED else DeskStatus.NO_SHOW)
         }
+
+        override suspend fun createService(request: CreateServiceRequest): ServiceDto = error("the queue screen never adds to the menu")
+
+        override suspend fun createTherapist(request: CreateTherapistRequest): TherapistDto =
+            error("the queue screen never adds to the menu")
 
         private fun decided(id: String, status: DeskStatus): DeskRequest =
             (queue.pending + queue.scheduled).first { it.id == id }.copy(status = status)

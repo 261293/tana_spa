@@ -28,6 +28,9 @@ object Routes {
     const val ADMIN_REQUESTS = "adminRequests"
     const val ADMIN_CODES = "adminCodes"
 
+    /** The owner's menu: adding a treatment or a therapist. */
+    const val ADMIN_MENU = "adminMenu"
+
     /** A discount code carried from the offers screen. */
     const val ARG_CODE = "code"
 

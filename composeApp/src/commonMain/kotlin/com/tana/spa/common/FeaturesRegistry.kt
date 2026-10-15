@@ -2,6 +2,7 @@ package com.tana.spa.common
 
 import com.tana.spa.core.navigation.FeatureEntry
 import com.tana.spa.feature.admin.AdminCodesEntry
+import com.tana.spa.feature.admin.AdminMenuEntry
 import com.tana.spa.feature.admin.AdminRequestsEntry
 import com.tana.spa.feature.assistant.AssistantEntry
 import com.tana.spa.feature.assistant.ConsentEntry
@@ -30,6 +31,7 @@ object FeaturesRegistry {
         PromotionsEntry,
         SettingsEntry,
         AdminRequestsEntry,
+        AdminMenuEntry,
         AdminCodesEntry,
         FeedEntry,
         ExploreEntry,

@@ -124,6 +124,7 @@ fun AdminRequestsScreen(
     effects: Flow<AdminRequestsEffect>,
     onEvent: (AdminRequestsEvent) -> Unit,
     onOpenCodes: () -> Unit,
+    onOpenMenu: () -> Unit,
     onOpenGuestApp: () -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
@@ -154,7 +155,13 @@ fun AdminRequestsScreen(
     AdminScaffold(
         section = AdminSection.REQUESTS,
         pendingCount = state.pending.size,
-        onSelect = { if (it == AdminSection.CODES) onOpenCodes() },
+        onSelect = {
+            when (it) {
+                AdminSection.CODES -> onOpenCodes()
+                AdminSection.MENU -> onOpenMenu()
+                AdminSection.REQUESTS -> Unit
+            }
+        },
         onOpenGuestApp = onOpenGuestApp,
     ) { wide ->
         Box(Modifier.fillMaxSize()) {

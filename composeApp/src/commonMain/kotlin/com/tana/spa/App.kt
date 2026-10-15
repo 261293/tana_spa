@@ -44,6 +44,7 @@ private val FULL_SCREEN_ROUTES = setOf(
     Routes.CONSENT,
     Routes.ASSISTANT,
     Routes.ADMIN_REQUESTS,
+    Routes.ADMIN_MENU,
     Routes.ADMIN_CODES,
 )
 

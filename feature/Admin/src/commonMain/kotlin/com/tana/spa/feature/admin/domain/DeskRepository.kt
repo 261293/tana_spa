@@ -1,6 +1,10 @@
 package com.tana.spa.feature.admin.domain
 
+import com.tana.spa.shared.booking.CreateServiceRequest
+import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.booking.ServiceDto
+import com.tana.spa.shared.booking.TherapistDto
 
 /**
  * The owner's side of the booking endpoints. Every call needs an owner session and throws
@@ -16,6 +20,11 @@ interface DeskRepository {
     suspend fun decline(id: String, reason: DeclineReasonDto, alternative: String?): DeskRequest
 
     suspend fun recordVisit(id: String, attended: Boolean): DeskRequest
+
+    /** Adds a treatment to the menu. The server generates its slug and guests see it at once. */
+    suspend fun createService(request: CreateServiceRequest): ServiceDto
+
+    suspend fun createTherapist(request: CreateTherapistRequest): TherapistDto
 }
 
 /** [code] is one of `BookingErrorCodes`, or null when the server sent no machine-readable code. */
