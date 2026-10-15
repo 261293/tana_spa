@@ -33,6 +33,10 @@ class LoginViewModel(private val login: LoginUseCase, getCurrentSession: GetCurr
 
             LoginEvent.GoogleClicked -> sendEffect(LoginEffect.ShowComingSoon(ComingSoon.GOOGLE))
 
+            LoginEvent.ForgotPasswordClicked -> sendEffect(LoginEffect.ShowComingSoon(ComingSoon.FORGOT_PASSWORD))
+
+            LoginEvent.StaffSignInClicked -> sendEffect(LoginEffect.NavigateToStaffConsole)
+
             LoginEvent.SignUpClicked -> sendEffect(LoginEffect.NavigateToSignUp)
         }
     }

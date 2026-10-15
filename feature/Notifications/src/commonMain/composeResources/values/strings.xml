@@ -1,6 +1,11 @@
 <resources>
     <!-- Notification centre -->
     <string name="notifications_title">Thông báo</string>
+    <string name="notifications_unread_count">%1$d chưa đọc</string>
+    <string name="notifications_all_caught_up">Đã xem hết</string>
+    <string name="notifications_group_bookings">Lịch hẹn của bạn</string>
+    <string name="notifications_group_offers">Ưu đãi</string>
+    <string name="notifications_group_other">Khác</string>
     <string name="notifications_mark_all_read">Đánh dấu đã đọc tất cả</string>
     <string name="notifications_unread">Chưa đọc</string>
     <string name="notifications_empty_title">Chưa có thông báo</string>

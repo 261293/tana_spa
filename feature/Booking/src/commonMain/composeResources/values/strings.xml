@@ -1,0 +1,49 @@
+<resources>
+    <string name="booking_title">What does your body</string>
+    <string name="booking_title_accent">need today?</string>
+    <string name="booking_subtitle">Choose what you’d like, who you’d like it with, and when. We’ll confirm your time.</string>
+
+    <string name="booking_step_treatment">Treatment</string>
+    <string name="booking_step_therapist">Therapist</string>
+    <string name="booking_step_when">Date &amp; time</string>
+    <string name="booking_step_review">Your afternoon</string>
+    <string name="booking_step_done">Step done</string>
+
+    <string name="booking_service_meta">%1$d min · %2$s</string>
+    <string name="booking_price">$%1$d</string>
+    <string name="booking_therapist_next">Next: %1$s</string>
+
+    <string name="booking_open_times">Open times on %1$s</string>
+    <string name="booking_day_full">%1$s, fully booked</string>
+    <string name="booking_slot_taken">%1$s, booked</string>
+
+    <string name="booking_review_treatment">Treatment</string>
+    <string name="booking_review_therapist">Therapist</string>
+    <string name="booking_review_when">When</string>
+    <string name="booking_review_not_chosen">Not chosen</string>
+    <string name="booking_review_pick_time">%1$s · choose a time</string>
+
+    <string name="booking_code_label">Discount code</string>
+    <string name="booking_code_placeholder">JADE20</string>
+    <string name="booking_code_helper">Codes are checked against your treatment.</string>
+    <string name="booking_code_apply">Apply code</string>
+    <string name="booking_code_applied">%1$s applied — %2$s</string>
+    <string name="booking_code_empty">Enter a code.</string>
+    <string name="booking_code_unknown">“%1$s” isn’t a valid code.</string>
+    <string name="booking_code_no_service">Choose a treatment first.</string>
+    <string name="booking_code_wrong_category">%1$s applies to %2$s treatments only.</string>
+    <string name="booking_code_minimum">%1$s needs a minimum spend of $%2$d.</string>
+
+    <string name="booking_total_label">total due at the spa</string>
+    <string name="booking_request">Request booking</string>
+    <string name="booking_disclaimer">The spa will confirm your time, usually within 30 minutes. You won’t be charged until your visit.</string>
+
+    <string name="booking_strip_choose">Choose a treatment</string>
+    <string name="booking_strip_pick_time">pick a time</string>
+    <string name="booking_strip_action">Review</string>
+
+    <string name="booking_sent_title">Request sent</string>
+    <string name="booking_sent_body">%1$s with %2$s on %3$s at %4$s. We’ll notify you as soon as the spa confirms.</string>
+    <string name="booking_sent_notifications">View notifications</string>
+    <string name="booking_sent_another">Book another treatment</string>
+</resources>

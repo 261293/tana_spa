@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Tana SPA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <title>Jade Bathhouse - Day Spa</title>
+    <meta name="description" content="Book massages, facials and body treatments at Jade Bathhouse Day Spa."/>
+    <meta name="theme-color" content="#F7FFF6"/>
+    <meta name="color-scheme" content="light"/>
+    <!-- Inline so the browser has an icon without a second request; the house mark, in moss. -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23117034' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20C4 10 10 4 20 4c0 10-6 16-16 16z'/%3E%3Cpath d='M4.5 19.5 13.5 10.5'/%3E%3C/svg%3E"/>
     <link type="text/css" rel="stylesheet" href="styles.css">
 
     <!-- Web Push, off until a Firebase project is configured. Uncomment, fill in the values from
@@ -37,5 +42,9 @@
 
     <script type="application/javascript" src="composeApp.js"></script>
 </head>
-<body></body>
+<body>
+<!-- Shown until Compose attaches its canvas (see styles.css); a blank page for the seconds a
+     wasm binary takes to arrive reads as a broken site. -->
+<div id="loading" role="status">Loading Jade Bathhouse...</div>
+</body>
 </html>

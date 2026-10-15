@@ -20,10 +20,14 @@ data class LoginState(
 sealed interface LoginEffect {
     data object NavigateHome : LoginEffect
     data object NavigateToSignUp : LoginEffect
+
+    /** The staff console: a separate product reached from the guest sign-in screen. */
+    data object NavigateToStaffConsole : LoginEffect
     data class ShowComingSoon(val feature: ComingSoon) : LoginEffect
 }
 
 /** Features whose button exists in the design but whose flow is not built yet. */
 enum class ComingSoon {
     GOOGLE,
+    FORGOT_PASSWORD,
 }
