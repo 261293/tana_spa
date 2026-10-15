@@ -10,6 +10,7 @@ import com.tana.spa.feature.auth.AuthEntry
 import com.tana.spa.feature.auth.SignUpEntry
 import com.tana.spa.feature.auth.VerifyPhoneEntry
 import com.tana.spa.feature.booking.BookingEntry
+import com.tana.spa.feature.booking.ServiceDetailEntry
 import com.tana.spa.feature.explore.ExploreEntry
 import com.tana.spa.feature.feed.FeedEntry
 import com.tana.spa.feature.likes.LikesEntry
@@ -23,6 +24,7 @@ import com.tana.spa.feature.settings.SettingsEntry
 object FeaturesRegistry {
     val entries: List<FeatureEntry> = listOf(
         BookingEntry,
+        ServiceDetailEntry,
         PromotionsEntry,
         SettingsEntry,
         AdminRequestsEntry,

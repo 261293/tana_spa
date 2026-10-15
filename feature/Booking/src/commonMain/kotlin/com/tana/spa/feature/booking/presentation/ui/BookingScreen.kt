@@ -67,7 +67,13 @@ import org.jetbrains.compose.resources.stringResource
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
 @Composable
-fun BookingScreen(state: BookingState, effects: Flow<BookingEffect>, onEvent: (BookingEvent) -> Unit, onOpenNotifications: () -> Unit) {
+fun BookingScreen(
+    state: BookingState,
+    effects: Flow<BookingEffect>,
+    onEvent: (BookingEvent) -> Unit,
+    onOpenNotifications: () -> Unit,
+    onOpenService: (String) -> Unit,
+) {
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
@@ -77,15 +83,30 @@ fun BookingScreen(state: BookingState, effects: Flow<BookingEffect>, onEvent: (B
     }
 
     if (SpaWindow.size.isWide) {
-        WideBooking(state, onEvent)
+        WideBooking(state, onEvent, onOpenService)
     } else {
-        CompactBooking(state, onEvent)
+        CompactBooking(state, onEvent, onOpenService)
     }
     if (state.requestSent) RequestSentDialog(state, onEvent)
 }
 
+/** Choosing a treatment also opens its detail; the flow keeps the choice, so Back there resumes it. */
 @Composable
-private fun CompactBooking(state: BookingState, onEvent: (BookingEvent) -> Unit) {
+private fun TreatmentStep(state: BookingState, onEvent: (BookingEvent) -> Unit, onOpenService: (String) -> Unit) {
+    Step(1, stringResource(Res.string.booking_step_treatment), state.service != null) {
+        ServiceList(
+            state = state,
+            onSelect = {
+                onEvent(BookingEvent.ServiceSelected(it))
+                onOpenService(it)
+            },
+            onRetry = { onEvent(BookingEvent.RetryCatalog) },
+        )
+    }
+}
+
+@Composable
+private fun CompactBooking(state: BookingState, onEvent: (BookingEvent) -> Unit, onOpenService: (String) -> Unit) {
     val scroll = rememberScrollState()
     val scope = rememberCoroutineScope()
     var reviewTop by remember { mutableStateOf(Int.MAX_VALUE) }
@@ -106,12 +127,10 @@ private fun CompactBooking(state: BookingState, onEvent: (BookingEvent) -> Unit)
                 subtitle = stringResource(Res.string.booking_subtitle),
             )
 
-            Step(1, stringResource(Res.string.booking_step_treatment), state.service != null) {
-                ServiceList(state.serviceId, onSelect = { onEvent(BookingEvent.ServiceSelected(it)) })
-            }
+            TreatmentStep(state, onEvent, onOpenService)
 
             Step(2, stringResource(Res.string.booking_step_therapist), state.therapist != null) {
-                TherapistPicker(state.therapistId, onSelect = { onEvent(BookingEvent.TherapistSelected(it)) }, columns = 2)
+                TherapistPicker(state, onSelect = { onEvent(BookingEvent.TherapistSelected(it)) }, columns = 2)
             }
 
             Step(3, stringResource(Res.string.booking_step_when), state.slot != null) {
@@ -157,7 +176,7 @@ private fun CompactBooking(state: BookingState, onEvent: (BookingEvent) -> Unit)
 }
 
 @Composable
-private fun WideBooking(state: BookingState, onEvent: (BookingEvent) -> Unit) {
+private fun WideBooking(state: BookingState, onEvent: (BookingEvent) -> Unit, onOpenService: (String) -> Unit) {
     val threeColumns = SpaWindow.size == SpaWindowSize.LARGE
     SpaPage(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
@@ -170,13 +189,11 @@ private fun WideBooking(state: BookingState, onEvent: (BookingEvent) -> Unit) {
         )
         Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
             Column(Modifier.weight(1.15f), verticalArrangement = Arrangement.spacedBy(28.dp)) {
-                Step(1, stringResource(Res.string.booking_step_treatment), state.service != null) {
-                    ServiceList(state.serviceId, onSelect = { onEvent(BookingEvent.ServiceSelected(it)) })
-                }
+                TreatmentStep(state, onEvent, onOpenService)
                 if (!threeColumns) {
                     Step(2, stringResource(Res.string.booking_step_therapist), state.therapist != null) {
                         TherapistPicker(
-                            selectedId = state.therapistId,
+                            state = state,
                             onSelect = { onEvent(BookingEvent.TherapistSelected(it)) },
                             columns = 2,
                         )
@@ -188,7 +205,7 @@ private fun WideBooking(state: BookingState, onEvent: (BookingEvent) -> Unit) {
                 if (threeColumns) {
                     Step(2, stringResource(Res.string.booking_step_therapist), state.therapist != null) {
                         TherapistPicker(
-                            selectedId = state.therapistId,
+                            state = state,
                             onSelect = { onEvent(BookingEvent.TherapistSelected(it)) },
                             columns = 2,
                         )

@@ -43,8 +43,13 @@ import com.tana.spa.core.ui.components.SpaFilterChip
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaImageTile
+import com.tana.spa.core.ui.components.SpaSecondaryButton
+import com.tana.spa.core.ui.components.SpaSkeleton
+import com.tana.spa.feature.booking.presentation.BookingState
 import com.tana.spa.feature.booking.resources.Res
 import com.tana.spa.feature.booking.resources.booking_day_full
+import com.tana.spa.feature.booking.resources.booking_menu_failed
+import com.tana.spa.feature.booking.resources.booking_menu_retry
 import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.booking_service_meta
 import com.tana.spa.feature.booking.resources.booking_slot_taken
@@ -59,6 +64,10 @@ import com.tana.spa.shared.spa.weekdayShort
 import org.jetbrains.compose.resources.stringResource
 
 private val ServiceTileShape = RoundedCornerShape(topStart = 22.dp, topEnd = 10.dp, bottomEnd = 10.dp, bottomStart = 22.dp)
+private val SERVICE_ROW_HEIGHT = 88.dp
+private val THERAPIST_CARD_HEIGHT = 108.dp
+private const val SERVICE_PLACEHOLDERS = 4
+private const val THERAPIST_PLACEHOLDER_ROWS = 2
 private const val DAYS_ON_RAIL = 14
 private const val BOOKING_HORIZON_DAYS = 60
 private const val MILLIS_PER_DAY = 86_400_000L
@@ -100,10 +109,30 @@ internal fun StepHeader(number: Int, title: String, done: Boolean, modifier: Mod
 }
 
 @Composable
-internal fun ServiceList(selectedId: String?, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
+internal fun ServiceList(state: BookingState, onSelect: (String) -> Unit, onRetry: () -> Unit, modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SpaCatalog.services.forEach { service ->
-            ServiceRow(service, service.id == selectedId) { onSelect(service.id) }
+        when {
+            state.catalogLoading -> repeat(SERVICE_PLACEHOLDERS) { SpaSkeleton(SERVICE_ROW_HEIGHT) }
+
+            state.catalogFailed -> MenuUnavailable(onRetry)
+
+            else -> state.services.forEach { service ->
+                ServiceRow(service, service.id == state.serviceId) { onSelect(service.id) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MenuUnavailable(onRetry: () -> Unit) {
+    SpaCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                text = stringResource(Res.string.booking_menu_failed),
+                style = SpaTheme.textStyles.body,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SpaSecondaryButton(text = stringResource(Res.string.booking_menu_retry), onClick = onRetry)
         }
     }
 }
@@ -153,15 +182,20 @@ private fun ServiceRow(service: Service, selected: Boolean, onSelect: () -> Unit
     }
 }
 
+/** Empty after a failed load: one request fetches both halves of the menu, and the retry for it sits with the treatments. */
 @Composable
-internal fun TherapistPicker(selectedId: String?, onSelect: (String) -> Unit, columns: Int, modifier: Modifier = Modifier) {
+internal fun TherapistPicker(state: BookingState, onSelect: (String) -> Unit, columns: Int, modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SpaCatalog.therapists.chunked(columns).forEach { row ->
+        if (state.catalogLoading) {
+            repeat(THERAPIST_PLACEHOLDER_ROWS) { SpaSkeleton(THERAPIST_CARD_HEIGHT) }
+            return@Column
+        }
+        state.therapists.chunked(columns).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { therapist ->
                     TherapistCard(
                         therapist = therapist,
-                        selected = therapist.id == selectedId,
+                        selected = therapist.id == state.therapistId,
                         onSelect = { onSelect(therapist.id) },
                         modifier = Modifier.weight(1f),
                     )
@@ -189,11 +223,13 @@ private fun TherapistCard(therapist: Therapist, selected: Boolean, onSelect: () 
             Spacer(Modifier.height(6.dp))
             Text(therapist.name, style = SpaTheme.textStyles.cardTitle, color = MaterialTheme.colorScheme.onBackground)
             Text(therapist.focus, style = SpaTheme.textStyles.caption, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
-                text = stringResource(Res.string.booking_therapist_next, therapist.nextSlot),
-                style = SpaTheme.textStyles.caption.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary,
-            )
+            therapist.nextSlot?.let { next ->
+                Text(
+                    text = stringResource(Res.string.booking_therapist_next, next),
+                    style = SpaTheme.textStyles.caption.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
     }
 }

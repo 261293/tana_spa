@@ -8,6 +8,7 @@ import com.tana.spa.core.navigation.FeatureEntry
 import com.tana.spa.core.navigation.Navigator
 import com.tana.spa.core.navigation.Routes
 import com.tana.spa.core.navigation.routeArg
+import com.tana.spa.core.navigation.withArg
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingViewModel
 import com.tana.spa.feature.booking.presentation.ui.BookingScreen
@@ -29,6 +30,7 @@ object BookingEntry : FeatureEntry {
             effects = viewModel.effects,
             onEvent = viewModel::onEvent,
             onOpenNotifications = { navigator.navigate(Routes.NOTIFICATIONS) },
+            onOpenService = { navigator.navigate(Routes.SERVICE_DETAIL.withArg(Routes.ARG_SERVICE, it)) },
         )
     }
 }
