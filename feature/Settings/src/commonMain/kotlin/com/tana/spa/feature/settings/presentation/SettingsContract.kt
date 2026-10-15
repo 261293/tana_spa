@@ -1,6 +1,7 @@
 package com.tana.spa.feature.settings.presentation
 
-data class GuestProfile(val name: String = "Amara Liu", val email: String = "amara.liu@fastmail.com", val phone: String = "(415) 555-0186")
+/** The signed-in account's own details; empty until the session has been read. */
+data class GuestProfile(val name: String = "", val email: String = "", val phone: String = "")
 
 data class NotificationPrefs(
     val confirmations: Boolean = true,

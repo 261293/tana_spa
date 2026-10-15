@@ -11,7 +11,22 @@ data class AuthUser(
     val displayName: String,
     val phone: String? = null,
     val phoneVerified: Boolean = false,
+    /** What the server says this account may do; display only, the server is the authority. */
+    val role: UserRoleName = UserRoleName.CUSTOMER,
 )
+
+/** The roles the server knows. An unknown wire value is the least privileged one. */
+enum class UserRoleName(val wire: String) {
+    CUSTOMER("customer"),
+    STAFF("staff"),
+    OWNER("owner"),
+    ADMIN("admin"),
+    ;
+
+    companion object {
+        fun fromWire(value: String?): UserRoleName = entries.firstOrNull { it.wire == value } ?: CUSTOMER
+    }
+}
 
 data class Session(
     val accessToken: String,

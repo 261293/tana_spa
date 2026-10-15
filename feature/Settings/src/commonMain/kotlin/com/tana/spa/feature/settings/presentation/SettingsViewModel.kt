@@ -2,14 +2,21 @@ package com.tana.spa.feature.settings.presentation
 
 import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
+import com.tana.spa.feature.settings.domain.CurrentProfile
 import com.tana.spa.feature.settings.domain.SignOutAction
 
 /**
- * The guest's own details and notification preferences. They are not stored anywhere yet; only
- * [SignOutAction] reaches outside the screen, because the session must really end.
+ * The signed-in account's details and notification preferences. Edits and preferences stay on the
+ * device - there is no endpoint that changes a profile yet - but what is shown comes from the
+ * session, so two accounts never see each other's details.
  */
-class SettingsViewModel(private val signOutAction: SignOutAction) :
+class SettingsViewModel(private val currentProfile: CurrentProfile, private val signOutAction: SignOutAction) :
     MviViewModel<SettingsState, SettingsEvent, SettingsEffect>(SettingsState()) {
+
+    init {
+        val profile = currentProfile.load() ?: GuestProfile()
+        setState { copy(profile = profile, draft = profile) }
+    }
 
     override fun handleEvent(event: SettingsEvent) = when (event) {
         SettingsEvent.EditProfile -> setState { copy(editing = true, draft = profile) }

@@ -1,6 +1,7 @@
 plugins {
     id("convention.kmp.multiplatform")
     id("convention.kmp.compose")
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 kotlin {
@@ -9,6 +10,7 @@ kotlin {
             implementation(projects.core.logging)
             implementation(projects.core.mvi)
             implementation(projects.core.navigation)
+            implementation(projects.core.network)
             implementation(projects.core.ui)
             implementation(projects.shared)
 
@@ -25,7 +27,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
+            implementation(libs.ktor.clientCore)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
         }
         commonTest.dependencies {
             implementation(libs.kotlinx.coroutines.test)

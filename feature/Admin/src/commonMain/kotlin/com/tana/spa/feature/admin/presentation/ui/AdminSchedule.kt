@@ -26,27 +26,33 @@ import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaAvatar
 import com.tana.spa.core.ui.components.spaCork
 import com.tana.spa.core.ui.components.spaDashedBorder
+import com.tana.spa.feature.admin.domain.DeskRequest
+import com.tana.spa.feature.admin.domain.DeskStatus
 import com.tana.spa.feature.admin.resources.Res
 import com.tana.spa.feature.admin.resources.admin_block_meta
 import com.tana.spa.feature.admin.resources.admin_block_range
 import com.tana.spa.feature.admin.resources.admin_overlap_block
 import com.tana.spa.feature.admin.resources.admin_proposed
-import com.tana.spa.shared.spa.BookingRequest
-import com.tana.spa.shared.spa.RequestStatus
-import com.tana.spa.shared.spa.SpaCatalog
 import com.tana.spa.shared.spa.formatHour
 import com.tana.spa.shared.spa.initialsOf
 import org.jetbrains.compose.resources.stringResource
 
 private const val DAY_START_HOUR = 9
 private const val DAY_END_HOUR = 21
+private const val MINUTES_PER_HOUR = 60.0
 private val HOUR_HEIGHT = 52.dp
 private val GUTTER_WIDTH = 56.dp
 private val COLUMN_WIDTH = 220.dp
 
-/** The day as the front desk reads it: one column per therapist, the proposed slot dashed on top. */
+/**
+ * The day as the front desk reads it: one column per therapist who has something on the books,
+ * with the request being decided dashed on top of the column it would occupy.
+ */
 @Composable
-internal fun TodaySchedule(selected: BookingRequest?, confirmed: List<BookingRequest>, modifier: Modifier = Modifier) {
+internal fun TodaySchedule(selected: DeskRequest?, booked: List<DeskRequest>, modifier: Modifier = Modifier) {
+    val columns = (booked + listOfNotNull(selected))
+        .distinctBy { it.therapistSlug }
+        .sortedBy { it.therapistName }
     Row(modifier.horizontalScroll(rememberScrollState())) {
         Column(Modifier.width(GUTTER_WIDTH).padding(top = 36.dp)) {
             for (hour in DAY_START_HOUR until DAY_END_HOUR) {
@@ -60,31 +66,30 @@ internal fun TodaySchedule(selected: BookingRequest?, confirmed: List<BookingReq
                 }
             }
         }
-        SpaCatalog.staff.forEach { therapist ->
+        columns.forEach { therapist ->
             Column(Modifier.width(COLUMN_WIDTH).padding(end = 8.dp)) {
                 Row(
                     modifier = Modifier.height(36.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    SpaAvatar(initialsOf(therapist.name), size = 28.dp)
+                    SpaAvatar(initialsOf(therapist.therapistName), size = 28.dp)
                     Text(
-                        text = therapist.name,
+                        text = therapist.therapistName,
                         style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onBackground,
                     )
                 }
-                TherapistColumn(therapist.id, selected, confirmed)
+                TherapistColumn(therapist.therapistSlug, selected, booked)
             }
         }
     }
 }
 
 @Composable
-private fun TherapistColumn(therapistId: String, selected: BookingRequest?, confirmed: List<BookingRequest>) {
+private fun TherapistColumn(therapistSlug: String, selected: DeskRequest?, booked: List<DeskRequest>) {
     val ruleColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
-    val booked = SpaCatalog.scheduled.filter { it.therapistId == therapistId }
-    val alsoBooked = confirmed.filter { it.therapistId == therapistId }
+    val held = booked.filter { it.therapistSlug == therapistSlug && it.id != selected?.id }
 
     Box(
         modifier = Modifier
@@ -100,25 +105,15 @@ private fun TherapistColumn(therapistId: String, selected: BookingRequest?, conf
                 }
             },
     ) {
-        booked.forEach { booking ->
-            val service = SpaCatalog.service(booking.serviceId) ?: return@forEach
+        held.forEach { booking ->
             ScheduleBlock(
                 startHour = booking.startHour,
-                minutes = service.minutes,
+                minutes = booking.minutes,
                 title = booking.guest,
-                subtitle = stringResource(Res.string.admin_block_meta, formatHour(booking.startHour), service.name),
+                subtitle = stringResource(Res.string.admin_block_meta, formatHour(booking.startHour), booking.serviceName),
             )
         }
-        alsoBooked.forEach { booking ->
-            val service = SpaCatalog.service(booking.serviceId) ?: return@forEach
-            ScheduleBlock(
-                startHour = booking.startHour,
-                minutes = service.minutes,
-                title = booking.guest,
-                subtitle = stringResource(Res.string.admin_block_meta, formatHour(booking.startHour), service.name),
-            )
-        }
-        if (selected != null && selected.status == RequestStatus.PENDING && selected.therapistId == therapistId) {
+        if (selected != null && selected.status == DeskStatus.PENDING && selected.therapistSlug == therapistSlug) {
             ProposedBlock(selected)
         }
     }
@@ -131,7 +126,7 @@ private fun ScheduleBlock(startHour: Double, minutes: Int, title: String, subtit
             .fillMaxWidth()
             .padding(horizontal = 4.dp)
             .offset(y = HOUR_HEIGHT * (startHour - DAY_START_HOUR).toFloat() + 2.dp)
-            .height(HOUR_HEIGHT * (minutes / 60f) - 4.dp)
+            .height(HOUR_HEIGHT * (minutes / MINUTES_PER_HOUR).toFloat() - 4.dp)
             .spaCork(MaterialTheme.shapes.extraSmall, MaterialTheme.colorScheme.background)
             .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
@@ -153,8 +148,7 @@ private fun ScheduleBlock(startHour: Double, minutes: Int, title: String, subtit
 }
 
 @Composable
-private fun ProposedBlock(request: BookingRequest) {
-    val service = SpaCatalog.service(request.serviceId) ?: return
+private fun ProposedBlock(request: DeskRequest) {
     val conflicted = request.conflict != null
     val accent = if (conflicted) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
     Column(
@@ -162,7 +156,7 @@ private fun ProposedBlock(request: BookingRequest) {
             .fillMaxWidth()
             .padding(horizontal = 4.dp)
             .offset(y = HOUR_HEIGHT * (request.startHour - DAY_START_HOUR).toFloat() + 2.dp)
-            .height(HOUR_HEIGHT * (service.minutes / 60f) - 4.dp)
+            .height(HOUR_HEIGHT * (request.minutes / MINUTES_PER_HOUR).toFloat() - 4.dp)
             .background(accent.copy(alpha = 0.12f), MaterialTheme.shapes.extraSmall)
             .spaDashedBorder(accent, MaterialTheme.shapes.extraSmall)
             .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -182,7 +176,7 @@ private fun ProposedBlock(request: BookingRequest) {
             text = stringResource(
                 Res.string.admin_block_range,
                 formatHour(request.startHour),
-                formatHour(request.startHour + service.minutes / 60.0),
+                formatHour(request.startHour + request.minutes / MINUTES_PER_HOUR),
             ),
             style = SpaTheme.textStyles.label,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -4,8 +4,9 @@ import com.tana.spa.auth.AuthConfig
 import com.tana.spa.auth.AuthServices
 import com.tana.spa.auth.InMemoryUserRepository
 import com.tana.spa.auth.PasswordHasher
-import com.tana.spa.auth.SeedAdmin
-import com.tana.spa.auth.seedAdmins
+import com.tana.spa.auth.SeedAccount
+import com.tana.spa.auth.UserRole
+import com.tana.spa.auth.seedAccounts
 import com.tana.spa.module
 import com.tana.spa.shared.admin.AdminApi
 import com.tana.spa.shared.admin.AdminUsersResponse
@@ -39,12 +40,12 @@ class AdminUserRoutesTest {
         override fun verify(password: String, stored: String) = stored == "fake:$password"
     }
 
-    private val admin = SeedAdmin("ops@tana.local", "Ops", "admin-password")
+    private val admin = SeedAccount("ops@tana.local", "Ops", "admin-password", UserRole.ADMIN)
     private val users = InMemoryUserRepository()
     private val hasher = FakeHasher()
 
     private fun services(): AuthServices {
-        seedAdmins(users, hasher, listOf(admin))
+        seedAccounts(users, hasher, listOf(admin))
         return AuthServices.create(
             config = AuthConfig(jwtSecret = "x".repeat(40)),
             users = users,

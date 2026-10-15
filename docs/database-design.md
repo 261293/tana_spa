@@ -144,7 +144,7 @@ Two tables let a feature be switched off while the system runs:
 
 A **missing row means "no opinion"**, not "off" — resolution falls through to the `FEATURE_<KEY>` environment variable and then to the state compiled into the app, so `DELETE` is an undo rather than an off switch. `flag_key` deliberately has **no** foreign key to `feature_flags`: an override must be settable for a flag with no global row, and a flag deleted from the code must not make these tables unwritable. The application validates keys against its own catalog instead. V6 seeds `phone_otp_verification = false`.
 
-Changes are made through the `/admin` portal by an account with `role = 'admin'`; two are created on every start-up (`sanghtruong@tana.local`, `duchnguyen@tana.local`) with a password that is public in the repository — change or delete them before the server is exposed. `updated_by` holds the acting administrator's id. Full design: [`feature-flags.md`](feature-flags.md).
+Changes are made through the `/admin` portal by an account with `role = 'admin'`; two are created on every start-up (`sanghtruong@tana.local`, `duchnguyen@tana.local`) with the password in `SEED_ADMIN_PASSWORD`. Running the spa is the `owner` role instead ([`owner-role.md`](owner-role.md)). `updated_by` holds the acting administrator's id. Full design: [`feature-flags.md`](feature-flags.md).
 
 ## Push notifications (V8)
 

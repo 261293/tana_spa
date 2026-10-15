@@ -28,7 +28,7 @@ data class UserDto(
     val phone: String? = null,
     /** True once the owner proved control of [phone] with a one-time code. */
     val phoneVerified: Boolean = false,
-    /** `customer`, `staff` or `admin`. */
+    /** `customer`, `staff`, `owner` or `admin`; an unknown value is treated as `customer`. */
     val role: String = "customer",
 )
 
@@ -58,6 +58,8 @@ data class ErrorResponse(
     val retryAfterSeconds: Int? = null,
     /** Set on a wrong one-time code: guesses left before a new code is required. */
     val attemptsRemaining: Int? = null,
+    /** Set when one field of a form was refused, so the screen can point at it. */
+    val field: String? = null,
 )
 
 object AuthErrorCodes {

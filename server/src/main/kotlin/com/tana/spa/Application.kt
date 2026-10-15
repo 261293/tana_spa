@@ -10,6 +10,7 @@ import com.tana.spa.auth.AuthServices
 import com.tana.spa.auth.InMemoryUserRepository
 import com.tana.spa.auth.Pbkdf2PasswordHasher
 import com.tana.spa.auth.PostgresUserRepository
+import com.tana.spa.auth.SeedAccounts
 import com.tana.spa.auth.UserRepository
 import com.tana.spa.auth.authModule
 import com.tana.spa.auth.otp.InMemoryPhoneVerificationRepository
@@ -17,7 +18,7 @@ import com.tana.spa.auth.otp.OtpConfig
 import com.tana.spa.auth.otp.PhoneVerificationProvider
 import com.tana.spa.auth.otp.PhoneVerificationRepository
 import com.tana.spa.auth.otp.PostgresPhoneVerificationRepository
-import com.tana.spa.auth.seedAdmins
+import com.tana.spa.auth.seedAccounts
 import com.tana.spa.booking.BookingService
 import com.tana.spa.booking.PostgresBookingRepository
 import com.tana.spa.booking.bookingModule
@@ -44,8 +45,13 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
+import kotlin.time.Duration.Companion.hours
 
 private val log = LoggerFactory.getLogger("com.tana.spa.Main")
 
@@ -85,7 +91,7 @@ fun main() {
         notificationRepository = notificationRepository,
         pushSender = PushSender.fromEnvironment(),
     )
-    seedAdmins(users, hasher)
+    seedAccounts(users, hasher, SeedAccounts.fromEnvironment().accounts)
     // Booking reads a catalogue and writes appointments, so it has no in-memory twin: without a
     // database its endpoints are simply absent, and the log says so.
     val spa = dataSource?.let {
@@ -108,8 +114,27 @@ fun main() {
     embeddedServer(Netty, port = port, host = "0.0.0.0") {
         closeOnStop(dataSource)
         module(auth, spa)
+        spa?.let { remindAhead(it.booking) }
     }.start(wait = true)
 }
+
+/**
+ * The appointment reminders. One sweep an hour is enough for a reminder that is only ever "about
+ * a day ahead", and the claim inside [BookingService.sendDueReminders] keeps it to one per
+ * booking however often this runs.
+ */
+private fun Application.remindAhead(booking: BookingService) {
+    val sweeps = launch {
+        while (isActive) {
+            runCatching { booking.sendDueReminders() }
+                .onFailure { if (it is CancellationException) throw it else log.warn("reminder sweep failed", it) }
+            delay(REMINDER_SWEEP)
+        }
+    }
+    monitor.subscribe(ApplicationStopped) { sweeps.cancel() }
+}
+
+private val REMINDER_SWEEP = 1.hours
 
 private fun Application.closeOnStop(dataSource: DataSource?) {
     val pool = dataSource as? AutoCloseable ?: return

@@ -2,7 +2,11 @@ package com.tana.spa.booking
 
 import com.tana.spa.notifications.NotificationService
 import com.tana.spa.shared.booking.BookingErrorCodes
+import com.tana.spa.shared.booking.BookingRules
+import com.tana.spa.shared.booking.CreateServiceRequest
+import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.booking.SpaValidation
 import com.tana.spa.shared.notifications.NotificationSendRequest
 import com.tana.spa.shared.notifications.NotificationType
 import kotlinx.coroutines.CoroutineDispatcher
@@ -117,19 +121,31 @@ class BookingService(
         return PromoVerdict(voucher, discount, null)
     }
 
-    /** Every slot of [day] for [therapistSlug], with the ones already held marked unavailable. */
+    /**
+     * Every slot of [day], with the ones already held marked unavailable. A null [therapistSlug]
+     * is "any therapist": the slot is open while one of them is still free.
+     */
     suspend fun availability(therapistSlug: String?, day: LocalDate): List<Pair<Instant, Boolean>> = withContext(io) {
         val therapist = therapistSlug?.let { repository.therapistBySlug(it) }
-        val taken = held(therapist?.id, day).map { it.startAt to it.endAt }
+        val diaries = if (therapist != null) listOf(therapist.id) else repository.therapists().map { it.id }
+        val heldByTherapist = diaries.associateWith { id -> held(id, day) }
         val now = clock()
         SLOT_TIMES.map { time ->
             val start = day.atTime(time).atZone(zone).toInstant()
-            val free = start > now && taken.none { (from, to) -> start >= from && start < to.plus(turnaround) }
+            val free = start > now && heldByTherapist.values.any { diary -> diary.none { start.inside(it) } }
             start to free
         }
     }
 
+    private fun Instant.inside(held: BookingRow): Boolean = this >= held.startAt && this < held.endAt.plus(turnaround)
+
     fun slotLabel(start: Instant): String = LocalTime.ofInstant(start, zone).format(SLOT_LABEL)
+
+    /** 14.5 for 2:30 PM in the house's zone: the number a day grid positions a block with. */
+    fun hourOfDay(start: Instant): Double = LocalTime.ofInstant(start, zone).let { it.hour + it.minute / MINUTES_PER_HOUR }
+
+    /** "Wed Oct 15, 2:30 PM", in the house's zone rather than the reader's. */
+    fun dayAndTimeLabel(start: Instant): String = dayAndTime(start)
 
     fun epochDayOf(instant: Instant): Int = LocalDate.ofInstant(instant, zone).toEpochDay().toInt()
 
@@ -146,20 +162,25 @@ class BookingService(
     /** The overlap the staff screen warns about: another holding booking in the same hands. */
     suspend fun conflictFor(booking: BookingRow): BookingRow? = withContext(io) { overlapping(booking) }
 
+    /** A null [therapistSlug] is "any therapist": whoever is free at that time takes the guest. */
     suspend fun create(
         userId: String,
         guestName: String,
         guestPhone: String,
         serviceSlug: String,
-        therapistSlug: String,
+        therapistSlug: String?,
         startAt: Instant,
         code: String?,
         note: String?,
     ): BookingOutcome = withContext(io) {
         val service = repository.serviceBySlug(serviceSlug)
             ?: return@withContext BookingOutcome.Refused(BookingErrorCodes.UNKNOWN_SERVICE, serviceSlug)
-        val therapist = repository.therapistBySlug(therapistSlug)
-            ?: return@withContext BookingOutcome.Refused(BookingErrorCodes.UNKNOWN_THERAPIST, therapistSlug)
+        val therapist = if (therapistSlug == null) {
+            null
+        } else {
+            repository.therapistBySlug(therapistSlug)
+                ?: return@withContext BookingOutcome.Refused(BookingErrorCodes.UNKNOWN_THERAPIST, therapistSlug)
+        }
 
         val now = clock()
         if (startAt <= now) return@withContext BookingOutcome.Refused(BookingErrorCodes.SLOT_IN_PAST)
@@ -171,8 +192,14 @@ class BookingService(
             return@withContext BookingOutcome.Refused(BookingErrorCodes.SLOT_TAKEN, "not a slot the house offers")
         }
         val endAt = startAt.plus(Duration.ofMinutes(service.minutes.toLong()))
-        if (held(therapist.id, day).any { tooClose(startAt, endAt, it) }) {
-            return@withContext BookingOutcome.Refused(BookingErrorCodes.SLOT_TAKEN)
+        // "Any therapist" is resolved here, not at confirmation: the no-overlap rule only holds
+        // if the booking already names the hands it occupies.
+        val assigned = if (therapist != null) {
+            therapist.takeIf { isFree(it, day, startAt, endAt) }
+                ?: return@withContext BookingOutcome.Refused(BookingErrorCodes.SLOT_TAKEN)
+        } else {
+            repository.therapists().firstOrNull { isFree(it, day, startAt, endAt) }
+                ?: return@withContext BookingOutcome.Refused(BookingErrorCodes.SLOT_TAKEN, "nobody is free")
         }
 
         // An unusable code must not silently become a full-price booking.
@@ -188,7 +215,7 @@ class BookingService(
             NewBooking(
                 userId = userId,
                 serviceId = service.id,
-                therapistId = therapist.id,
+                therapistId = assigned.id,
                 startAt = startAt,
                 endAt = endAt,
                 guestName = guestName,
@@ -199,7 +226,7 @@ class BookingService(
                 voucherId = verdict?.voucher?.id,
             ),
         )
-        log.info("booking {} requested by user {} ({} with {})", booking.reference, userId, service.slug, therapist.slug)
+        log.info("booking {} requested by user {} ({} with {})", booking.reference, userId, service.slug, assigned.slug)
         BookingOutcome.Created(booking)
     }
 
@@ -250,6 +277,106 @@ class BookingService(
         return BookingOutcome.Decided(declined)
     }
 
+    /**
+     * The guest calls off their own visit. Refused once the start is less than
+     * [BookingRules.CANCEL_WINDOW_MINUTES] away: the spa has given the hour to them and needs
+     * the phone call.
+     */
+    suspend fun cancel(id: String, userId: String): BookingOutcome {
+        val booking = withContext(io) { repository.booking(id) }
+            ?: return BookingOutcome.Refused(BookingErrorCodes.UNKNOWN_BOOKING)
+        if (booking.userId != userId) return BookingOutcome.Refused(BookingErrorCodes.NOT_YOUR_BOOKING)
+        if (booking.status !in CANCELLABLE) return BookingOutcome.Refused(BookingErrorCodes.INVALID_TRANSITION, booking.status)
+        if (booking.startAt < clock().plus(CANCEL_WINDOW)) {
+            return BookingOutcome.Refused(BookingErrorCodes.TOO_LATE_TO_CANCEL)
+        }
+        if (!withContext(io) { repository.transition(id, CANCELLABLE, "cancelled", null) }) {
+            return BookingOutcome.Refused(BookingErrorCodes.INVALID_TRANSITION)
+        }
+        val cancelled = withContext(io) { repository.booking(id) } ?: booking
+        log.info("booking {} cancelled by its guest", cancelled.reference)
+        return BookingOutcome.Decided(cancelled)
+    }
+
+    /** The owner records how a confirmed visit went. Neither can be recorded before it starts. */
+    suspend fun recordVisit(id: String, decidedBy: String, attended: Boolean): BookingOutcome {
+        val booking = withContext(io) { repository.booking(id) }
+            ?: return BookingOutcome.Refused(BookingErrorCodes.UNKNOWN_BOOKING)
+        if (booking.status != "confirmed") return BookingOutcome.Refused(BookingErrorCodes.INVALID_TRANSITION, booking.status)
+        if (clock() < booking.startAt) return BookingOutcome.Refused(BookingErrorCodes.VISIT_NOT_STARTED)
+
+        val status = if (attended) "completed" else "no_show"
+        if (!withContext(io) { repository.transition(id, listOf("confirmed"), status, decidedBy) }) {
+            return BookingOutcome.Refused(BookingErrorCodes.INVALID_TRANSITION)
+        }
+        val recorded = withContext(io) { repository.booking(id) } ?: booking
+        log.info("booking {} recorded as {} by {}", recorded.reference, status, decidedBy)
+        return BookingOutcome.Decided(recorded)
+    }
+
+    /**
+     * Adds a treatment to the menu. The slug comes from the name and is made unique here, so two
+     * treatments may share a name without the owner having to invent an id.
+     */
+    suspend fun createService(request: CreateServiceRequest): ServiceRow? = withContext(io) {
+        val base = SpaValidation.slugify(request.name)
+        uniqueSlug(base) { slug ->
+            repository.insertService(
+                NewService(
+                    slug = slug,
+                    name = request.name.trim(),
+                    categorySlug = request.category.name.lowercase(),
+                    description = request.description.trim(),
+                    price = request.price.toLong(),
+                    minutes = request.minutes,
+                ),
+            )
+        }?.also { log.info("service {} added to the menu", it.slug) }
+    }
+
+    suspend fun createTherapist(request: CreateTherapistRequest): TherapistRow? = withContext(io) {
+        uniqueSlug(SpaValidation.slugify(request.name)) { slug ->
+            repository.insertTherapist(
+                NewTherapist(
+                    slug = slug,
+                    name = request.name.trim(),
+                    focus = request.focus.trim(),
+                    accent = request.accent.name.lowercase(),
+                ),
+            )
+        }?.also { log.info("therapist {} joined the team", it.slug) }
+    }
+
+    /**
+     * Writes the reminder for every confirmed visit starting within [BookingRules.REMINDER_LEAD_HOURS].
+     * The claim is part of the same update, so running this twice (or on two instances) still
+     * reminds each guest once.
+     *
+     * @return how many reminders were written.
+     */
+    suspend fun sendDueReminders(): Int {
+        val now = clock()
+        val due = withContext(io) { repository.claimRemindable(now, now.plus(REMINDER_LEAD)) }
+        due.forEach { booking ->
+            notify(
+                booking,
+                title = "Tomorrow at the spa",
+                body = "${booking.service.name} with ${booking.therapist?.name.orEmpty()} on ${dayAndTime(booking.startAt)}",
+            )
+        }
+        if (due.isNotEmpty()) log.info("wrote {} appointment reminders", due.size)
+        return due.size
+    }
+
+    /** Tries "jade-facial", then "jade-facial-2": a name the owner reuses must not fail to save. */
+    private fun <T> uniqueSlug(base: String, insert: (String) -> T?): T? {
+        if (base.isEmpty()) return null
+        return generateSequence(1) { it + 1 }
+            .take(SLUG_ATTEMPTS)
+            .map { attempt -> insert(if (attempt == 1) base else "$base-$attempt") }
+            .firstOrNull { it != null }
+    }
+
     /** @return false when that code already exists; codes are never silently overwritten. */
     suspend fun createCode(voucher: NewVoucher): Boolean = withContext(io) {
         val created = repository.voucherByCode(voucher.code) == null && repository.insertVoucher(voucher)
@@ -271,6 +398,9 @@ class BookingService(
             ),
         )
     }
+
+    private fun isFree(therapist: TherapistRow, day: LocalDate, startAt: Instant, endAt: Instant): Boolean =
+        held(therapist.id, day).none { tooClose(startAt, endAt, it) }
 
     private fun held(therapistId: String?, day: LocalDate): List<BookingRow> = repository.bookingsFor(
         therapistId,
@@ -323,10 +453,15 @@ class BookingService(
 
     private companion object {
         const val PERCENT = 100L
+        const val MINUTES_PER_HOUR = 60.0
         const val HALF_UNIT = 50L
         const val DAYS_SCANNED_FOR_NEXT_SLOT = 14
         const val MAX_TREATMENT_HOURS = 4L
+        const val SLUG_ATTEMPTS = 20
         val DEFAULT_TURNAROUND: Duration = Duration.ofMinutes(15)
+        val CANCEL_WINDOW: Duration = Duration.ofMinutes(BookingRules.CANCEL_WINDOW_MINUTES.toLong())
+        val REMINDER_LEAD: Duration = Duration.ofHours(BookingRules.REMINDER_LEAD_HOURS.toLong())
+        val CANCELLABLE = listOf("pending", "confirmed")
 
         /** `SPA_TIMEZONE`, falling back to the house's own: the design's spa is on Valencia Street. */
         fun houseZone(): ZoneId = System.getenv("SPA_TIMEZONE")

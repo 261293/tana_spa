@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -27,6 +28,8 @@ import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.model.NavConfig
 import com.tana.spa.core.ui.scafold.AppScaffold
 import com.tana.spa.feature.appupdate.AppUpdateGate
+import com.tana.spa.feature.auth.data.local.SessionStore
+import com.tana.spa.feature.auth.domain.model.UserRoleName
 import com.tana.spa.shared.featureflags.FeatureFlag
 import org.koin.compose.koinInject
 
@@ -110,12 +113,19 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
     val badge: NotificationBadge = koinInject()
     val unread by badge.unreadCount.collectAsStateWithLifecycle()
 
-    val navItems = listOf(
-        NavConfig(Routes.BOOKING, "Book", SpaIcon.CalendarPlus),
-        NavConfig(Routes.NOTIFICATIONS, "Alerts", SpaIcon.Bell, badgeCount = if (notificationsEnabled) unread else 0),
-        NavConfig(Routes.PROMOTIONS, "Offers", SpaIcon.Tag),
-        NavConfig(Routes.SETTINGS, "Settings", SpaIcon.Gear),
-    )
+    // Read per route change rather than observed: a sign-in or sign-out always navigates.
+    val sessions: SessionStore = koinInject()
+    val owner = remember(current) { sessions.load()?.user?.role == UserRoleName.OWNER }
+
+    val navItems = buildList {
+        add(NavConfig(Routes.BOOKING, "Book", SpaIcon.CalendarPlus))
+        add(NavConfig(Routes.NOTIFICATIONS, "Alerts", SpaIcon.Bell, badgeCount = if (notificationsEnabled) unread else 0))
+        add(NavConfig(Routes.PROMOTIONS, "Offers", SpaIcon.Tag))
+        // The spa's own console. The server refuses its calls for every other role; this only
+        // keeps the destination out of a guest's way.
+        if (owner) add(NavConfig(Routes.ADMIN_REQUESTS, "Desk", SpaIcon.Calendar))
+        add(NavConfig(Routes.SETTINGS, "Settings", SpaIcon.Gear))
+    }
 
     AppScaffold(
         navItems = navItems,

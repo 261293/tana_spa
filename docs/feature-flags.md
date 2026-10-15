@@ -82,16 +82,22 @@ Same origin as the API, so no CORS entry and no second deployable. Plain HTML an
 meant to be replaced.
 
 Signing in needs an account whose `role` is `admin`. Two are created on every start-up if their
-email is free (`server/.../auth/AdminSeeder.kt`):
+email is free (`server/.../auth/AccountSeeder.kt`):
 
 | Email | Password |
 |---|---|
-| `sanghtruong@tana.local` | `P@ssw0rd26` |
-| `duchnguyen@tana.local` | `P@ssw0rd26` |
+| `sanghtruong@tana.local` | `SEED_ADMIN_PASSWORD` |
+| `duchnguyen@tana.local` | `SEED_ADMIN_PASSWORD` |
 
-> These passwords are in source control, so they are public: anyone who can read this repository
-> can sign in as an administrator on any server that still has them. Change them — or delete the
-> accounts — before the server is reachable by anyone you do not trust.
+Set `SEED_ADMIN_PASSWORD` to choose it. Without it — only possible outside production, which
+refuses to start without it — a password is generated per start and printed once in the log:
+
+```
+Nothing configured for the two fixed administrators: seeding with the generated password …
+```
+
+`admin` operates the system (feature flags, discount codes). Running the spa is the **owner's**
+job and a separate role: see [`owner-role.md`](owner-role.md).
 
 Seeding is idempotent and never touches an address that already exists, so an account somebody
 registered as a customer is **not** silently promoted.

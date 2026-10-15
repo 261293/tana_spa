@@ -10,7 +10,21 @@
     <string name="admin_status_pending">Awaiting confirmation</string>
     <string name="admin_status_confirmed">Confirmed</string>
     <string name="admin_status_declined">Declined</string>
+    <string name="admin_status_recorded">Visit recorded</string>
     <string name="admin_overlap">Overlap</string>
+    <string name="admin_stale">Waiting too long</string>
+    <string name="admin_waited">%1$s ago</string>
+
+    <string name="admin_queue_empty">Nothing is waiting for a decision.</string>
+    <string name="admin_desk_failed">We couldn’t load the desk. Check the connection and try again.</string>
+    <string name="admin_desk_retry">Try again</string>
+    <string name="admin_refused">The spa couldn’t record that. Try again.</string>
+    <string name="admin_refused_overlap">That time is already taken. Press confirm again to book it anyway.</string>
+
+    <string name="admin_visit_completed">Mark visit completed</string>
+    <string name="admin_no_show">Mark no-show</string>
+    <string name="admin_visit_toast">%1$s’s visit is recorded</string>
+    <string name="admin_no_show_toast">%1$s is recorded as a no-show</string>
 
     <string name="admin_detail_treatment">Treatment</string>
     <string name="admin_detail_therapist">Therapist</string>

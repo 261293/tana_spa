@@ -4,8 +4,9 @@ import com.tana.spa.auth.AuthConfig
 import com.tana.spa.auth.AuthServices
 import com.tana.spa.auth.InMemoryUserRepository
 import com.tana.spa.auth.PasswordHasher
-import com.tana.spa.auth.SeedAdmin
-import com.tana.spa.auth.seedAdmins
+import com.tana.spa.auth.SeedAccount
+import com.tana.spa.auth.UserRole
+import com.tana.spa.auth.seedAccounts
 import com.tana.spa.module
 import com.tana.spa.notifications.push.PushMessage
 import com.tana.spa.notifications.push.PushOutcome
@@ -65,7 +66,7 @@ class NotificationRoutesTest {
         }
     }
 
-    private val admin = SeedAdmin("ops@tana.local", "Ops", "admin-password")
+    private val admin = SeedAccount("ops@tana.local", "Ops", "admin-password", UserRole.ADMIN)
     private lateinit var built: AuthServices
     private val deviceToken = "fcm-token-for-the-first-device"
 
@@ -75,7 +76,7 @@ class NotificationRoutesTest {
     private fun services(flagDefaults: FeatureFlags = ConfigurableFeatureFlags(mapOf(FeatureFlag.NOTIFICATIONS to true))): AuthServices {
         val users = InMemoryUserRepository()
         val hasher = FakeHasher()
-        seedAdmins(users, hasher, listOf(admin))
+        seedAccounts(users, hasher, listOf(admin))
         built = AuthServices.create(
             config = AuthConfig(jwtSecret = "x".repeat(40)),
             users = users,

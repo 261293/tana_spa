@@ -4,6 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
 import com.tana.spa.feature.auth.domain.model.LoginResult
+import com.tana.spa.feature.auth.domain.model.Session
+import com.tana.spa.feature.auth.domain.model.UserRoleName
 import com.tana.spa.feature.auth.domain.usecase.GetCurrentSessionUseCase
 import com.tana.spa.feature.auth.domain.usecase.LoginUseCase
 import kotlinx.coroutines.launch
@@ -13,9 +15,9 @@ class LoginViewModel(private val login: LoginUseCase, getCurrentSession: GetCurr
 
     init {
         // Already signed in from a previous launch: skip the form.
-        if (getCurrentSession() != null) {
+        getCurrentSession()?.let { session ->
             AppLog.i(logTag) { "existing valid session, skipping login form" }
-            sendEffect(LoginEffect.NavigateHome)
+            sendEffect(session.destination())
         }
     }
 
@@ -35,8 +37,6 @@ class LoginViewModel(private val login: LoginUseCase, getCurrentSession: GetCurr
 
             LoginEvent.ForgotPasswordClicked -> sendEffect(LoginEffect.ShowComingSoon(ComingSoon.FORGOT_PASSWORD))
 
-            LoginEvent.StaffSignInClicked -> sendEffect(LoginEffect.NavigateToStaffConsole)
-
             LoginEvent.SignUpClicked -> sendEffect(LoginEffect.NavigateToSignUp)
         }
     }
@@ -53,9 +53,9 @@ class LoginViewModel(private val login: LoginUseCase, getCurrentSession: GetCurr
         viewModelScope.launch {
             when (val result = login(email, password)) {
                 is LoginResult.Success -> {
-                    AppLog.i(logTag) { "login succeeded" }
+                    AppLog.i(logTag) { "login succeeded as ${result.session.user.role.wire}" }
                     setState { copy(isLoading = false) }
-                    sendEffect(LoginEffect.NavigateHome)
+                    sendEffect(result.session.destination())
                 }
 
                 is LoginResult.InvalidInput -> {
@@ -76,3 +76,10 @@ class LoginViewModel(private val login: LoginUseCase, getCurrentSession: GetCurr
         }
     }
 }
+
+/**
+ * The owner runs the spa from the console; everyone else lands in the guest app. The role is a
+ * convenience only: the console's own calls are refused by the server for any other account.
+ */
+private fun Session.destination(): LoginEffect =
+    if (user.role == UserRoleName.OWNER) LoginEffect.NavigateToDesk else LoginEffect.NavigateHome

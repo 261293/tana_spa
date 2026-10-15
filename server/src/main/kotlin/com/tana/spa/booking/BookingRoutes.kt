@@ -1,6 +1,7 @@
 package com.tana.spa.booking
 
 import com.tana.spa.admin.requireAdmin
+import com.tana.spa.admin.requireOwner
 import com.tana.spa.admin.respondApiError
 import com.tana.spa.auth.AuthService
 import com.tana.spa.auth.JWT_AUTH
@@ -20,6 +21,8 @@ import com.tana.spa.shared.booking.CodeStateDto
 import com.tana.spa.shared.booking.ConfirmBookingRequest
 import com.tana.spa.shared.booking.CreateBookingRequest
 import com.tana.spa.shared.booking.CreateCodeRequest
+import com.tana.spa.shared.booking.CreateServiceRequest
+import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineBookingRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
 import com.tana.spa.shared.booking.OfferCheckRequest
@@ -29,11 +32,13 @@ import com.tana.spa.shared.booking.OffersResponse
 import com.tana.spa.shared.booking.ServiceCategoryDto
 import com.tana.spa.shared.booking.ServiceDto
 import com.tana.spa.shared.booking.SlotDto
+import com.tana.spa.shared.booking.SpaValidation
 import com.tana.spa.shared.booking.StaffQueueResponse
 import com.tana.spa.shared.booking.TherapistAccentDto
 import com.tana.spa.shared.booking.TherapistDto
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
@@ -122,52 +127,79 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
                         is BookingOutcome.Refused -> call.respondRefusal(outcome)
                     }
                 }
+
+                post("/{id}/cancel") {
+                    val user = call.signedInUser(auth) ?: return@post
+                    val id = call.bookingId() ?: return@post
+                    call.respondOutcome(service.cancel(id, user.id), service)
+                }
             }
 
-            route(BookingApi.ADMIN_BOOKINGS) {
+            route(BookingApi.OWNER_BOOKINGS) {
                 get {
-                    val admin = call.requireAdmin(auth) ?: return@get
-                    val today = service.dayFromEpochDay(service.epochDayOf(Instant.now()))
-                    val pending = service.pending()
+                    call.requireOwner(auth) ?: return@get
+                    val now = Instant.now()
+                    val today = service.dayFromEpochDay(service.epochDayOf(now))
                     call.respond(
                         StaffQueueResponse(
-                            pending = pending.map { it.toDto(service, conflict = service.conflictFor(it)) },
+                            pending = service.pending().map { it.toDto(service, conflict = service.conflictFor(it)) },
                             scheduled = service.scheduledOn(today).map { it.toDto(service) },
-                            dayEpochDay = service.epochDayOf(Instant.now()),
+                            dayEpochDay = service.epochDayOf(now),
                         ),
                     )
-                    check(admin.id.isNotEmpty())
                 }
 
                 post("/{id}/confirm") {
-                    val admin = call.requireAdmin(auth) ?: return@post
-                    val id = call.parameters["id"] ?: return@post call.respondApiError(
-                        HttpStatusCode.BadRequest,
-                        AuthErrorCodes.INVALID_REQUEST,
-                        "A booking id is required",
-                    )
+                    val owner = call.requireOwner(auth) ?: return@post
+                    val id = call.bookingId() ?: return@post
                     val force = runCatching { call.receive<ConfirmBookingRequest>() }.getOrNull()?.force ?: false
-                    when (val outcome = service.confirm(id, admin.id, force)) {
-                        is BookingOutcome.Decided -> call.respond(outcome.booking.toDto(service))
-                        is BookingOutcome.Created -> call.respond(outcome.booking.toDto(service))
-                        is BookingOutcome.Refused -> call.respondRefusal(outcome)
-                    }
+                    call.respondOutcome(service.confirm(id, owner.id, force), service)
                 }
 
                 post("/{id}/decline") {
-                    val admin = call.requireAdmin(auth) ?: return@post
-                    val id = call.parameters["id"] ?: return@post call.respondApiError(
-                        HttpStatusCode.BadRequest,
-                        AuthErrorCodes.INVALID_REQUEST,
-                        "A booking id is required",
-                    )
+                    val owner = call.requireOwner(auth) ?: return@post
+                    val id = call.bookingId() ?: return@post
                     val request = call.receive<DeclineBookingRequest>()
-                    when (val outcome = service.decline(id, admin.id, request.reason, request.alternativeOffer)) {
-                        is BookingOutcome.Decided -> call.respond(outcome.booking.toDto(service))
-                        is BookingOutcome.Created -> call.respond(outcome.booking.toDto(service))
-                        is BookingOutcome.Refused -> call.respondRefusal(outcome)
-                    }
+                    call.respondOutcome(service.decline(id, owner.id, request.reason, request.alternativeOffer), service)
                 }
+
+                post("/{id}/complete") {
+                    val owner = call.requireOwner(auth) ?: return@post
+                    val id = call.bookingId() ?: return@post
+                    call.respondOutcome(service.recordVisit(id, owner.id, attended = true), service)
+                }
+
+                post("/{id}/no-show") {
+                    val owner = call.requireOwner(auth) ?: return@post
+                    val id = call.bookingId() ?: return@post
+                    call.respondOutcome(service.recordVisit(id, owner.id, attended = false), service)
+                }
+            }
+
+            post(BookingApi.OWNER_SERVICES) {
+                call.requireOwner(auth) ?: return@post
+                val request = call.receive<CreateServiceRequest>()
+                SpaValidation.firstInvalidField(request)?.let { return@post call.respondInvalidField(it) }
+                val created = service.createService(request)
+                    ?: return@post call.respondApiError(
+                        HttpStatusCode.Conflict,
+                        BookingErrorCodes.UNKNOWN_SERVICE,
+                        "That treatment could not be added",
+                    )
+                call.respond(HttpStatusCode.Created, created.toDto())
+            }
+
+            post(BookingApi.OWNER_THERAPISTS) {
+                call.requireOwner(auth) ?: return@post
+                val request = call.receive<CreateTherapistRequest>()
+                SpaValidation.firstInvalidField(request)?.let { return@post call.respondInvalidField(it) }
+                val created = service.createTherapist(request)
+                    ?: return@post call.respondApiError(
+                        HttpStatusCode.Conflict,
+                        BookingErrorCodes.UNKNOWN_THERAPIST,
+                        "That therapist could not be added",
+                    )
+                call.respond(HttpStatusCode.Created, created.toDto(nextSlot = null))
             }
 
             route(BookingApi.ADMIN_CODES) {
@@ -233,6 +265,21 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
 
 private const val UNKNOWN_PHONE = "+10000000000"
 
+private suspend fun ApplicationCall.bookingId(): String? = parameters["id"]
+    ?: run {
+        respondApiError(HttpStatusCode.BadRequest, AuthErrorCodes.INVALID_REQUEST, "A booking id is required")
+        null
+    }
+
+private suspend fun ApplicationCall.respondInvalidField(field: String) =
+    respondApiError(HttpStatusCode.BadRequest, AuthErrorCodes.INVALID_REQUEST, "The $field is not valid", field)
+
+private suspend fun ApplicationCall.respondOutcome(outcome: BookingOutcome, service: BookingService) = when (outcome) {
+    is BookingOutcome.Created -> respond(outcome.booking.toDto(service))
+    is BookingOutcome.Decided -> respond(outcome.booking.toDto(service))
+    is BookingOutcome.Refused -> respondRefusal(outcome)
+}
+
 private suspend fun io.ktor.server.application.ApplicationCall.signedInUser(auth: AuthService): User? {
     val user = principal<JWTPrincipal>()?.payload?.subject?.let { auth.findUser(it) }
     if (user == null) {
@@ -243,10 +290,13 @@ private suspend fun io.ktor.server.application.ApplicationCall.signedInUser(auth
 
 private suspend fun io.ktor.server.application.ApplicationCall.respondRefusal(refused: BookingOutcome.Refused) {
     val status = when (refused.code) {
-        BookingErrorCodes.UNKNOWN_BOOKING -> HttpStatusCode.NotFound
+        // Someone else's booking reads as absent: the caller learns nothing about it either way.
+        BookingErrorCodes.UNKNOWN_BOOKING, BookingErrorCodes.NOT_YOUR_BOOKING -> HttpStatusCode.NotFound
 
         BookingErrorCodes.SLOT_TAKEN, BookingErrorCodes.OVERLAPS_ANOTHER,
         BookingErrorCodes.ALREADY_DECIDED, BookingErrorCodes.DUPLICATE_CODE,
+        BookingErrorCodes.INVALID_TRANSITION, BookingErrorCodes.TOO_LATE_TO_CANCEL,
+        BookingErrorCodes.VISIT_NOT_STARTED,
         -> HttpStatusCode.Conflict
 
         else -> HttpStatusCode.BadRequest
@@ -325,6 +375,8 @@ private fun BookingRow.toDto(service: BookingService, conflict: BookingRow? = nu
     therapist = therapist?.toDto(null) ?: TherapistDto("", "", "", TherapistAccentDto.MOSS, null),
     startAtEpochMillis = startAt.toEpochMilli(),
     endAtEpochMillis = endAt.toEpochMilli(),
+    startHour = service.hourOfDay(startAt),
+    startLabel = service.dayAndTimeLabel(startAt),
     status = when (status) {
         "confirmed" -> BookingStatusDto.CONFIRMED
         "declined" -> BookingStatusDto.DECLINED

@@ -4,6 +4,7 @@ import com.tana.spa.core.cache.KeyValueCache
 import com.tana.spa.core.logging.AppLog
 import com.tana.spa.feature.auth.domain.model.AuthUser
 import com.tana.spa.feature.auth.domain.model.Session
+import com.tana.spa.feature.auth.domain.model.UserRoleName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -59,9 +60,22 @@ private data class StoredSession(
     val displayName: String,
     val phone: String? = null,
     val phoneVerified: Boolean = false,
+    val role: String = UserRoleName.CUSTOMER.wire,
 )
 
-private fun Session.toStored() =
-    StoredSession(accessToken, expiresAtMillis, user.id, user.email, user.displayName, user.phone, user.phoneVerified)
+private fun Session.toStored() = StoredSession(
+    accessToken = accessToken,
+    expiresAtMillis = expiresAtMillis,
+    userId = user.id,
+    email = user.email,
+    displayName = user.displayName,
+    phone = user.phone,
+    phoneVerified = user.phoneVerified,
+    role = user.role.wire,
+)
 
-private fun StoredSession.toDomain() = Session(accessToken, expiresAtMillis, AuthUser(userId, email, displayName, phone, phoneVerified))
+private fun StoredSession.toDomain() = Session(
+    accessToken = accessToken,
+    expiresAtMillis = expiresAtMillis,
+    user = AuthUser(userId, email, displayName, phone, phoneVerified, UserRoleName.fromWire(role)),
+)

@@ -2,9 +2,11 @@ package com.tana.spa.auth
 
 import java.util.UUID
 
+/** [OWNER] runs the spa (bookings, menu); [ADMIN] operates the system (flags, codes). */
 enum class UserRole(val sql: String) {
     CUSTOMER("customer"),
     STAFF("staff"),
+    OWNER("owner"),
     ADMIN("admin"),
     ;
 
@@ -58,8 +60,13 @@ interface UserRepository {
 
     fun recordLogin(id: String)
 
-    /** @return the account that holds [email], whatever its role, or null if it could not be read. */
-    fun ensureAdmin(email: String, displayName: String, passwordHash: String): User?
+    /**
+     * Creates the account only if [email] is free, so two instances starting at once cannot both
+     * create it and an existing account is never changed.
+     *
+     * @return the account that holds [email], whatever its role, or null if it could not be read.
+     */
+    fun ensureSeeded(email: String, displayName: String, passwordHash: String, role: UserRole): User?
 
     /** Matches a display name, an email or an exact id. */
     fun search(query: String, limit: Int): List<User>
@@ -101,19 +108,19 @@ class InMemoryUserRepository : UserRepository {
     override fun recordLogin(id: String) = Unit
 
     @Synchronized
-    override fun ensureAdmin(email: String, displayName: String, passwordHash: String): User? {
+    override fun ensureSeeded(email: String, displayName: String, passwordHash: String, role: UserRole): User? {
         byId.values.firstOrNull { it.email == email }?.let { return it }
-        val admin = User(
+        val seeded = User(
             id = UUID.randomUUID().toString(),
             email = email,
             displayName = displayName,
             phone = null,
             phoneVerified = false,
             passwordHash = passwordHash,
-            role = UserRole.ADMIN,
+            role = role,
         )
-        byId[admin.id] = admin
-        return admin
+        byId[seeded.id] = seeded
+        return seeded
     }
 
     @Synchronized

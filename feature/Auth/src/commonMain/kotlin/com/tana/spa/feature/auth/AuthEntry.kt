@@ -29,7 +29,8 @@ object AuthEntry : FeatureEntry {
             onEvent = viewModel::onEvent,
             onNavigateHome = { navigator.replaceAll(Routes.BOOKING) },
             onNavigateToSignUp = { navigator.navigate(Routes.SIGNUP) },
-            onNavigateToStaffConsole = { navigator.navigate(Routes.ADMIN_REQUESTS) },
+            // replaceAll: Back from the console must not return to the sign-in form.
+            onNavigateToDesk = { navigator.replaceAll(Routes.ADMIN_REQUESTS) },
         )
     }
 }
