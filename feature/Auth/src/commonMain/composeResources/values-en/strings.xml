@@ -1,6 +1,11 @@
 <resources>
     <!-- Login -->
-    <string name="login_title">Log in !</string>
+    <string name="login_title">Welcome</string>
+    <string name="login_title_accent">back</string>
+    <string name="login_intro">Sign in to book treatments, see confirmations and use your codes.</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="continue_with">or continue with</string>
+    <string name="staff_sign_in">Staff sign in</string>
     <string name="email_label">Email</string>
     <string name="email_placeholder">Enter your email</string>
     <string name="password_label">Password</string>
@@ -13,7 +18,9 @@
     <string name="sign_up_now">Sign up now</string>
 
     <!-- Sign-up -->
-    <string name="signup_title">Create account !</string>
+    <string name="signup_title">Create your</string>
+    <string name="signup_title_accent">account</string>
+    <string name="signup_intro">One account for booking, reminders and offers. New guests get 10% off the first visit.</string>
     <string name="name_label">Full name</string>
     <string name="name_placeholder">Enter your full name</string>
     <string name="phone_label">Phone number</string>
@@ -72,5 +79,6 @@
         <item quantity="other">Incorrect code. %1$d attempts left</item>
     </plurals>
 
+    <string name="coming_soon_forgot_password">Password reset is coming soon</string>
     <string name="coming_soon_google">Google sign-in is coming soon</string>
 </resources>

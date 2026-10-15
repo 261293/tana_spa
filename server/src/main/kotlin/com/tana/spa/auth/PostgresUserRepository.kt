@@ -86,6 +86,13 @@ class PostgresUserRepository(private val dataSource: DataSource, private val new
         return findByEmail(email)
     }
 
+    override fun activeIds(limit: Int): List<String> = dataSource.connection.use { c ->
+        c.prepareStatement("SELECT id FROM users WHERE $ACTIVE ORDER BY created_at LIMIT ?").use { ps ->
+            ps.setInt(1, limit)
+            ps.executeQuery().use { rs -> buildList { while (rs.next()) add(rs.getString("id")) } }
+        }
+    }
+
     override fun search(query: String, limit: Int): List<User> {
         val needle = query.trim()
         if (needle.isEmpty()) return emptyList()

@@ -6,6 +6,7 @@ import com.tana.spa.feature.auth.domain.model.OtpFailure
 import com.tana.spa.feature.auth.presentation.manipulator.ComingSoon
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyMessage
 import com.tana.spa.feature.auth.resources.Res
+import com.tana.spa.feature.auth.resources.coming_soon_forgot_password
 import com.tana.spa.feature.auth.resources.coming_soon_google
 import com.tana.spa.feature.auth.resources.error_email_empty
 import com.tana.spa.feature.auth.resources.error_email_invalid
@@ -90,6 +91,7 @@ internal fun OtpFailure.res(): StringResource = when (this) {
 
 internal fun ComingSoon.res(): StringResource = when (this) {
     ComingSoon.GOOGLE -> Res.string.coming_soon_google
+    ComingSoon.FORGOT_PASSWORD -> Res.string.coming_soon_forgot_password
 }
 
 @Composable

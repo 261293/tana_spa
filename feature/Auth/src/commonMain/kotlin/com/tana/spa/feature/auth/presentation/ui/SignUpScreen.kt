@@ -71,7 +71,9 @@ import com.tana.spa.feature.auth.resources.phone_label
 import com.tana.spa.feature.auth.resources.phone_placeholder
 import com.tana.spa.feature.auth.resources.show_password
 import com.tana.spa.feature.auth.resources.signup_button
+import com.tana.spa.feature.auth.resources.signup_intro
 import com.tana.spa.feature.auth.resources.signup_title
+import com.tana.spa.feature.auth.resources.signup_title_accent
 import com.tana.spa.feature.auth.resources.signup_with_google
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
@@ -107,15 +109,14 @@ fun SignUpScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .imePadding(),
-        contentAlignment = Alignment.Center,
-    ) {
-        SignUpForm(state = state, onEvent = onEvent)
+    Box(Modifier.fillMaxSize()) {
+        AuthShell(
+            title = stringResource(Res.string.signup_title),
+            accent = stringResource(Res.string.signup_title_accent),
+            intro = stringResource(Res.string.signup_intro),
+        ) {
+            SignUpForm(state = state, onEvent = onEvent)
+        }
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
@@ -128,25 +129,12 @@ private fun SignUpForm(state: SignUpState, onEvent: (SignUpEvent) -> Unit) {
     val focusManager = LocalFocusManager.current
     val next = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
 
-    // The column scrolls when the keyboard or a short window leaves too little room (this form
-    // is taller than login), and is centred by the parent Box when there is plenty.
     Column(
-        modifier = Modifier
-            .widthIn(max = 460.dp)
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 15.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = stringResource(Res.string.signup_title),
-            style = SpaTheme.textStyles.screenTitle,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.semantics { heading() },
-        )
-
         Column(
-            modifier = Modifier.padding(top = 11.dp).fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             SpaTextField(

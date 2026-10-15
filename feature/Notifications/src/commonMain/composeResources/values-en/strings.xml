@@ -1,6 +1,11 @@
 <resources>
     <!-- Notification centre -->
     <string name="notifications_title">Notifications</string>
+    <string name="notifications_unread_count">%1$d unread</string>
+    <string name="notifications_all_caught_up">All caught up</string>
+    <string name="notifications_group_bookings">Your bookings</string>
+    <string name="notifications_group_offers">Offers</string>
+    <string name="notifications_group_other">Other</string>
     <string name="notifications_mark_all_read">Mark all as read</string>
     <string name="notifications_unread">Unread</string>
     <string name="notifications_empty_title">No notifications yet</string>

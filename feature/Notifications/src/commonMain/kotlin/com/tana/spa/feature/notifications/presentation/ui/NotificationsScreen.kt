@@ -1,5 +1,6 @@
 package com.tana.spa.feature.notifications.presentation.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,11 +11,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Badge
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -25,13 +30,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaTheme
+import com.tana.spa.core.ui.components.SpaGroupLabel
+import com.tana.spa.core.ui.components.SpaIcon
+import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.feature.notifications.domain.NotificationItem
@@ -41,6 +53,7 @@ import com.tana.spa.feature.notifications.presentation.NotificationsState
 import com.tana.spa.feature.notifications.presentation.RelativeAge
 import com.tana.spa.feature.notifications.presentation.relativeAge
 import com.tana.spa.feature.notifications.resources.Res
+import com.tana.spa.feature.notifications.resources.notifications_all_caught_up
 import com.tana.spa.feature.notifications.resources.notifications_empty_body
 import com.tana.spa.feature.notifications.resources.notifications_empty_title
 import com.tana.spa.feature.notifications.resources.notifications_enable_action
@@ -48,6 +61,9 @@ import com.tana.spa.feature.notifications.resources.notifications_enable_body
 import com.tana.spa.feature.notifications.resources.notifications_enable_title
 import com.tana.spa.feature.notifications.resources.notifications_enabled_message
 import com.tana.spa.feature.notifications.resources.notifications_failed_title
+import com.tana.spa.feature.notifications.resources.notifications_group_bookings
+import com.tana.spa.feature.notifications.resources.notifications_group_offers
+import com.tana.spa.feature.notifications.resources.notifications_group_other
 import com.tana.spa.feature.notifications.resources.notifications_load_failed
 import com.tana.spa.feature.notifications.resources.notifications_load_more
 import com.tana.spa.feature.notifications.resources.notifications_mark_all_read
@@ -60,6 +76,8 @@ import com.tana.spa.feature.notifications.resources.notifications_time_now
 import com.tana.spa.feature.notifications.resources.notifications_time_weeks
 import com.tana.spa.feature.notifications.resources.notifications_title
 import com.tana.spa.feature.notifications.resources.notifications_unread
+import com.tana.spa.feature.notifications.resources.notifications_unread_count
+import com.tana.spa.shared.notifications.NotificationType
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -85,8 +103,13 @@ fun NotificationsScreen(state: NotificationsState, effects: Flow<NotificationsEf
     Box(Modifier.fillMaxSize()) {
         when {
             state.loading && state.items.isEmpty() -> Loading()
+
             state.failed && state.items.isEmpty() -> LoadFailed(onRetry = { onEvent(NotificationsEvent.Refresh) })
-            else -> NotificationList(state, onEvent)
+
+            // Centred, so the list does not run the width of a browser window.
+            else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                NotificationList(state, onEvent)
+            }
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
     }
@@ -99,7 +122,7 @@ private fun NotificationList(state: NotificationsState, onEvent: (NotificationsE
     val now = Clock.System.now().toEpochMilliseconds()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().widthIn(max = SpaPageWidth.Reading),
         contentPadding = PaddingValues(start = ScreenPadding, end = ScreenPadding, top = 16.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -113,8 +136,16 @@ private fun NotificationList(state: NotificationsState, onEvent: (NotificationsE
             item { EmptyState() }
         }
 
-        items(state.items, key = { it.id }) { item ->
-            NotificationRow(item = item, nowEpochMillis = now, onClick = { onEvent(NotificationsEvent.ItemClicked(item.id)) })
+        // Grouped, but in the order the server sent them: the newest group leads.
+        state.items.groupBy { it.type }.forEach { (type, grouped) ->
+            item(key = "group-" + type?.name) { GroupLabel(type) }
+            items(grouped, key = { it.id }) { item ->
+                NotificationRow(
+                    item = item,
+                    nowEpochMillis = now,
+                    onClick = { onEvent(NotificationsEvent.ItemClicked(item.id)) },
+                )
+            }
         }
 
         if (state.nextCursor != null) {
@@ -136,23 +167,68 @@ private fun NotificationList(state: NotificationsState, onEvent: (NotificationsE
 private fun Header(state: NotificationsState, onEvent: (NotificationsEvent) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Bottom,
     ) {
-        Text(
-            text = stringResource(Res.string.notifications_title),
-            style = SpaTheme.textStyles.screenTitle,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.semantics { heading() },
-        )
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = stringResource(Res.string.notifications_title),
+                style = SpaTheme.textStyles.displayTitle,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(
+                text = if (state.unreadCount > 0) {
+                    stringResource(Res.string.notifications_unread_count, state.unreadCount)
+                } else {
+                    stringResource(Res.string.notifications_all_caught_up)
+                },
+                style = SpaTheme.textStyles.body,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         if (state.unreadCount > 0) {
             Text(
                 text = stringResource(Res.string.notifications_mark_all_read),
-                style = SpaTheme.textStyles.label,
-                color = SpaTheme.extraColors.link,
-                modifier = Modifier.clickable { onEvent(NotificationsEvent.MarkAllRead) },
+                style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .clickable(role = Role.Button) { onEvent(NotificationsEvent.MarkAllRead) }
+                    .padding(8.dp),
             )
         }
+    }
+}
+
+/** The design groups the centre the way the guest thinks about it: bookings first, then offers. */
+@Composable
+private fun GroupLabel(type: NotificationType?) {
+    SpaGroupLabel(
+        text = when (type) {
+            NotificationType.BOOKING -> stringResource(Res.string.notifications_group_bookings)
+            NotificationType.PROMOTION -> stringResource(Res.string.notifications_group_offers)
+            else -> stringResource(Res.string.notifications_group_other)
+        },
+        modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+    )
+}
+
+/** Round tonal badge in front of each row, coloured by what the notification is about. */
+@Composable
+private fun NotificationIcon(type: NotificationType?, read: Boolean) {
+    val icon = when (type) {
+        NotificationType.BOOKING -> SpaIcon.CalendarCheck
+        NotificationType.PROMOTION -> SpaIcon.Tag
+        NotificationType.ORDER -> SpaIcon.Note
+        else -> SpaIcon.Bell
+    }
+    val container = if (read) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.primaryContainer
+    val content = if (read) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary
+    Box(
+        modifier = Modifier.size(40.dp).background(container, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        SpaIconImage(icon, size = 20.dp, tint = content)
     }
 }
 
@@ -161,47 +237,42 @@ private fun NotificationRow(item: NotificationItem, nowEpochMillis: Long, onClic
     // Colour and a dot must not be the only way to tell an unread row (WCAG 1.4.1), so the state
     // is announced as well.
     val unread = stringResource(Res.string.notifications_unread)
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        // Unread rows carry the accent; read ones fall back to the plain surface.
-        color = if (item.read) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .semantics { if (!item.read) stateDescription = unread },
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            UnreadDot(read = item.read)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = item.title,
-                    style = SpaTheme.textStyles.sectionLead,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                item.body?.let {
-                    Text(text = it, style = SpaTheme.textStyles.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+    ListItem(
+        headlineContent = {
+            Text(
+                text = item.title,
+                style = SpaTheme.textStyles.body.copy(
+                    fontWeight = if (item.read) FontWeight.Medium else FontWeight.Bold,
+                ),
+            )
+        },
+        supportingContent = item.body?.let { body -> { Text(body, style = SpaTheme.textStyles.body) } },
+        leadingContent = { NotificationIcon(item.type, item.read) },
+        trailingContent = {
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = ageLabel(item.createdAtEpochMillis, nowEpochMillis),
                     style = SpaTheme.textStyles.caption,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // Material's badge is the unread marker; it keeps its place once read.
+                Badge(
+                    containerColor = if (item.read) Color.Transparent else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.End),
+                )
             }
-        }
-    }
-}
-
-/** Kept in the layout once read, so the text does not shift sideways as rows are opened. */
-@Composable
-private fun UnreadDot(read: Boolean) {
-    Surface(
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.size(8.dp).alpha(if (read) 0f else 1f),
-        content = {},
+        },
+        colors = ListItemDefaults.colors(
+            // Unread rows sit on paper; read ones dissolve into the page.
+            containerColor = if (item.read) Color.Transparent else MaterialTheme.colorScheme.surface,
+            headlineColor = MaterialTheme.colorScheme.onSurface,
+            supportingColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .semantics { if (!item.read) stateDescription = unread },
     )
 }
 

@@ -64,6 +64,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.util.AttributeKey
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -119,7 +120,7 @@ const val REQUEST_ID_HEADER = "X-Request-Id"
 const val SESSION_ID_HEADER = "X-Session-Id"
 private val SAFE_ID = Regex("^[A-Za-z0-9_-]{1,64}$")
 
-fun Application.authModule(services: AuthServices) {
+fun Application.authModule(services: AuthServices, onAccountCreated: suspend (userId: String) -> Unit = {}) {
     // A client-supplied id is only trusted if it is short and made of safe characters, so it cannot be
     // used to forge or inject extra log lines. Otherwise the server generates one.
     install(CallId) {
@@ -224,7 +225,19 @@ fun Application.authModule(services: AuthServices) {
                 val result = services.authService.register(body.displayName, body.email, body.phone, body.password)
                 log.info("register -> {}{}", result::class.simpleName, (result as? AuthResult.Success)?.let { " user=${it.user.id}" } ?: "")
                 when (result) {
-                    is AuthResult.Success -> call.respond(HttpStatusCode.Created, services.authResponse(result.user))
+                    is AuthResult.Success -> {
+                        // The welcome code is granted outside this module; a failure there must not
+                        // cost the guest their account, which is already created. Cancellation is
+                        // rethrown so a disconnect still unwinds the call.
+                        try {
+                            onAccountCreated(result.user.id)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            log.warn("welcome code for user {} failed: {}", result.user.id, e.message)
+                        }
+                        call.respond(HttpStatusCode.Created, services.authResponse(result.user))
+                    }
 
                     AuthResult.EmailTaken -> call.respondError(
                         HttpStatusCode.Conflict,

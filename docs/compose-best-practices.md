@@ -4,6 +4,12 @@ References: [Compose Architecture](https://developer.android.com/develop/ui/comp
 
 ---
 
+> **Which component to use** is a separate question from how to write the composable:
+> [docs/material-design.md](material-design.md) maps every need in this app to its Material 3
+> component, and lists the few things we draw by hand.
+
+---
+
 ## Composable Design Principles
 
 ### 1. Keep Composables Stateless

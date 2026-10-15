@@ -19,7 +19,7 @@ object TestDatabase {
             .load()
             .migrate()
         check(result.success) { "migration failed" }
-        check(result.migrationsExecuted == 8) { "expected 8 migrations, ran ${result.migrationsExecuted}" }
+        check(result.migrationsExecuted == 9) { "expected 9 migrations, ran ${result.migrationsExecuted}" }
         ds
     }
 }

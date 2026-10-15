@@ -15,6 +15,9 @@ interface FeatureEntry {
 
 /** Minimal navigation surface exposed to features. */
 interface Navigator {
+    /** The route being shown, including any argument (see `withArg`). */
+    val current: String
+
     fun navigate(route: String)
 
     /** Navigates to [route] and drops everything behind it (e.g. after login, so Back can't return). */

@@ -1,6 +1,12 @@
 <resources>
     <!-- Login -->
-    <string name="login_title">Đăng nhập !</string>
+    <string name="login_intro">Đăng nhập để đặt lịch, xem xác nhận và dùng mã ưu đãi của bạn.</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="continue_with">hoặc tiếp tục với</string>
+    <string name="staff_sign_in">Đăng nhập nhân viên</string>
+    <string name="signup_intro">Một tài khoản cho đặt lịch, nhắc hẹn và ưu đãi. Khách mới được giảm 10% cho lần đầu.</string>
+    <string name="login_title">Chào mừng</string>
+    <string name="login_title_accent">trở lại</string>
     <string name="email_label">Email</string>
     <string name="email_placeholder">Nhập email</string>
     <string name="password_label">Mật khẩu</string>
@@ -13,7 +19,8 @@
     <string name="sign_up_now">Đăng kí ngay</string>
 
     <!-- Sign-up -->
-    <string name="signup_title">Đăng kí tài khoản !</string>
+    <string name="signup_title">Tạo tài khoản</string>
+    <string name="signup_title_accent">của bạn</string>
     <string name="name_label">Họ và tên</string>
     <string name="name_placeholder">Nhập họ và tên</string>
     <string name="phone_label">Số điện thoại</string>
@@ -70,5 +77,6 @@
         <item quantity="other">Mã không đúng. Bạn còn %1$d lần thử</item>
     </plurals>
 
+    <string name="coming_soon_forgot_password">Tính năng đặt lại mật khẩu sẽ sớm ra mắt</string>
     <string name="coming_soon_google">Đăng nhập bằng Google sẽ sớm ra mắt</string>
 </resources>

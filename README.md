@@ -11,7 +11,8 @@ androidApp/                  Android application module (APK) that wraps compose
 iosApp/                      Xcode project (SwiftUI host for the ComposeApp framework)
 server/                      Ktor server (JVM)
 shared/                      Non-UI shared code: Platform expect/actual, Greeting,
-                             Constants, DI (sharedModule), helpers
+                             Constants, DI (sharedModule), helpers, and the spa catalogue
+                             (treatments, therapists, offers, SpaDate) the booking screens read
 core/
   cache/                     KeyValueCache abstraction (SQLDelight; in-memory on wasmJs)
   featureflags/              FeatureFlags resolution (per-user override / DB / env / default)
@@ -20,12 +21,17 @@ core/
   navigation/                FeatureEntry / Navigator / Routes
   network/                   Ktor client + per-platform engine (PlatformClientEngine)
   notifications/             Push permission/token per platform, device registration, unread badge
-  ui/                        AppTheme, SpaColors/SpaTheme tokens, AppScaffold, NavBar, AppBars
+  ui/                        AppTheme, SpaColors/SpaTheme tokens, AppScaffold, NavBar, AppBars,
+                             SpaIcon line icons and the felt/pocket/cork/topo surfaces
 feature/
+  Admin/                     Staff console: booking requests + therapist schedule, discount codes
   AppUpdate/                 Force/optional update gate: an overlay above every route, not a
                              destination, so it has no FeatureEntry (docs/adr/0003)
+  Booking/                   Guest booking flow: treatment, therapist, date & time, review
   Notifications/             Notification centre: list, unread state, in-context push opt-in
                              (docs/notifications.md)
+  Promotions/                Offers and discount codes
+  Settings/                  Profile, notification preferences, language, sign out
   Assistant, Auth, Explore,  Entry + Screen per feature
   Likes, NewPost, Profile
   Feed/                      Full clean-arch reference: data (remote/cache/repository),

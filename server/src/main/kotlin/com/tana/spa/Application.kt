@@ -18,6 +18,9 @@ import com.tana.spa.auth.otp.PhoneVerificationProvider
 import com.tana.spa.auth.otp.PhoneVerificationRepository
 import com.tana.spa.auth.otp.PostgresPhoneVerificationRepository
 import com.tana.spa.auth.seedAdmins
+import com.tana.spa.booking.BookingService
+import com.tana.spa.booking.PostgresBookingRepository
+import com.tana.spa.booking.bookingModule
 import com.tana.spa.db.Database
 import com.tana.spa.db.DatabaseConfig
 import com.tana.spa.demo.demoRoutes
@@ -30,10 +33,12 @@ import com.tana.spa.notifications.NotificationRepository
 import com.tana.spa.notifications.PostgresNotificationRepository
 import com.tana.spa.notifications.notificationModule
 import com.tana.spa.notifications.push.PushSender
+import com.tana.spa.promotions.PromotionService
 import com.tana.spa.shared.Constants
 import com.tana.spa.shared.featureflags.ConfigurableFeatureFlags
 import com.tana.spa.shared.featureflags.describe
 import com.tana.spa.shared.sayHello
+import com.tana.spa.shared.spa.SpaCatalog
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -81,6 +86,16 @@ fun main() {
         pushSender = PushSender.fromEnvironment(),
     )
     seedAdmins(users, hasher)
+    // Booking reads a catalogue and writes appointments, so it has no in-memory twin: without a
+    // database its endpoints are simply absent, and the log says so.
+    val spa = dataSource?.let {
+        val vouchers = PostgresBookingRepository(it)
+        SpaServices(
+            booking = BookingService(vouchers, auth.notifications),
+            promotions = PromotionService(vouchers, users, auth.notifications),
+        )
+    }
+    if (spa == null) log.warn("DATABASE_URL is not set: the booking, offers and staff endpoints are off.")
 
     log.info(
         "Starting server on port {} (env={}, store={})",
@@ -92,7 +107,7 @@ fun main() {
     log.info("Feature flag deploy defaults: {}", flagDefaults.describe())
     embeddedServer(Netty, port = port, host = "0.0.0.0") {
         closeOnStop(dataSource)
-        module(auth)
+        module(auth, spa)
     }.start(wait = true)
 }
 
@@ -102,14 +117,21 @@ private fun Application.closeOnStop(dataSource: DataSource?) {
 }
 
 /**
+ * The endpoints that cannot work without PostgreSQL. They are absent together, so one nullable
+ * carries both rather than two that must always agree.
+ */
+class SpaServices(val booking: BookingService, val promotions: PromotionService)
+
+/**
  * @param authServices injectable so tests can run with a fast hasher and fixed secrets.
  */
-fun Application.module(authServices: AuthServices = AuthServices.create(AuthConfig.fromEnvironment())) {
-    authModule(authServices)
+fun Application.module(authServices: AuthServices = AuthServices.create(AuthConfig.fromEnvironment()), spa: SpaServices? = null) {
+    authModule(authServices) { userId -> spa?.promotions?.grant(userId, SpaCatalog.NEW_GUEST_CODE) }
     // After authModule: it installs the plugins and the JWT realm that both of these use.
     featureFlagModule(authServices.featureFlags, authServices.tokens, authServices.authService)
     appUpdateModule(authServices.appUpdate, authServices.featureFlags, authServices.authService)
     notificationModule(authServices.notifications, authServices.featureFlags, authServices.authService)
+    spa?.let { bookingModule(it.booking, authServices.authService, it.promotions) }
     adminModule(authServices.authService)
     demoRoutes()
     routing {

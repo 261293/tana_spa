@@ -1,5 +1,6 @@
 package com.tana.spa.core.ui.model
 
-import org.jetbrains.compose.resources.DrawableResource
+import com.tana.spa.core.ui.components.SpaIcon
 
-data class NavConfig(val route: String, val label: String, val icon: DrawableResource? = null)
+/** One bottom-navigation destination. [badgeCount] of 0 hides the badge. */
+data class NavConfig(val route: String, val label: String, val icon: SpaIcon, val badgeCount: Int = 0)
