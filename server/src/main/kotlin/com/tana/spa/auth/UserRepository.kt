@@ -64,6 +64,9 @@ interface UserRepository {
     /** Matches a display name, an email or an exact id. */
     fun search(query: String, limit: Int): List<User>
 
+    /** Ids of active accounts, oldest first, for announcing something to everyone. */
+    fun activeIds(limit: Int): List<String>
+
     /** The id of the account that has *verified* [phone], if any. */
     fun verifiedPhoneOwner(phone: String): String?
 
@@ -114,6 +117,8 @@ class InMemoryUserRepository : UserRepository {
     }
 
     @Synchronized
+    override fun activeIds(limit: Int): List<String> = byId.keys.take(limit)
+
     override fun search(query: String, limit: Int): List<User> {
         val needle = query.trim()
         if (needle.isEmpty()) return emptyList()
