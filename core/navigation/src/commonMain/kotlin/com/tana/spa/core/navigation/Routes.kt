@@ -18,6 +18,9 @@ object Routes {
 
     /** One treatment from the booking menu, named by [ARG_SERVICE]. */
     const val SERVICE_DETAIL = "serviceDetail"
+
+    /** The signed-in guest's own visits: their status, and cancelling one. */
+    const val MY_BOOKINGS = "myBookings"
     const val PROMOTIONS = "promotions"
     const val SETTINGS = "settings"
 

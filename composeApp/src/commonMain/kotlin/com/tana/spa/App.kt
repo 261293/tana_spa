@@ -47,6 +47,9 @@ private val FULL_SCREEN_ROUTES = setOf(
     Routes.ADMIN_CODES,
 )
 
+/** Screens the Book destination owns: reaching one does not leave the booking flow. */
+private val BOOKING_FLOW_ROUTES = setOf(Routes.SERVICE_DETAIL, Routes.MY_BOOKINGS)
+
 @Composable
 fun App() {
     AppTheme {
@@ -129,8 +132,9 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
 
     AppScaffold(
         navItems = navItems,
-        // A treatment's detail page belongs to the booking flow, so Book stays the lit destination.
-        selectedRoute = if (route == Routes.SERVICE_DETAIL) Routes.BOOKING else route,
+        // A treatment's detail page and the guest's own visits belong to the booking flow, so
+        // Book stays the lit destination on both.
+        selectedRoute = if (route in BOOKING_FLOW_ROUTES) Routes.BOOKING else route,
         onSelect = { navigator.navigate(it) },
         topBarActions = {
             SpaAvatar(

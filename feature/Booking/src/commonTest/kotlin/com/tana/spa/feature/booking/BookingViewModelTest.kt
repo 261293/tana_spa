@@ -1,8 +1,12 @@
 package com.tana.spa.feature.booking
 
+import com.tana.spa.feature.booking.domain.BookingAttempt
+import com.tana.spa.feature.booking.domain.Slot
+import com.tana.spa.feature.booking.presentation.ANY_THERAPIST
 import com.tana.spa.feature.booking.presentation.BookingEffect
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingViewModel
+import com.tana.spa.shared.booking.BookingErrorCodes
 import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.SpaCatalog
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +27,8 @@ import kotlin.test.assertTrue
 class BookingViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val repository = FakeSpaCatalogRepository()
+    private val catalog = FakeSpaCatalogRepository()
+    private val bookings = FakeGuestBookingRepository()
 
     @BeforeTest
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -31,37 +36,148 @@ class BookingViewModelTest {
     @AfterTest
     fun tearDown() = Dispatchers.resetMain()
 
-    /** The catalogue loads on creation, so every test starts from a menu that has arrived. */
-    private fun TestScope.loadedViewModel(): BookingViewModel = BookingViewModel(repository).also { testScheduler.advanceUntilIdle() }
+    /** The catalogue and the diary load on creation, so every test starts from a usable screen. */
+    private fun TestScope.loadedViewModel(): BookingViewModel =
+        BookingViewModel(catalog, bookings).also { testScheduler.advanceUntilIdle() }
+
+    private fun BookingViewModel.chooseFirstFreeSlot() = onEvent(BookingEvent.SlotSelected(1_000))
 
     @Test
-    fun the_menu_comes_from_the_catalogue_and_opens_on_its_first_treatment() = runTest(dispatcher) {
+    fun the_menu_and_the_diary_come_from_the_server() = runTest(dispatcher) {
         val vm = loadedViewModel()
 
         val state = vm.state.value
         assertEquals(ServerCatalog.catalog.services, state.services)
         assertEquals(ServerCatalog.catalog.therapists, state.therapists)
         assertEquals(ServerCatalog.stone.id, state.serviceId)
-        assertEquals("mai", state.therapistId)
-        assertTrue(!state.catalogLoading && !state.catalogFailed)
+        assertEquals(bookings.slots, state.slots)
+        assertTrue(!state.catalogLoading && !state.catalogFailed && !state.slotsLoading)
     }
 
     @Test
-    fun a_catalogue_that_cannot_be_read_offers_a_retry_rather_than_an_empty_menu() = runTest(dispatcher) {
-        repository.fail = true
+    fun the_flow_opens_on_any_therapist_and_sends_no_therapist_with_it() = runTest(dispatcher) {
         val vm = loadedViewModel()
+        assertEquals(ANY_THERAPIST, vm.state.value.therapistId)
+        assertTrue(vm.state.value.anyTherapist)
 
-        assertTrue(vm.state.value.catalogFailed)
-        assertTrue(vm.state.value.services.isEmpty())
-        assertNull(vm.state.value.serviceId)
-
-        repository.fail = false
-        vm.onEvent(BookingEvent.RetryCatalog)
+        vm.chooseFirstFreeSlot()
+        vm.onEvent(BookingEvent.Submit)
         testScheduler.advanceUntilIdle()
 
-        assertEquals(2, repository.calls)
-        assertTrue(!vm.state.value.catalogFailed)
-        assertEquals(ServerCatalog.catalog.services, vm.state.value.services)
+        assertEquals(
+            listOf(SentBooking(ServerCatalog.stone.id, null, 1_000, null)),
+            bookings.sent.toList(),
+            "the sample \"any\" id must never reach the server",
+        )
+        val day = SpaCatalog.today.plusDays(2).epochDay
+        assertEquals(listOf(day to null, day to null), bookings.availabilityAsked.toList())
+    }
+
+    @Test
+    fun choosing_a_therapist_asks_the_diary_again_for_their_own_times() = runTest(dispatcher) {
+        val vm = loadedViewModel()
+
+        vm.onEvent(BookingEvent.TherapistSelected("mai"))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals("mai", bookings.availabilityAsked.last().second)
+
+        vm.chooseFirstFreeSlot()
+        vm.onEvent(BookingEvent.Submit)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals("mai", bookings.sent.single().therapistSlug)
+    }
+
+    @Test
+    fun a_booking_the_spa_took_is_confirmed_on_screen_with_the_therapist_it_assigned() = runTest(dispatcher) {
+        bookings.createAnswer = BookingAttempt.Done(guestBooking(therapistName = "Lena Okafor"))
+        val vm = loadedViewModel()
+        vm.chooseFirstFreeSlot()
+
+        vm.onEvent(BookingEvent.Submit)
+        testScheduler.advanceUntilIdle()
+
+        val sent = vm.state.value.sent
+        assertEquals("Lena Okafor", sent?.therapistName)
+        assertTrue(!vm.state.value.sending)
+    }
+
+    @Test
+    fun each_refusal_reaches_the_screen_as_its_own_reason() = runTest(dispatcher) {
+        val codes = listOf(
+            BookingErrorCodes.SLOT_TAKEN,
+            BookingErrorCodes.SLOT_IN_PAST,
+            BookingErrorCodes.INVALID_CODE,
+            BookingErrorCodes.UNKNOWN_SERVICE,
+        )
+        for (code in codes) {
+            val vm = loadedViewModel()
+            bookings.createAnswer = BookingAttempt.Refused(code)
+            vm.chooseFirstFreeSlot()
+
+            vm.onEvent(BookingEvent.Submit)
+            testScheduler.advanceUntilIdle()
+
+            assertEquals(BookingEffect.ShowRefusal(code), vm.effects.first())
+            assertNull(vm.state.value.sent, "a refused request must not look confirmed")
+        }
+    }
+
+    @Test
+    fun a_request_that_never_arrives_is_said_differently() = runTest(dispatcher) {
+        bookings.createAnswer = BookingAttempt.Offline
+        val vm = loadedViewModel()
+        vm.chooseFirstFreeSlot()
+
+        vm.onEvent(BookingEvent.Submit)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(BookingEffect.ShowRefusal(null), vm.effects.first())
+    }
+
+    @Test
+    fun a_time_the_diary_no_longer_offers_is_dropped() = runTest(dispatcher) {
+        val vm = loadedViewModel()
+        vm.chooseFirstFreeSlot()
+        assertEquals(1_000, vm.state.value.slotAtEpochMillis)
+
+        bookings.slots = listOf(Slot(1_000, "9:00 AM", available = false), Slot(3_000, "11:30 AM", available = true))
+        vm.onEvent(BookingEvent.DaySelected(SpaCatalog.today.plusDays(4)))
+        testScheduler.advanceUntilIdle()
+
+        assertNull(vm.state.value.slotAtEpochMillis)
+        assertTrue(!vm.state.value.canRequest)
+    }
+
+    @Test
+    fun a_request_needs_a_treatment_and_a_time() = runTest(dispatcher) {
+        val vm = loadedViewModel()
+        assertTrue(!vm.state.value.canRequest)
+
+        vm.chooseFirstFreeSlot()
+
+        assertTrue(vm.state.value.canRequest)
+    }
+
+    @Test
+    fun only_a_code_the_spa_accepted_is_sent_with_the_request() = runTest(dispatcher) {
+        val vm = loadedViewModel()
+        vm.onEvent(BookingEvent.ServiceSelected(ServerCatalog.facial.id))
+        vm.onEvent(BookingEvent.CodeChanged("jade20"))
+        vm.chooseFirstFreeSlot()
+
+        vm.onEvent(BookingEvent.Submit)
+        testScheduler.advanceUntilIdle()
+        assertNull(bookings.sent.single().code, "an unchecked code would make the server refuse the booking")
+
+        bookings.sent.clear()
+        vm.onEvent(BookingEvent.ApplyCode)
+        vm.chooseFirstFreeSlot()
+        vm.onEvent(BookingEvent.Submit)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals("JADE20", bookings.sent.single().code)
     }
 
     @Test
@@ -103,7 +219,7 @@ class BookingViewModelTest {
 
     @Test
     fun a_code_offered_before_the_menu_arrives_is_applied_once_it_does() = runTest(dispatcher) {
-        val vm = BookingViewModel(repository)
+        val vm = BookingViewModel(catalog, bookings)
 
         vm.onEvent(BookingEvent.CodeOffered("jade20"))
         testScheduler.advanceUntilIdle()
@@ -123,36 +239,48 @@ class BookingViewModelTest {
     }
 
     @Test
-    fun choosing_another_day_drops_the_chosen_time() = runTest(dispatcher) {
+    fun a_catalogue_that_cannot_be_read_offers_a_retry_rather_than_an_empty_menu() = runTest(dispatcher) {
+        catalog.fail = true
+        bookings.failAvailability = true
         val vm = loadedViewModel()
-        vm.onEvent(BookingEvent.SlotSelected("2:30 PM"))
-        vm.onEvent(BookingEvent.DaySelected(SpaCatalog.today.plusDays(4)))
 
-        assertNull(vm.state.value.slot)
-        assertEquals(SpaCatalog.today.plusDays(4), vm.state.value.day)
+        assertTrue(vm.state.value.catalogFailed)
+        assertTrue(vm.state.value.services.isEmpty())
+        assertTrue(vm.state.value.slots.isEmpty())
+
+        catalog.fail = false
+        bookings.failAvailability = false
+        vm.onEvent(BookingEvent.RetryCatalog)
+        testScheduler.advanceUntilIdle()
+
+        assertTrue(!vm.state.value.catalogFailed)
+        assertEquals(ServerCatalog.catalog.services, vm.state.value.services)
+        assertEquals(bookings.slots, vm.state.value.slots)
     }
 
     @Test
-    fun a_request_needs_treatment_therapist_and_time() = runTest(dispatcher) {
+    fun opening_the_visits_list_closes_the_confirmation() = runTest(dispatcher) {
         val vm = loadedViewModel()
-        assertTrue(!vm.state.value.canRequest)
-
-        vm.onEvent(BookingEvent.SlotSelected("4:00 PM"))
-
-        assertTrue(vm.state.value.canRequest)
+        vm.chooseFirstFreeSlot()
         vm.onEvent(BookingEvent.Submit)
-        assertTrue(vm.state.value.requestSent)
+        testScheduler.advanceUntilIdle()
+
+        vm.onEvent(BookingEvent.OpenBookings)
+
+        assertEquals(BookingEffect.NavigateToBookings, vm.effects.first())
+        assertNull(vm.state.value.sent)
     }
 
     @Test
     fun opening_notifications_closes_the_confirmation_and_navigates() = runTest(dispatcher) {
         val vm = loadedViewModel()
-        vm.onEvent(BookingEvent.SlotSelected("4:00 PM"))
+        vm.chooseFirstFreeSlot()
         vm.onEvent(BookingEvent.Submit)
+        testScheduler.advanceUntilIdle()
 
         vm.onEvent(BookingEvent.OpenNotifications)
 
         assertEquals(BookingEffect.NavigateToNotifications, vm.effects.first())
-        assertTrue(!vm.state.value.requestSent)
+        assertNull(vm.state.value.sent)
     }
 }

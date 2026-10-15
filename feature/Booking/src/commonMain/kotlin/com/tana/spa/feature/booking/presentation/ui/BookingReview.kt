@@ -25,8 +25,10 @@ import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPocketButton
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.spaPocket
+import com.tana.spa.feature.booking.domain.GuestBooking
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingState
 import com.tana.spa.feature.booking.resources.Res
@@ -43,6 +45,7 @@ import com.tana.spa.feature.booking.resources.booking_code_wrong_category
 import com.tana.spa.feature.booking.resources.booking_disclaimer
 import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.booking_request
+import com.tana.spa.feature.booking.resources.booking_review_any_therapist
 import com.tana.spa.feature.booking.resources.booking_review_not_chosen
 import com.tana.spa.feature.booking.resources.booking_review_pick_time
 import com.tana.spa.feature.booking.resources.booking_review_therapist
@@ -50,6 +53,7 @@ import com.tana.spa.feature.booking.resources.booking_review_treatment
 import com.tana.spa.feature.booking.resources.booking_review_when
 import com.tana.spa.feature.booking.resources.booking_sent_another
 import com.tana.spa.feature.booking.resources.booking_sent_body
+import com.tana.spa.feature.booking.resources.booking_sent_bookings
 import com.tana.spa.feature.booking.resources.booking_sent_notifications
 import com.tana.spa.feature.booking.resources.booking_sent_title
 import com.tana.spa.feature.booking.resources.booking_service_meta
@@ -73,12 +77,12 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
         )
         SummaryRow(
             label = stringResource(Res.string.booking_review_therapist),
-            value = state.therapist?.name,
+            value = state.therapist?.name ?: stringResource(Res.string.booking_review_any_therapist),
             fallback = notChosen,
         )
         SummaryRow(
             label = stringResource(Res.string.booking_review_when),
-            value = state.slot?.let { "${state.day.formatLong()}, $it" },
+            value = state.slot?.let { "${state.day.formatLong()}, ${it.label}" },
             fallback = stringResource(Res.string.booking_review_pick_time, state.day.formatLong()),
         )
 
@@ -224,7 +228,7 @@ private fun promoError(check: PromoCheck?): String? {
 }
 
 @Composable
-internal fun RequestSentDialog(state: BookingState, onEvent: (BookingEvent) -> Unit) {
+internal fun RequestSentDialog(sent: GuestBooking, onEvent: (BookingEvent) -> Unit) {
     AlertDialog(
         onDismissRequest = { onEvent(BookingEvent.DismissSent) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -247,12 +251,12 @@ internal fun RequestSentDialog(state: BookingState, onEvent: (BookingEvent) -> U
         },
         text = {
             Text(
+                // The spa's own words for it: with "any therapist" the guest learns here who took them.
                 text = stringResource(
                     Res.string.booking_sent_body,
-                    state.service?.name.orEmpty(),
-                    state.therapist?.name.orEmpty(),
-                    state.day.formatLong(),
-                    state.slot.orEmpty(),
+                    sent.serviceName,
+                    sent.therapistName,
+                    sent.startLabel,
                 ),
                 style = SpaTheme.textStyles.bodyRelaxed,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -262,6 +266,10 @@ internal fun RequestSentDialog(state: BookingState, onEvent: (BookingEvent) -> U
         confirmButton = {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SpaPrimaryButton(
+                    text = stringResource(Res.string.booking_sent_bookings),
+                    onClick = { onEvent(BookingEvent.OpenBookings) },
+                )
+                SpaSecondaryButton(
                     text = stringResource(Res.string.booking_sent_notifications),
                     onClick = { onEvent(BookingEvent.OpenNotifications) },
                 )
