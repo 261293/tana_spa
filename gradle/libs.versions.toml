@@ -28,7 +28,7 @@ kotlinx-serialization = "1.11.0"
 ktor = "3.6.0"
 logback = "1.6.5"
 material3 = "1.11.0-alpha07"
-sqldelight = "2.4.0"
+sqldelight = "2.4.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
