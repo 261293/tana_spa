@@ -8,9 +8,14 @@ import com.tana.spa.shared.spa.Therapist
 
 /**
  * [check] is null until the guest applies a code; a null that follows an edit means "not checked
- * yet", which the screen words differently from a refusal.
+ * yet", which the screen words differently from a refusal. [services] and [therapists] come from
+ * the server's catalogue, so their ids are the slugs a booking has to name.
  */
 data class BookingState(
+    val services: List<Service> = emptyList(),
+    val therapists: List<Therapist> = emptyList(),
+    val catalogLoading: Boolean = true,
+    val catalogFailed: Boolean = false,
     val serviceId: String? = null,
     val therapistId: String? = null,
     val day: SpaDate = SpaCatalog.today.plusDays(2),
@@ -19,8 +24,8 @@ data class BookingState(
     val check: PromoCheck? = null,
     val requestSent: Boolean = false,
 ) {
-    val service: Service? get() = serviceId?.let { SpaCatalog.service(it) }
-    val therapist: Therapist? get() = therapistId?.let { SpaCatalog.therapist(it) }
+    val service: Service? get() = services.firstOrNull { it.id == serviceId }
+    val therapist: Therapist? get() = therapists.firstOrNull { it.id == therapistId }
     val discountUsd: Int get() = (check as? PromoCheck.Applied)?.discountUsd ?: 0
     val totalUsd: Int get() = (service?.priceUsd ?: 0) - discountUsd
     val canRequest: Boolean get() = service != null && therapist != null && slot != null
@@ -35,6 +40,7 @@ sealed interface BookingEvent {
     data class SlotSelected(val slot: String) : BookingEvent
     data class CodeChanged(val value: String) : BookingEvent
     data object ApplyCode : BookingEvent
+    data object RetryCatalog : BookingEvent
     data object Submit : BookingEvent
     data object DismissSent : BookingEvent
     data object OpenNotifications : BookingEvent

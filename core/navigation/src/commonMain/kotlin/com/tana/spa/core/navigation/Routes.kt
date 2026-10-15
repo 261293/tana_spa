@@ -15,6 +15,9 @@ object Routes {
     const val PROFILE = "profile"
     const val NOTIFICATIONS = "notifications"
     const val BOOKING = "booking"
+
+    /** One treatment from the booking menu, named by [ARG_SERVICE]. */
+    const val SERVICE_DETAIL = "serviceDetail"
     const val PROMOTIONS = "promotions"
     const val SETTINGS = "settings"
 
@@ -22,8 +25,11 @@ object Routes {
     const val ADMIN_REQUESTS = "adminRequests"
     const val ADMIN_CODES = "adminCodes"
 
-    /** The only route argument so far: a discount code carried from the offers screen. */
+    /** A discount code carried from the offers screen. */
     const val ARG_CODE = "code"
+
+    /** The treatment a detail page shows. */
+    const val ARG_SERVICE = "service"
 }
 
 /** Builds "booking?code=JADE20". One argument per route is all this navigator carries. */

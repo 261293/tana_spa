@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -96,9 +97,13 @@ private fun PushRegistration(current: String, notificationsEnabled: Boolean) {
 @Composable
 private fun CurrentRoute(navigator: Navigator, current: String, notificationsEnabled: Boolean) {
     // A route may carry an argument ("booking?code=JADE20"); entries are registered under the name.
-    val entry = FeaturesRegistry.entries.firstOrNull { it.route == current.routeName() }
-    if (current.routeName() in FULL_SCREEN_ROUTES) {
-        entry?.Content(navigator)
+    val route = current.routeName()
+    val entry = FeaturesRegistry.entries.firstOrNull { it.route == route }
+    // Keeps each screen's saveable state (scroll position above all) while it is off screen, so
+    // coming back from a detail page lands where the guest left the list.
+    val screenState = rememberSaveableStateHolder()
+    if (route in FULL_SCREEN_ROUTES) {
+        screenState.SaveableStateProvider(route) { entry?.Content(navigator) }
         return
     }
 
@@ -114,7 +119,8 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
 
     AppScaffold(
         navItems = navItems,
-        selectedRoute = current.routeName(),
+        // A treatment's detail page belongs to the booking flow, so Book stays the lit destination.
+        selectedRoute = if (route == Routes.SERVICE_DETAIL) Routes.BOOKING else route,
         onSelect = { navigator.navigate(it) },
         topBarActions = {
             SpaAvatar(
@@ -125,6 +131,6 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
             )
         },
     ) {
-        entry?.Content(navigator)
+        screenState.SaveableStateProvider(route) { entry?.Content(navigator) }
     }
 }

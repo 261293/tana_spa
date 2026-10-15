@@ -3,9 +3,9 @@ package com.tana.spa.shared.spa
 /**
  * The treatment menu, the team and the live offers.
  *
- * This is the demo catalogue the design was drawn against: the booking endpoints do not exist on
- * the server yet, so the screens read it directly. When they land, only the repositories change —
- * the models here are the shape the UI already speaks.
+ * The demo catalogue the design was drawn against, and the shape the UI speaks. The guest booking
+ * flow now reads its treatments and therapists from the catalogue endpoint; the offers, the open
+ * times and the staff console still read the sample data here.
  */
 
 enum class ServiceCategory(val label: String) {
@@ -27,7 +27,8 @@ data class Therapist(
     val id: String,
     val name: String,
     val focus: String,
-    val nextSlot: String,
+    /** Already worded ("Today 2:30 PM"); null when the diary is full. */
+    val nextSlot: String?,
     /** "First available" is a scheduling choice, not a person, so it gets no initials. */
     val anyAvailable: Boolean = false,
 )
