@@ -81,6 +81,7 @@ DATABASE_PASSWORD=<password>
 | `CORS_ALLOWED_ORIGINS` | yes | Must include the deployed web origin, e.g. `https://tana-spa.vercel.app` |
 | `TRUST_PROXY` | yes behind a proxy | `true` so rate limiting keys on the real client IP |
 | `DEFAULT_PHONE_REGION` | no | Default `VN` |
+| `SPA_TIMEZONE` | no | The house's own zone, used to place booking slots. Default `America/Los_Angeles` |
 | `TWILIO_VERIFY_SERVICE_SID` / `TWILIO_API_KEY_SID` / `TWILIO_API_KEY_SECRET` | if OTP is on | Required when `APP_ENV=production`; unset means the dev provider that prints codes to the log |
 | `OTP_ALLOWED_COUNTRIES` / `OTP_BLOCKED_COUNTRIES` | no | Comma-separated ISO codes; blocked wins over allowed |
 | `FCM_SERVICE_ACCOUNT_JSON` *or* `FCM_SERVICE_ACCOUNT_FILE` | if push is on | Without it, notifications are stored but no device is woken |
