@@ -2,7 +2,9 @@ package com.tana.spa.feature.settings.presentation
 
 import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
+import com.tana.spa.core.ui.SelectedLanguage
 import com.tana.spa.feature.settings.domain.CurrentProfile
+import com.tana.spa.feature.settings.domain.LanguageChoice
 import com.tana.spa.feature.settings.domain.SignOutAction
 
 /**
@@ -10,12 +12,15 @@ import com.tana.spa.feature.settings.domain.SignOutAction
  * device - there is no endpoint that changes a profile yet - but what is shown comes from the
  * session, so two accounts never see each other's details.
  */
-class SettingsViewModel(private val currentProfile: CurrentProfile, private val signOutAction: SignOutAction) :
-    MviViewModel<SettingsState, SettingsEvent, SettingsEffect>(SettingsState()) {
+class SettingsViewModel(
+    private val currentProfile: CurrentProfile,
+    private val signOutAction: SignOutAction,
+    private val languageChoice: LanguageChoice,
+) : MviViewModel<SettingsState, SettingsEvent, SettingsEffect>(SettingsState()) {
 
     init {
         val profile = currentProfile.load() ?: GuestProfile()
-        setState { copy(profile = profile, draft = profile) }
+        setState { copy(profile = profile, draft = profile, language = languageChoice.load()) }
     }
 
     override fun handleEvent(event: SettingsEvent) = when (event) {
@@ -42,7 +47,12 @@ class SettingsViewModel(private val currentProfile: CurrentProfile, private val 
             )
         }
 
-        is SettingsEvent.LanguageChanged -> setState { copy(language = event.language) }
+        is SettingsEvent.LanguageChanged -> {
+            AppLog.i(logTag) { "language set to ${event.language.tag}" }
+            languageChoice.save(event.language)
+            SelectedLanguage.value = event.language
+            setState { copy(language = event.language) }
+        }
 
         SettingsEvent.SignOut -> {
             AppLog.i(logTag) { "signing out" }

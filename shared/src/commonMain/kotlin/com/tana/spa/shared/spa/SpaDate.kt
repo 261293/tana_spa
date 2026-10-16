@@ -59,27 +59,3 @@ private fun civilFromDays(epochDay: Int): SpaDate {
     val m = mp + (if (mp < 10) 3 else -9)
     return SpaDate(if (m <= 2) y + 1 else y, m, d)
 }
-
-private val weekdayNames = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-private val weekdayLongNames = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-private val monthNames = listOf(
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-)
-
-fun SpaDate.weekdayShort(): String = weekdayNames[weekdayIndex]
-
-fun SpaDate.weekdayLong(): String = weekdayLongNames[weekdayIndex]
-
-fun SpaDate.monthLong(): String = monthNames[month - 1]
-
-fun SpaDate.monthShort(): String = monthNames[month - 1].take(3)
-
-/** "Fri, Oct 17" — the form the design uses wherever a date is spelled out. */
-fun SpaDate.formatLong(): String = "${weekdayShort()}, ${monthShort()} $day"
-
-/** "Thursday, October 15" — the staff console's date line. */
-fun SpaDate.formatFull(): String = "${weekdayLong()}, ${monthLong()} $day"
-
-/** "October 2026" — the calendar header. */
-fun SpaDate.formatMonthYear(): String = "${monthLong()} $year"

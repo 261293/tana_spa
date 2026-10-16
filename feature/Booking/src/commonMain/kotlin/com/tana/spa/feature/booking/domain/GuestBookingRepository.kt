@@ -4,12 +4,16 @@ import com.tana.spa.shared.booking.BookingRules
 import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.booking.DeclineReasonDto
 
-/** One open time in the diary, as the server offers it. [startAtEpochMillis] is what a booking names. */
-data class Slot(val startAtEpochMillis: Long, val label: String, val available: Boolean)
+/**
+ * One open time in the diary, as the server offers it. [startAtEpochMillis] is what a booking
+ * names; [startHour] is the same moment as an hour of the house's day (14.5 for half past two),
+ * which is what a screen words in the reader's language.
+ */
+data class Slot(val startAtEpochMillis: Long, val startHour: Double, val available: Boolean)
 
 /**
- * A booking the signed-in guest made. [startLabel] is worded by the server in the spa's own time
- * zone, so a guest travelling abroad still reads the time they will turn up at.
+ * A booking the signed-in guest made. [startDayEpochDay] and [startHour] are the start in the
+ * spa's own time zone, so a guest travelling abroad still reads the time they will turn up at.
  */
 data class GuestBooking(
     val id: String,
@@ -18,7 +22,8 @@ data class GuestBooking(
     val minutes: Int,
     val therapistName: String,
     val startAtEpochMillis: Long,
-    val startLabel: String,
+    val startDayEpochDay: Int,
+    val startHour: Double,
     val status: BookingStatusDto,
     val total: Int,
     val discount: Int,

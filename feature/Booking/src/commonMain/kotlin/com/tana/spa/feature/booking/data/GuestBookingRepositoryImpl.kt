@@ -41,7 +41,7 @@ class GuestBookingRepositoryImpl(
             serviceSlug?.let { parameter(BookingApi.QUERY_SERVICE, it) }
         }
         check(response.status.isSuccess()) { "Availability request failed with ${response.status.value}" }
-        return response.body<AvailabilityResponse>().slots.map { Slot(it.startAtEpochMillis, it.label, it.available) }
+        return response.body<AvailabilityResponse>().slots.map { Slot(it.startAtEpochMillis, it.startHour, it.available) }
     }
 
     override suspend fun create(serviceSlug: String, therapistSlug: String?, startAtEpochMillis: Long, code: String?): BookingAttempt =
@@ -91,7 +91,8 @@ private fun BookingDto.toGuestBooking() = GuestBooking(
     minutes = service.minutes,
     therapistName = therapist.name,
     startAtEpochMillis = startAtEpochMillis,
-    startLabel = startLabel,
+    startDayEpochDay = startDayEpochDay,
+    startHour = startHour,
     status = status,
     total = total,
     discount = discount,

@@ -28,6 +28,9 @@ import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.spaPocket
+import com.tana.spa.core.ui.formatDayAndTime
+import com.tana.spa.core.ui.formatHour
+import com.tana.spa.core.ui.formatRelative
 import com.tana.spa.feature.booking.domain.GuestBooking
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingState
@@ -61,7 +64,6 @@ import com.tana.spa.feature.booking.resources.booking_total_label
 import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.PromoRejection
 import com.tana.spa.shared.spa.eligibleLabel
-import com.tana.spa.shared.spa.formatLong
 import org.jetbrains.compose.resources.stringResource
 
 /** Summary, discount code and the moss pocket that closes the booking. */
@@ -82,8 +84,8 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
         )
         SummaryRow(
             label = stringResource(Res.string.booking_review_when),
-            value = state.slot?.let { "${state.day.formatLong()}, ${it.label}" },
-            fallback = stringResource(Res.string.booking_review_pick_time, state.day.formatLong()),
+            value = state.slot?.let { "${state.day.formatRelative(state.today)}, ${formatHour(it.startHour)}" },
+            fallback = stringResource(Res.string.booking_review_pick_time, state.day.formatRelative(state.today)),
         )
 
         val applied = state.check as? PromoCheck.Applied
@@ -256,7 +258,7 @@ internal fun RequestSentDialog(sent: GuestBooking, onEvent: (BookingEvent) -> Un
                     Res.string.booking_sent_body,
                     sent.serviceName,
                     sent.therapistName,
-                    sent.startLabel,
+                    formatDayAndTime(sent.startDayEpochDay, sent.startHour),
                 ),
                 style = SpaTheme.textStyles.bodyRelaxed,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -6,6 +6,7 @@ import com.tana.spa.feature.booking.domain.GuestBookingRepository
 import com.tana.spa.feature.booking.domain.Slot
 import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.spa.SpaDate
 import kotlinx.coroutines.delay
 
 /** A request the screen sent, so a test can assert on the slug and the time, not on call counts. */
@@ -25,7 +26,8 @@ fun guestBooking(
     minutes = 90,
     therapistName = therapistName,
     startAtEpochMillis = startAtEpochMillis,
-    startLabel = "Wed Oct 21, 2:30 PM",
+    startDayEpochDay = SpaDate(2026, 10, 21).epochDay,
+    startHour = 14.5,
     status = status,
     total = 165,
     discount = 0,
@@ -36,9 +38,9 @@ fun guestBooking(
 
 class FakeGuestBookingRepository(
     var slots: List<Slot> = listOf(
-        Slot(1_000, "9:00 AM", available = true),
-        Slot(2_000, "10:00 AM", available = false),
-        Slot(3_000, "11:30 AM", available = true),
+        Slot(1_000, 9.0, available = true),
+        Slot(2_000, 10.0, available = false),
+        Slot(3_000, 11.5, available = true),
     ),
 ) : GuestBookingRepository {
     var mine: List<GuestBooking> = emptyList()

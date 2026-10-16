@@ -2,8 +2,10 @@ package com.tana.spa.feature.booking
 
 import com.tana.spa.feature.booking.domain.Catalog
 import com.tana.spa.feature.booking.domain.SpaCatalogRepository
+import com.tana.spa.shared.booking.SlotMomentDto
 import com.tana.spa.shared.spa.Service
 import com.tana.spa.shared.spa.ServiceCategory
+import com.tana.spa.shared.spa.SpaCatalog
 import com.tana.spa.shared.spa.Therapist
 
 /** The server's slugs, as the booking migration seeds them. */
@@ -15,9 +17,10 @@ object ServerCatalog {
     val catalog = Catalog(
         services = listOf(stone, facial, polish),
         therapists = listOf(
-            Therapist("mai", "Mai Tran", "Stone & deep tissue", "Today 2:30 PM"),
+            Therapist("mai", "Mai Tran", "Stone & deep tissue", SlotMomentDto(SpaCatalog.today.epochDay, 14.5)),
             Therapist("lena", "Lena Okafor", "Facials & skin", null),
         ),
+        todayEpochDay = SpaCatalog.today.epochDay,
     )
 }
 

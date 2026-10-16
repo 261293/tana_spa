@@ -1,0 +1,154 @@
+<resources>
+    <string name="admin_nav_requests">Requests</string>
+    <string name="admin_nav_codes">Codes</string>
+    <string name="admin_nav_menu">Menu</string>
+
+    <string name="admin_menu_title">The</string>
+    <string name="admin_menu_title_accent">menu</string>
+    <string name="admin_menu_subtitle">Anything you add here is bookable by guests straight away.</string>
+    <string name="admin_menu_service_title">New treatment</string>
+    <string name="admin_menu_therapist_title">New therapist</string>
+    <string name="admin_menu_name">Name</string>
+    <string name="admin_menu_name_hint">Warm Stone Massage</string>
+    <string name="admin_menu_description">What it includes</string>
+    <string name="admin_menu_description_hint">Basalt stones, full-body pressure work, scalp finish</string>
+    <string name="admin_menu_minutes">Minutes</string>
+    <string name="admin_menu_minutes_hint">90</string>
+    <string name="admin_menu_price">Price ($)</string>
+    <string name="admin_menu_price_hint">165</string>
+    <string name="admin_menu_category">Category</string>
+    <string name="admin_menu_add_service">Add to the menu</string>
+    <string name="admin_menu_therapist_name">Name</string>
+    <string name="admin_menu_therapist_hint">Mai Tran</string>
+    <string name="admin_menu_focus">Focus</string>
+    <string name="admin_menu_focus_hint">Stone &amp; deep tissue</string>
+    <string name="admin_menu_add_therapist">Add to the team</string>
+    <string name="admin_menu_service_added">%1$s is on the menu</string>
+    <string name="admin_menu_therapist_added">%1$s joined the team</string>
+    <string name="admin_menu_error_empty">This can’t be empty.</string>
+    <string name="admin_menu_error_long">That’s too long.</string>
+    <string name="admin_menu_error_duration_zero">A treatment needs a length.</string>
+    <string name="admin_menu_error_duration_long">That’s longer than a working day.</string>
+    <string name="admin_menu_error_duration_step">Use a multiple of 15 minutes.</string>
+    <string name="admin_menu_error_price_negative">A price can’t be negative.</string>
+    <string name="admin_menu_error_price_large">That price looks wrong.</string>
+    <string name="admin_open_guest_app">Open guest app</string>
+
+    <string name="admin_requests_title">Booking</string>
+    <string name="admin_requests_title_accent">requests</string>
+    <string name="admin_requests_subtitle">%1$s · %2$d waiting for a decision</string>
+
+    <string name="admin_status_pending">Awaiting confirmation</string>
+    <string name="admin_status_confirmed">Confirmed</string>
+    <string name="admin_status_declined">Declined</string>
+    <string name="admin_status_recorded">Visit recorded</string>
+    <string name="admin_overlap">Overlap</string>
+    <string name="admin_stale">Waiting too long</string>
+    <string name="admin_waited">%1$s ago</string>
+
+    <string name="admin_queue_empty">Nothing is waiting for a decision.</string>
+    <string name="admin_desk_failed">We couldn’t load the desk. Check the connection and try again.</string>
+    <string name="admin_desk_retry">Try again</string>
+    <string name="admin_refused">The spa couldn’t record that. Try again.</string>
+    <string name="admin_refused_overlap">That time is already taken. Press confirm again to book it anyway.</string>
+
+    <string name="admin_visit_completed">Mark visit completed</string>
+    <string name="admin_no_show">Mark no-show</string>
+    <string name="admin_visit_toast">%1$s’s visit is recorded</string>
+    <string name="admin_no_show_toast">%1$s is recorded as a no-show</string>
+
+    <string name="admin_detail_treatment">Treatment</string>
+    <string name="admin_detail_therapist">Therapist</string>
+    <string name="admin_detail_time">Time</string>
+    <string name="admin_detail_price">Price</string>
+    <string name="admin_service_meta">%1$s · %2$d min</string>
+    <string name="admin_time_range">%1$s – %2$s</string>
+    <string name="admin_price">$%1$d</string>
+    <string name="admin_price_code">%1$s valid · −$%2$d</string>
+
+    <string name="admin_confirm">Confirm booking</string>
+    <string name="admin_confirm_anyway">Confirm anyway</string>
+    <string name="admin_decline">Decline request</string>
+    <string name="admin_conflict">%1$s. Suggest another time or therapist.</string>
+
+    <string name="admin_schedule_title">Today’s schedule</string>
+    <string name="admin_proposed">Proposed · %1$s</string>
+    <string name="admin_overlap_block">Overlap · %1$s</string>
+    <string name="admin_block_range">%1$s – %2$s</string>
+    <string name="admin_block_meta">%1$s · %2$s</string>
+
+    <string name="admin_confirmed_toast">Booking confirmed · %1$s has been notified</string>
+    <string name="admin_declined_toast">Request declined · %1$s has been notified</string>
+    <string name="admin_declined_toast_alternative">Request declined · %1$s has been notified with an alternative time</string>
+
+    <string name="admin_decline_title">Decline the request from %1$s</string>
+    <string name="admin_decline_body">The guest sees this reason in their notification.</string>
+    <string name="admin_decline_reason_overlap">Time overlaps another booking</string>
+    <string name="admin_decline_reason_therapist">Therapist unavailable</string>
+    <string name="admin_decline_reason_room">No treatment room free</string>
+    <string name="admin_decline_suggest">Suggest another time (optional)</string>
+    <string name="admin_decline_suggest_none">Don’t suggest a time</string>
+    <string name="admin_decline_suggest_same_midday">Today 12:30 PM · same therapist</string>
+    <string name="admin_decline_suggest_mai">Today 1:00 PM · Mai Tran</string>
+    <string name="admin_decline_suggest_tomorrow">Tomorrow 11:00 AM · same therapist</string>
+    <string name="admin_decline_keep">Keep request</string>
+
+    <string name="admin_codes_title">Discount</string>
+    <string name="admin_codes_title_accent">codes</string>
+    <string name="admin_codes_subtitle">%1$d live · %2$d redemptions in October · $%3$s discounted</string>
+    <string name="admin_codes_create">Create discount code</string>
+    <string name="admin_filter_all">All %1$d</string>
+    <string name="admin_filter_state">%1$s %2$d</string>
+    <string name="admin_column_code">Code</string>
+    <string name="admin_column_offer">Offer</string>
+    <string name="admin_column_eligible">Eligible</string>
+    <string name="admin_column_valid">Valid</string>
+    <string name="admin_column_usage">Usage</string>
+    <string name="admin_column_state">State</string>
+    <string name="admin_valid_range">%1$s – %2$s</string>
+    <string name="admin_usage_used">%1$d used · no limit</string>
+    <string name="admin_usage_of_limit">%1$d / %2$d</string>
+    <string name="admin_usage_left">%1$d left</string>
+    <string name="admin_usage_percent">%1$d%% of limit used</string>
+    <string name="admin_edit_code">Edit %1$s</string>
+    <string name="admin_disable_code">Disable %1$s</string>
+    <string name="admin_codes_empty">No codes in this state.</string>
+
+    <string name="admin_create_title">Create discount code</string>
+    <string name="admin_create_close">Close</string>
+    <string name="admin_create_code">Code</string>
+    <string name="admin_create_code_help">Guests type this at checkout. Letters and numbers only.</string>
+    <string name="admin_create_duplicate">This code already exists.</string>
+    <string name="admin_create_percent">Percent</string>
+    <string name="admin_create_amount">Amount</string>
+    <string name="admin_create_value">Value</string>
+    <string name="admin_create_eligible">Eligible treatments</string>
+    <string name="admin_create_starts">Starts</string>
+    <string name="admin_create_ends">Ends</string>
+    <string name="admin_create_date_placeholder">Oct 20</string>
+    <string name="admin_create_limit">Usage limit</string>
+    <string name="admin_create_limit_help">Blank = unlimited</string>
+    <string name="admin_create_minimum">Minimum spend</string>
+    <string name="admin_create_minimum_help">Optional</string>
+    <string name="admin_create_overlap">%1$s is already live for %2$s. Guests can use only one code per booking — they’ll pick the larger discount.</string>
+    <string name="admin_create_preview">What guests will see</string>
+    <string name="admin_create_preview_offer">%1$s %2$s</string>
+    <string name="admin_create_preview_valid">Valid %1$s – %2$s.</string>
+    <string name="admin_create_preview_minimum">Minimum spend $%1$s.</string>
+    <string name="admin_create_preview_limit">First %1$s bookings.</string>
+    <string name="admin_create_publish">Publish code</string>
+    <string name="admin_create_cancel">Cancel</string>
+    <string name="admin_published_toast">%1$s published · goes live %2$s</string>
+
+    <string name="admin_disable_title">Disable %1$s?</string>
+    <string name="admin_disable_body">Guests can no longer apply this code. Bookings already requested with it keep their discount. You can’t re-enable a disabled code — create a new one instead.</string>
+    <string name="admin_disable_keep">Keep live</string>
+    <string name="admin_disable_confirm">Disable code</string>
+    <string name="admin_disabled_toast">%1$s disabled</string>
+    <string name="admin_disabled_note">Disabled today</string>
+
+    <string name="admin_eligible_all">All treatments</string>
+    <string name="admin_eligible_massages">Massages</string>
+    <string name="admin_eligible_facials">Facials</string>
+    <string name="admin_eligible_body">Body treatments</string>
+</resources>

@@ -1,6 +1,9 @@
 package com.tana.spa.feature.settings
 
+import com.tana.spa.core.ui.AppLanguage
+import com.tana.spa.core.ui.SelectedLanguage
 import com.tana.spa.feature.settings.domain.CurrentProfile
+import com.tana.spa.feature.settings.domain.LanguageChoice
 import com.tana.spa.feature.settings.presentation.GuestProfile
 import com.tana.spa.feature.settings.presentation.NotificationPref
 import com.tana.spa.feature.settings.presentation.SettingsEffect
@@ -21,7 +24,16 @@ class SettingsViewModelTest {
     private var signedOut = false
     private var signedIn: GuestProfile? = amara
 
-    private fun viewModel() = SettingsViewModel(CurrentProfile { signedIn }, { signedOut = true })
+    private var saved: AppLanguage = AppLanguage.VIETNAMESE
+    private val languages = object : LanguageChoice {
+        override fun load() = saved
+
+        override fun save(language: AppLanguage) {
+            saved = language
+        }
+    }
+
+    private fun viewModel() = SettingsViewModel(CurrentProfile { signedIn }, { signedOut = true }, languages)
 
     @Test
     fun the_profile_is_the_signed_in_account() {
@@ -83,5 +95,25 @@ class SettingsViewModelTest {
 
         assertTrue(signedOut)
         assertEquals(SettingsEffect.SignedOut, vm.effects.first())
+    }
+
+    @Test
+    fun the_screen_opens_on_the_language_last_chosen() {
+        saved = AppLanguage.ENGLISH
+
+        assertEquals(AppLanguage.ENGLISH, viewModel().state.value.language)
+    }
+
+    @Test
+    fun choosing_a_language_stores_it_and_redraws_the_app_in_it() {
+        val vm = viewModel()
+        vm.onEvent(SettingsEvent.LanguageChanged(AppLanguage.ENGLISH))
+
+        assertEquals(AppLanguage.ENGLISH, vm.state.value.language)
+        assertEquals(AppLanguage.ENGLISH, saved, "the choice has to survive a restart")
+        assertEquals(AppLanguage.ENGLISH, SelectedLanguage.value, "the app root reads this one")
+
+        vm.onEvent(SettingsEvent.LanguageChanged(AppLanguage.VIETNAMESE))
+        assertEquals(AppLanguage.VIETNAMESE, SelectedLanguage.value)
     }
 }

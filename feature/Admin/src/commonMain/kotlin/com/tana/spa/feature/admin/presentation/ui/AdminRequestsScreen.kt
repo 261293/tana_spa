@@ -53,6 +53,9 @@ import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaStatusPill
 import com.tana.spa.core.ui.components.spaPocket
+import com.tana.spa.core.ui.formatDayAndTime
+import com.tana.spa.core.ui.formatFull
+import com.tana.spa.core.ui.formatHour
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
 import com.tana.spa.feature.admin.presentation.AdminRequestsEffect
@@ -108,8 +111,6 @@ import com.tana.spa.feature.admin.resources.admin_visit_toast
 import com.tana.spa.feature.admin.resources.admin_waited
 import com.tana.spa.shared.booking.DeclineReasonDto
 import com.tana.spa.shared.spa.SpaDate
-import com.tana.spa.shared.spa.formatFull
-import com.tana.spa.shared.spa.formatHour
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -369,8 +370,8 @@ private fun DecisionPanel(request: DeskRequest, nowEpochMillis: Long, onEvent: (
                     stringResource(Res.string.admin_detail_time),
                     stringResource(
                         Res.string.admin_time_range,
-                        // The spa's own wording, day and all: a request can be for any day.
-                        request.startLabel,
+                        // Day and all: a request can be for any day, not only today.
+                        formatDayAndTime(request.startDayEpochDay, request.startHour),
                         formatHour(request.startHour + request.minutes / MINUTES_PER_HOUR.toDouble()),
                     ),
                 )

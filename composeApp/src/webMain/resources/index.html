@@ -11,6 +11,19 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23117034' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20C4 10 10 4 20 4c0 10-6 16-16 16z'/%3E%3Cpath d='M4.5 19.5 13.5 10.5'/%3E%3C/svg%3E"/>
     <link type="text/css" rel="stylesheet" href="styles.css">
 
+    <!-- The language picker in Settings sets window.__tanaLocale; navigator.languages is read-only,
+         so this getter answers with it. Must run before the app script reads the locale. -->
+    <script>
+        (function () {
+            var languages = Object.getOwnPropertyDescriptor(Navigator.prototype, "languages");
+            Object.defineProperty(Navigator.prototype, "languages", Object.assign({}, languages, {
+                get: function () {
+                    return window.__tanaLocale ? [window.__tanaLocale] : languages.get.apply(this);
+                }
+            }));
+        })();
+    </script>
+
     <!-- Web Push, off until a Firebase project is configured. Uncomment, fill in the values from
          "Project settings -> General -> Your apps -> Web app", paste the Web Push certificate key
          pair into TANA_PUSH_VAPID_KEY, and put the same config in firebase-messaging-sw.js.

@@ -1,5 +1,7 @@
 package com.tana.spa.shared.spa
 
+import com.tana.spa.shared.booking.SlotMomentDto
+
 /**
  * The treatment menu, the team and the live offers.
  *
@@ -27,8 +29,8 @@ data class Therapist(
     val id: String,
     val name: String,
     val focus: String,
-    /** Already worded ("Today 2:30 PM"); null when the diary is full. */
-    val nextSlot: String?,
+    /** The next free slot; null when the diary is full. */
+    val nextSlot: SlotMomentDto?,
     /** "First available" is a scheduling choice, not a person, so it gets no initials. */
     val anyAvailable: Boolean = false,
 )
@@ -94,11 +96,14 @@ object SpaCatalog {
         Service("herbal", "Herbal Compress Ritual", 75, 150, ServiceCategory.BODY, "Steamed lemongrass compresses, light oil massage"),
     )
 
+    /** The day the design was drawn against; the demo catalogue is anchored to it. */
+    val today = SpaDate(2026, 10, 15)
+
     val therapists = listOf(
-        Therapist("mai", "Mai Tran", "Stone & deep tissue", "Today 2:30 PM"),
-        Therapist("lena", "Lena Okafor", "Facials & skin", "Today 4:00 PM"),
-        Therapist("tomas", "Tomas Ruiz", "Sports & recovery", "Tomorrow 10:00 AM"),
-        Therapist("any", "First available", "Fastest confirmation", "Today 1:00 PM", anyAvailable = true),
+        Therapist("mai", "Mai Tran", "Stone & deep tissue", SlotMomentDto(today.epochDay, 14.5)),
+        Therapist("lena", "Lena Okafor", "Facials & skin", SlotMomentDto(today.epochDay, 16.0)),
+        Therapist("tomas", "Tomas Ruiz", "Sports & recovery", SlotMomentDto(today.epochDay + 1, 10.0)),
+        Therapist("any", "First available", "Fastest confirmation", SlotMomentDto(today.epochDay, 13.0), anyAvailable = true),
     )
 
     /** The three therapists with a column on the staff schedule; "first available" is not one. */
@@ -135,9 +140,6 @@ object SpaCatalog {
     const val NEW_GUEST_CODE = "FIRSTVISIT"
 
     val slotTimes = listOf("9:00 AM", "10:00 AM", "11:30 AM", "1:00 PM", "2:30 PM", "4:00 PM", "5:30 PM", "7:00 PM")
-
-    /** The day the design was drawn against; the demo catalogue is anchored to it. */
-    val today = SpaDate(2026, 10, 15)
 
     val requests = listOf(
         BookingRequest(
@@ -202,15 +204,6 @@ object SpaCatalog {
 
     /** The house is closed on Mondays, and the demo marks every eleventh day as fully booked. */
     fun isDayFull(date: SpaDate): Boolean = date.weekdayIndex == 0 || date.day % 11 == 0
-}
-
-/** "2:30 PM" from an hour-of-day such as 14.5. */
-fun formatHour(hour: Double): String {
-    val whole = hour.toInt()
-    val minutes = ((hour - whole) * 60).toInt()
-    val suffix = if (whole >= 12) "PM" else "AM"
-    val hour12 = if (whole % 12 == 0) 12 else whole % 12
-    return "$hour12:${minutes.toString().padStart(2, '0')} $suffix"
 }
 
 fun initialsOf(name: String): String = name.split(" ").mapNotNull { it.firstOrNull() }.joinToString("").take(2).uppercase()
