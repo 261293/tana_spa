@@ -1,11 +1,9 @@
 package com.tana.spa.feature.booking.presentation.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -22,24 +19,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindow
-import com.tana.spa.core.ui.SpaWindowSize
 import com.tana.spa.core.ui.components.SpaCard
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaScreenHeader
@@ -51,32 +41,181 @@ import com.tana.spa.feature.booking.presentation.BookingEffect
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingState
 import com.tana.spa.feature.booking.resources.Res
+import com.tana.spa.feature.booking.resources.booking_back
+import com.tana.spa.feature.booking.resources.booking_continue
 import com.tana.spa.feature.booking.resources.booking_open_times
 import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.booking_step_review
 import com.tana.spa.feature.booking.resources.booking_step_therapist
 import com.tana.spa.feature.booking.resources.booking_step_treatment
 import com.tana.spa.feature.booking.resources.booking_step_when
-import com.tana.spa.feature.booking.resources.booking_strip_action
 import com.tana.spa.feature.booking.resources.booking_strip_choose
 import com.tana.spa.feature.booking.resources.booking_strip_pick_time
 import com.tana.spa.feature.booking.resources.booking_subtitle
 import com.tana.spa.feature.booking.resources.booking_title
 import com.tana.spa.feature.booking.resources.booking_title_accent
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
-/** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
+/**
+ * The booking flow is four screens, one to a step. They share a single view model, so a choice
+ * made on one is still there whichever way the guest moves between them, and the step the guest
+ * is on is the route — which is also what the browser's address bar and Back button follow.
+ */
 @Composable
-fun BookingScreen(
+fun BookingTreatmentScreen(
     state: BookingState,
     effects: Flow<BookingEffect>,
     onEvent: (BookingEvent) -> Unit,
     onOpenNotifications: () -> Unit,
     onOpenBookings: () -> Unit,
     onOpenService: (String) -> Unit,
+    onContinue: () -> Unit,
+) {
+    BookingStepPage(
+        step = 1,
+        title = stringResource(Res.string.booking_step_treatment),
+        done = state.service != null,
+        effects = effects,
+        onOpenNotifications = onOpenNotifications,
+        onOpenBookings = onOpenBookings,
+        header = {
+            SpaScreenHeader(
+                title = stringResource(Res.string.booking_title),
+                accent = stringResource(Res.string.booking_title_accent),
+                subtitle = stringResource(Res.string.booking_subtitle),
+            )
+        },
+        footer = { StepFooter(state, canContinue = state.service != null, onBack = null, onContinue = onContinue) },
+    ) {
+        ServiceList(
+            state = state,
+            onSelect = { onEvent(BookingEvent.ServiceSelected(it)) },
+            onDetails = onOpenService,
+            onRetry = { onEvent(BookingEvent.RetryCatalog) },
+            columns = catalogueColumns(SpaWindow.size),
+        )
+    }
+}
+
+@Composable
+fun BookingTherapistScreen(
+    state: BookingState,
+    effects: Flow<BookingEffect>,
+    onEvent: (BookingEvent) -> Unit,
+    onOpenNotifications: () -> Unit,
+    onOpenBookings: () -> Unit,
+    onBack: () -> Unit,
+    onContinue: () -> Unit,
+) {
+    BookingStepPage(
+        step = 2,
+        title = stringResource(Res.string.booking_step_therapist),
+        done = state.therapist != null,
+        effects = effects,
+        onOpenNotifications = onOpenNotifications,
+        onOpenBookings = onOpenBookings,
+        footer = { StepFooter(state, canContinue = state.therapist != null, onBack = onBack, onContinue = onContinue) },
+    ) {
+        TherapistPicker(
+            state = state,
+            onSelect = { onEvent(BookingEvent.TherapistSelected(it)) },
+            columns = catalogueColumns(SpaWindow.size) + 1,
+        )
+    }
+}
+
+@Composable
+fun BookingWhenScreen(
+    state: BookingState,
+    effects: Flow<BookingEffect>,
+    onEvent: (BookingEvent) -> Unit,
+    onOpenNotifications: () -> Unit,
+    onOpenBookings: () -> Unit,
+    onBack: () -> Unit,
+    onContinue: () -> Unit,
+) {
+    BookingStepPage(
+        step = 3,
+        title = stringResource(Res.string.booking_step_when),
+        done = state.slot != null,
+        effects = effects,
+        onOpenNotifications = onOpenNotifications,
+        onOpenBookings = onOpenBookings,
+        footer = { StepFooter(state, canContinue = state.slot != null, onBack = onBack, onContinue = onContinue) },
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().spaFelt().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            // A phone gets the fortnight rail; from a tablet up there is room for the whole month.
+            if (SpaWindow.size.isCompact) {
+                Text(
+                    text = state.day.formatRelative(state.today),
+                    style = SpaTheme.textStyles.cardTitle,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+                DateRail(state.day, state.today, onSelect = { onEvent(BookingEvent.DaySelected(it)) })
+            } else {
+                MonthCalendar(
+                    selected = state.day,
+                    today = state.today,
+                    onSelect = { onEvent(BookingEvent.DaySelected(it)) },
+                )
+            }
+            Text(
+                text = stringResource(Res.string.booking_open_times, state.day.formatRelative(state.today)),
+                style = SpaTheme.textStyles.body,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SlotGrid(state = state, onSelect = { onEvent(BookingEvent.SlotSelected(it)) }, columns = 3)
+        }
+    }
+}
+
+@Composable
+fun BookingConfirmScreen(
+    state: BookingState,
+    effects: Flow<BookingEffect>,
+    onEvent: (BookingEvent) -> Unit,
+    onOpenNotifications: () -> Unit,
+    onOpenBookings: () -> Unit,
+    onBack: () -> Unit,
+) {
+    BookingStepPage(
+        step = 4,
+        title = stringResource(Res.string.booking_step_review),
+        done = state.canRequest,
+        effects = effects,
+        onOpenNotifications = onOpenNotifications,
+        onOpenBookings = onOpenBookings,
+        // The request itself is the card's own button, so the strip only offers the way back.
+        footer = { StepFooter(state, canContinue = false, onBack = onBack, onContinue = null) },
+    ) {
+        SpaCard(padding = PaddingValues(20.dp)) {
+            BookingReview(state, onEvent)
+        }
+    }
+    state.sent?.let { RequestSentDialog(it, onEvent) }
+}
+
+/**
+ * One step's page: the heading, the step's own content, and the moss pocket holding the choice so
+ * far. Refusals are shown here rather than per step, because the server can refuse a slot the
+ * guest chose two screens ago.
+ */
+@Composable
+private fun BookingStepPage(
+    step: Int,
+    title: String,
+    done: Boolean,
+    effects: Flow<BookingEffect>,
+    onOpenNotifications: () -> Unit,
+    onOpenBookings: () -> Unit,
+    footer: @Composable () -> Unit,
+    header: @Composable () -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(effects) {
@@ -95,194 +234,38 @@ fun BookingScreen(
     }
 
     Box(Modifier.fillMaxSize()) {
-        if (SpaWindow.size.isWide) {
-            WideBooking(state, onEvent, onOpenService)
-        } else {
-            CompactBooking(state, onEvent, onOpenService)
+        SpaPage(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            maxWidth = if (SpaWindow.size.isCompact) SpaPageWidth.Reading else SpaPageWidth.Full,
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            header()
+            StepHeader(step, title, done)
+            content()
+            // Nothing of the step hides under the pocket at the end of the scroll.
+            Spacer(Modifier.height(FOOTER_CLEARANCE))
         }
+        Box(Modifier.align(Alignment.BottomCenter).padding(12.dp)) { footer() }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
     }
-    state.sent?.let { RequestSentDialog(it, onEvent) }
 }
 
-/** Choosing a treatment also opens its detail; the flow keeps the choice, so Back there resumes it. */
+/** Keeps the choice in view from step to step, and carries the way on and the way back. */
 @Composable
-private fun TreatmentStep(state: BookingState, onEvent: (BookingEvent) -> Unit, onOpenService: (String) -> Unit) {
-    Step(1, stringResource(Res.string.booking_step_treatment), state.service != null) {
-        ServiceList(
-            state = state,
-            onSelect = {
-                onEvent(BookingEvent.ServiceSelected(it))
-                onOpenService(it)
-            },
-            onRetry = { onEvent(BookingEvent.RetryCatalog) },
-        )
-    }
-}
-
-@Composable
-private fun CompactBooking(state: BookingState, onEvent: (BookingEvent) -> Unit, onOpenService: (String) -> Unit) {
-    val scroll = rememberScrollState()
-    val scope = rememberCoroutineScope()
-    var reviewTop by remember { mutableStateOf(Int.MAX_VALUE) }
-    // One moss pocket on screen at a time: the strip steps aside once the review is in view.
-    val stripVisible by remember {
-        derivedStateOf { reviewTop > scroll.value + scroll.viewportSize - 120 }
-    }
-
-    Box(Modifier.fillMaxSize()) {
-        SpaPage(
-            modifier = Modifier.fillMaxSize().verticalScroll(scroll),
-            maxWidth = SpaPageWidth.Reading,
-            verticalArrangement = Arrangement.spacedBy(28.dp),
-        ) {
-            SpaScreenHeader(
-                title = stringResource(Res.string.booking_title),
-                accent = stringResource(Res.string.booking_title_accent),
-                subtitle = stringResource(Res.string.booking_subtitle),
-            )
-
-            TreatmentStep(state, onEvent, onOpenService)
-
-            Step(2, stringResource(Res.string.booking_step_therapist), state.therapist != null) {
-                TherapistPicker(state, onSelect = { onEvent(BookingEvent.TherapistSelected(it)) }, columns = 2)
-            }
-
-            Step(3, stringResource(Res.string.booking_step_when), state.slot != null) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().spaFelt().padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text(
-                        text = state.day.formatRelative(state.today),
-                        style = SpaTheme.textStyles.cardTitle,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    DateRail(state.day, state.today, onSelect = { onEvent(BookingEvent.DaySelected(it)) })
-                    SlotGrid(
-                        state = state,
-                        onSelect = { onEvent(BookingEvent.SlotSelected(it)) },
-                        columns = 3,
-                    )
-                }
-            }
-
-            Box(Modifier.onGloballyPositioned { reviewTop = it.positionInParent().y.toInt() }) {
-                Step(4, stringResource(Res.string.booking_step_review), state.canRequest) {
-                    SpaCard(padding = PaddingValues(20.dp)) {
-                        BookingReview(state, onEvent)
-                    }
-                }
-            }
-        }
-
-        AnimatedVisibility(
-            visible = stripVisible,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp),
-        ) {
-            ReservationStrip(state) {
-                scope.launch { scroll.animateScrollTo(reviewTop) }
-            }
-        }
-    }
-}
-
-@Composable
-private fun WideBooking(state: BookingState, onEvent: (BookingEvent) -> Unit, onOpenService: (String) -> Unit) {
-    val threeColumns = SpaWindow.size == SpaWindowSize.LARGE
-    SpaPage(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-        maxWidth = SpaPageWidth.Full,
-    ) {
-        SpaScreenHeader(
-            title = stringResource(Res.string.booking_title),
-            accent = stringResource(Res.string.booking_title_accent),
-            subtitle = stringResource(Res.string.booking_subtitle),
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(32.dp)) {
-            Column(Modifier.weight(1.15f), verticalArrangement = Arrangement.spacedBy(28.dp)) {
-                TreatmentStep(state, onEvent, onOpenService)
-                if (!threeColumns) {
-                    Step(2, stringResource(Res.string.booking_step_therapist), state.therapist != null) {
-                        TherapistPicker(
-                            state = state,
-                            onSelect = { onEvent(BookingEvent.TherapistSelected(it)) },
-                            columns = 2,
-                        )
-                    }
-                }
-            }
-
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(28.dp)) {
-                if (threeColumns) {
-                    Step(2, stringResource(Res.string.booking_step_therapist), state.therapist != null) {
-                        TherapistPicker(
-                            state = state,
-                            onSelect = { onEvent(BookingEvent.TherapistSelected(it)) },
-                            columns = 2,
-                        )
-                    }
-                }
-                Step(3, stringResource(Res.string.booking_step_when), state.slot != null) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().spaFelt().padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        MonthCalendar(
-                            selected = state.day,
-                            today = state.today,
-                            onSelect = { onEvent(BookingEvent.DaySelected(it)) },
-                        )
-                        Text(
-                            text = stringResource(Res.string.booking_open_times, state.day.formatRelative(state.today)),
-                            style = SpaTheme.textStyles.body,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        SlotGrid(
-                            state = state,
-                            onSelect = { onEvent(BookingEvent.SlotSelected(it)) },
-                            columns = 3,
-                        )
-                    }
-                }
-            }
-
-            SpaCard(
-                modifier = Modifier.widthIn(max = 360.dp).weight(0.9f),
-                padding = PaddingValues(24.dp),
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(Res.string.booking_step_review),
-                        style = SpaTheme.textStyles.screenTitle,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    BookingReview(state, onEvent)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Step(number: Int, title: String, done: Boolean, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        StepHeader(number, title, done)
-        content()
-    }
-}
-
-/** Keeps the choice in view while the guest scrolls the three steps. */
-@Composable
-private fun ReservationStrip(state: BookingState, onReview: () -> Unit) {
+private fun StepFooter(state: BookingState, canContinue: Boolean, onBack: (() -> Unit)?, onContinue: (() -> Unit)?) {
     Row(
-        modifier = Modifier.fillMaxWidth().spaPocket().padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+        modifier = Modifier.fillMaxWidth().spaPocket().padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
+        onBack?.let {
+            TextButton(
+                onClick = it,
+                colors = ButtonDefaults.textButtonColors(contentColor = SpaTheme.extraColors.onPocketMuted),
+            ) {
+                Text(stringResource(Res.string.booking_back), style = SpaTheme.textStyles.body)
+            }
+        }
+        Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
             Text(
                 text = state.service?.name ?: stringResource(Res.string.booking_strip_choose),
                 style = SpaTheme.textStyles.body,
@@ -302,14 +285,15 @@ private fun ReservationStrip(state: BookingState, onReview: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        StripButton(stringResource(Res.string.booking_strip_action), onReview)
+        onContinue?.let { StripButton(stringResource(Res.string.booking_continue), canContinue, it) }
     }
 }
 
 @Composable
-private fun StripButton(text: String, onClick: () -> Unit) {
+private fun StripButton(text: String, enabled: Boolean, onClick: () -> Unit) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
             containerColor = SpaTheme.extraColors.pocketAction,
@@ -320,3 +304,5 @@ private fun StripButton(text: String, onClick: () -> Unit) {
         Text(text, style = SpaTheme.textStyles.body)
     }
 }
+
+private val FOOTER_CLEARANCE = 72.dp

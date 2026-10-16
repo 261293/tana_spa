@@ -19,6 +19,10 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.sqldelight.sqliteDriver)
         }
+        // No SQLDelight driver on the web; the browser's own storage stands in for one.
+        wasmJsMain.dependencies {
+            implementation(libs.kotlinx.browser)
+        }
     }
 }
 

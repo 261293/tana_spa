@@ -2,7 +2,10 @@ package com.tana.spa.booking
 
 import java.time.Instant
 
-/** A treatment on the menu. [price] is a whole unit of the catalogue's currency. */
+/**
+ * A treatment on the menu. [price] is a whole unit of the catalogue's currency, and [nameVi] and
+ * [descriptionVi] are null for a treatment nobody has written in Vietnamese yet.
+ */
 data class ServiceRow(
     val id: String,
     val slug: String,
@@ -11,9 +14,18 @@ data class ServiceRow(
     val description: String,
     val price: Long,
     val minutes: Int,
+    val nameVi: String? = null,
+    val descriptionVi: String? = null,
 )
 
-data class TherapistRow(val id: String, val slug: String, val name: String, val focus: String, val accent: String)
+data class TherapistRow(
+    val id: String,
+    val slug: String,
+    val name: String,
+    val focus: String,
+    val accent: String,
+    val focusVi: String? = null,
+)
 
 /** A `vouchers` row, read as a discount code. [endsAt] null means it never expires. */
 data class VoucherRow(

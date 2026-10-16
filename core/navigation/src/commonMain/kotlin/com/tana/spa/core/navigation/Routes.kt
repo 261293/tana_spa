@@ -14,7 +14,12 @@ object Routes {
     const val LIKES = "likes"
     const val PROFILE = "profile"
     const val NOTIFICATIONS = "notifications"
+
+    /** The booking flow: a step to a screen, so the address bar and Back follow the guest's place in it. */
     const val BOOKING = "booking"
+    const val BOOKING_THERAPIST = "bookingTherapist"
+    const val BOOKING_WHEN = "bookingWhen"
+    const val BOOKING_CONFIRM = "bookingConfirm"
 
     /** One treatment from the booking menu, named by [ARG_SERVICE]. */
     const val SERVICE_DETAIL = "serviceDetail"

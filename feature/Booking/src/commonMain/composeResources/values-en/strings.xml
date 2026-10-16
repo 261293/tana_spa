@@ -8,6 +8,9 @@
     <string name="booking_step_when">Date &amp; time</string>
     <string name="booking_step_review">Your afternoon</string>
     <string name="booking_step_done">Step done</string>
+    <string name="booking_continue">Continue</string>
+    <string name="booking_back">Back</string>
+    <string name="booking_service_details">View details</string>
 
     <string name="booking_service_meta">%1$d min · %2$s</string>
     <string name="booking_price">$%1$d</string>
@@ -93,7 +96,6 @@
 
     <string name="booking_strip_choose">Choose a treatment</string>
     <string name="booking_strip_pick_time">pick a time</string>
-    <string name="booking_strip_action">Review</string>
 
     <string name="booking_sent_title">Request sent</string>
     <string name="booking_sent_body">%1$s with %2$s, %3$s. We’ll notify you as soon as the spa confirms.</string>
