@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.tana.spa.core.ui.AppLanguage
 import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaAvatar
@@ -49,7 +50,6 @@ import com.tana.spa.feature.settings.presentation.NotificationPref
 import com.tana.spa.feature.settings.presentation.SettingsEffect
 import com.tana.spa.feature.settings.presentation.SettingsEvent
 import com.tana.spa.feature.settings.presentation.SettingsState
-import com.tana.spa.feature.settings.presentation.SupportedLanguages
 import com.tana.spa.feature.settings.resources.Res
 import com.tana.spa.feature.settings.resources.settings_cancel
 import com.tana.spa.feature.settings.resources.settings_card
@@ -280,7 +280,7 @@ private fun PaymentRow() {
 }
 
 @Composable
-private fun LanguageRow(language: String, onChange: (String) -> Unit) {
+private fun LanguageRow(language: AppLanguage, onChange: (AppLanguage) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     ListItem(
         headlineContent = {
@@ -293,13 +293,13 @@ private fun LanguageRow(language: String, onChange: (String) -> Unit) {
         trailingContent = {
             Box {
                 TextButton(onClick = { expanded = true }) {
-                    Text(language, style = SpaTheme.textStyles.body)
+                    Text(language.label, style = SpaTheme.textStyles.body)
                     SpaIconImage(SpaIcon.ChevronDown, size = 16.dp, modifier = Modifier.padding(start = 6.dp))
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    SupportedLanguages.forEach { option ->
+                    AppLanguage.entries.forEach { option ->
                         DropdownMenuItem(
-                            text = { Text(option, style = SpaTheme.textStyles.body) },
+                            text = { Text(option.label, style = SpaTheme.textStyles.body) },
                             onClick = {
                                 onChange(option)
                                 expanded = false

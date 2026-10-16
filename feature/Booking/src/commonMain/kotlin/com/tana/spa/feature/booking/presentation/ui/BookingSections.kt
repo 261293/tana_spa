@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +46,10 @@ import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
+import com.tana.spa.core.ui.formatDayChip
+import com.tana.spa.core.ui.formatHour
+import com.tana.spa.core.ui.formatRelativeDayAndTime
+import com.tana.spa.core.ui.weekdayShort
 import com.tana.spa.feature.booking.presentation.ANY_THERAPIST
 import com.tana.spa.feature.booking.presentation.BookingState
 import com.tana.spa.feature.booking.resources.Res
@@ -64,7 +69,6 @@ import com.tana.spa.shared.spa.SpaCatalog
 import com.tana.spa.shared.spa.SpaDate
 import com.tana.spa.shared.spa.Therapist
 import com.tana.spa.shared.spa.initialsOf
-import com.tana.spa.shared.spa.weekdayShort
 import org.jetbrains.compose.resources.stringResource
 
 private val ServiceTileShape = RoundedCornerShape(topStart = 22.dp, topEnd = 10.dp, bottomEnd = 10.dp, bottomStart = 22.dp)
@@ -208,6 +212,7 @@ internal fun TherapistPicker(state: BookingState, onSelect: (String) -> Unit, co
                 row.forEach { therapist ->
                     TherapistCard(
                         therapist = therapist,
+                        today = state.today,
                         selected = therapist.id == state.therapistId,
                         onSelect = { onSelect(therapist.id) },
                         modifier = Modifier.weight(1f),
@@ -229,7 +234,7 @@ private fun anyTherapist() = Therapist(
 )
 
 @Composable
-private fun TherapistCard(therapist: Therapist, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier) {
+private fun TherapistCard(therapist: Therapist, today: SpaDate, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier) {
     SpaCard(modifier = modifier, padding = PaddingValues(12.dp), onClick = onSelect, selected = selected) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             if (therapist.anyAvailable) {
@@ -247,7 +252,10 @@ private fun TherapistCard(therapist: Therapist, selected: Boolean, onSelect: () 
             Text(therapist.focus, style = SpaTheme.textStyles.caption, color = MaterialTheme.colorScheme.onSurfaceVariant)
             therapist.nextSlot?.let { next ->
                 Text(
-                    text = stringResource(Res.string.booking_therapist_next, next),
+                    text = stringResource(
+                        Res.string.booking_therapist_next,
+                        formatRelativeDayAndTime(next.dayEpochDay, next.hour, today),
+                    ),
                     style = SpaTheme.textStyles.caption.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -258,15 +266,15 @@ private fun TherapistCard(therapist: Therapist, selected: Boolean, onSelect: () 
 
 /** Two weeks of days as filter chips; a day the spa is full is a disabled chip. */
 @Composable
-internal fun DateRail(selected: SpaDate, onSelect: (SpaDate) -> Unit, modifier: Modifier = Modifier) {
+internal fun DateRail(selected: SpaDate, today: SpaDate, onSelect: (SpaDate) -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         repeat(DAYS_ON_RAIL) { index ->
-            val date = SpaCatalog.today.plusDays(index)
+            val date = today.plusDays(index)
             val full = SpaCatalog.isDayFull(date)
-            val label = "${date.weekdayShort()} ${date.day}"
+            val label = date.formatDayChip(today)
             SpaFilterChip(
                 label = if (full) stringResource(Res.string.booking_day_full, label) else label,
                 selected = date == selected,
@@ -283,23 +291,26 @@ internal fun DateRail(selected: SpaDate, onSelect: (SpaDate) -> Unit, modifier: 
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun MonthCalendar(selected: SpaDate, onSelect: (SpaDate) -> Unit, modifier: Modifier = Modifier) {
-    val bookable = remember {
+internal fun MonthCalendar(selected: SpaDate, today: SpaDate, onSelect: (SpaDate) -> Unit, modifier: Modifier = Modifier) {
+    val bookable = remember(today) {
         object : SelectableDates {
             override fun isSelectableDate(utcTimeMillis: Long): Boolean {
                 val date = SpaDate.fromEpochDay((utcTimeMillis / MILLIS_PER_DAY).toInt())
-                return date >= SpaCatalog.today &&
-                    date <= SpaCatalog.today.plusDays(BOOKING_HORIZON_DAYS) &&
+                return date >= today &&
+                    date <= today.plusDays(BOOKING_HORIZON_DAYS) &&
                     !SpaCatalog.isDayFull(date)
             }
 
-            override fun isSelectableYear(year: Int) = year >= SpaCatalog.today.year
+            override fun isSelectableYear(year: Int) = year >= today.year
         }
     }
-    val state = rememberDatePickerState(
-        initialSelectedDateMillis = selected.epochDay * MILLIS_PER_DAY,
-        selectableDates = bookable,
-    )
+    // The picker keeps the bounds it was built with, so it is rebuilt when the spa names its day.
+    val state = key(today) {
+        rememberDatePickerState(
+            initialSelectedDateMillis = selected.epochDay * MILLIS_PER_DAY,
+            selectableDates = bookable,
+        )
+    }
     LaunchedEffect(state.selectedDateMillis) {
         state.selectedDateMillis
             ?.let { SpaDate.fromEpochDay((it / MILLIS_PER_DAY).toInt()) }
@@ -342,8 +353,9 @@ internal fun SlotGrid(state: BookingState, onSelect: (Long) -> Unit, columns: In
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     row.forEach { slot ->
                         val isSelected = slot.startAtEpochMillis == state.slotAtEpochMillis
+                        val time = formatHour(slot.startHour)
                         SpaFilterChip(
-                            label = if (slot.available) slot.label else stringResource(Res.string.booking_slot_taken, slot.label),
+                            label = if (slot.available) time else stringResource(Res.string.booking_slot_taken, time),
                             selected = isSelected,
                             enabled = slot.available,
                             onClick = { onSelect(slot.startAtEpochMillis) },

@@ -32,6 +32,7 @@ import com.tana.spa.shared.booking.OffersResponse
 import com.tana.spa.shared.booking.ServiceCategoryDto
 import com.tana.spa.shared.booking.ServiceDto
 import com.tana.spa.shared.booking.SlotDto
+import com.tana.spa.shared.booking.SlotMomentDto
 import com.tana.spa.shared.booking.SpaValidation
 import com.tana.spa.shared.booking.StaffQueueResponse
 import com.tana.spa.shared.booking.TherapistAccentDto
@@ -66,6 +67,7 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
                 CatalogResponse(
                     services = service.services().map { it.toDto() },
                     therapists = service.therapists().map { it.toDto(nextSlots[it.slug]) },
+                    todayEpochDay = service.epochDayOf(Instant.now()),
                 ),
             )
         }
@@ -99,7 +101,7 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
                 AvailabilityResponse(
                     dayEpochDay = day,
                     slots = slots.map { (start, free) ->
-                        SlotDto(start.toEpochMilli(), service.slotLabel(start), free)
+                        SlotDto(start.toEpochMilli(), service.hourOfDay(start), free)
                     },
                 ),
             )
@@ -323,7 +325,7 @@ private fun String.toCategoryDto(): ServiceCategoryDto = when (lowercase()) {
     else -> ServiceCategoryDto.MASSAGE
 }
 
-private fun TherapistRow.toDto(nextSlot: String?) = TherapistDto(
+private fun TherapistRow.toDto(nextSlot: SlotMomentDto?) = TherapistDto(
     slug = slug,
     name = name,
     focus = focus,
@@ -380,7 +382,7 @@ private fun BookingRow.toDto(service: BookingService, conflict: BookingRow? = nu
     startAtEpochMillis = startAt.toEpochMilli(),
     endAtEpochMillis = endAt.toEpochMilli(),
     startHour = service.hourOfDay(startAt),
-    startLabel = service.dayAndTimeLabel(startAt),
+    startDayEpochDay = service.epochDayOf(startAt),
     status = when (status) {
         "confirmed" -> BookingStatusDto.CONFIRMED
         "declined" -> BookingStatusDto.DECLINED

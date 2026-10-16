@@ -7,6 +7,7 @@ import com.tana.spa.shared.booking.BookingRules
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.booking.SlotMomentDto
 import com.tana.spa.shared.booking.SpaValidation
 import com.tana.spa.shared.notifications.NotificationData
 import com.tana.spa.shared.notifications.NotificationSendRequest
@@ -72,15 +73,15 @@ class BookingService(
 
     suspend fun therapists(): List<TherapistRow> = withContext(io) { repository.therapists() }
 
-    /** The next slot each therapist still has free, worded for the catalogue ("Today 2:30 PM"). */
-    suspend fun nextFreeSlots(): Map<String, String?> = withContext(io) {
+    /** The next slot each therapist still has free, for the catalogue; the client words it. */
+    suspend fun nextFreeSlots(): Map<String, SlotMomentDto?> = withContext(io) {
         val today = LocalDate.ofInstant(clock(), zone)
         repository.therapists().associate { therapist ->
             therapist.slug to generateSequence(today) { it.plusDays(1) }
                 .take(DAYS_SCANNED_FOR_NEXT_SLOT)
                 .flatMap { day -> openSlots(therapist.id, day).asSequence() }
                 .firstOrNull()
-                ?.let { "${dayWord(it, today)} ${LocalTime.ofInstant(it, zone).format(SLOT_LABEL)}" }
+                ?.let { SlotMomentDto(epochDayOf(it), hourOfDay(it)) }
         }
     }
 
@@ -151,9 +152,6 @@ class BookingService(
 
     /** 14.5 for 2:30 PM in the house's zone: the number a day grid positions a block with. */
     fun hourOfDay(start: Instant): Double = LocalTime.ofInstant(start, zone).let { it.hour + it.minute / MINUTES_PER_HOUR }
-
-    /** "Wed Oct 15, 2:30 PM", in the house's zone rather than the reader's. */
-    fun dayAndTimeLabel(start: Instant): String = dayAndTime(start)
 
     fun epochDayOf(instant: Instant): Int = LocalDate.ofInstant(instant, zone).toEpochDay().toInt()
 
@@ -450,12 +448,7 @@ class BookingService(
     private fun tooClose(startAt: Instant, endAt: Instant, held: BookingRow): Boolean =
         startAt < held.endAt.plus(turnaround) && endAt.plus(turnaround) > held.startAt
 
-    private fun dayWord(instant: Instant, today: LocalDate): String = when (LocalDate.ofInstant(instant, zone)) {
-        today -> "Today"
-        today.plusDays(1) -> "Tomorrow"
-        else -> LocalDate.ofInstant(instant, zone).format(DAY_LABEL)
-    }
-
+    /** The English wording the server's own notices use; screens word a date themselves. */
     private fun dayAndTime(instant: Instant): String = "${LocalDate.ofInstant(instant, zone).format(DAY_LABEL)}, ${slotLabel(instant)}"
 
     private fun reasonWord(reason: DeclineReasonDto, booking: BookingRow): String = when (reason) {

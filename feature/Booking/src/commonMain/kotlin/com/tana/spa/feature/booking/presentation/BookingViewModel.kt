@@ -48,7 +48,7 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         }
 
         is BookingEvent.DaySelected -> {
-            setState { copy(day = event.day, slotAtEpochMillis = null) }
+            setState { copy(chosenDay = event.day, slotAtEpochMillis = null) }
             reloadSlots()
         }
 
@@ -155,6 +155,7 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
                             services = loaded.services,
                             therapists = loaded.therapists,
                             serviceId = serviceId ?: loaded.services.firstOrNull()?.id,
+                            todayEpochDay = loaded.todayEpochDay,
                             catalogLoading = false,
                             catalogFailed = false,
                         )

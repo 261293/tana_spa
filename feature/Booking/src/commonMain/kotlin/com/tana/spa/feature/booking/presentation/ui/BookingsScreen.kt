@@ -32,6 +32,7 @@ import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
 import com.tana.spa.core.ui.components.SpaStatusPill
+import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.feature.booking.domain.GuestBooking
 import com.tana.spa.feature.booking.presentation.BookingsEffect
 import com.tana.spa.feature.booking.presentation.BookingsEvent
@@ -138,7 +139,7 @@ private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boo
             Text(
                 text = stringResource(
                     Res.string.bookings_meta,
-                    booking.startLabel,
+                    formatDayAndTime(booking.startDayEpochDay, booking.startHour),
                     booking.therapistName,
                     stringResource(Res.string.booking_price, booking.total),
                 ),
@@ -239,7 +240,7 @@ private fun CancelDialog(booking: GuestBooking, onEvent: (BookingsEvent) -> Unit
         },
         text = {
             Text(
-                text = stringResource(Res.string.bookings_cancel_body, booking.startLabel),
+                text = stringResource(Res.string.bookings_cancel_body, formatDayAndTime(booking.startDayEpochDay, booking.startHour)),
                 style = SpaTheme.textStyles.body,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

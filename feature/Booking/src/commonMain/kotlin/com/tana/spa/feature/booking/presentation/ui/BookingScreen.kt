@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -46,6 +45,8 @@ import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.spaFelt
 import com.tana.spa.core.ui.components.spaPocket
+import com.tana.spa.core.ui.formatHour
+import com.tana.spa.core.ui.formatRelative
 import com.tana.spa.feature.booking.presentation.BookingEffect
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingState
@@ -62,7 +63,6 @@ import com.tana.spa.feature.booking.resources.booking_strip_pick_time
 import com.tana.spa.feature.booking.resources.booking_subtitle
 import com.tana.spa.feature.booking.resources.booking_title
 import com.tana.spa.feature.booking.resources.booking_title_accent
-import com.tana.spa.shared.spa.formatLong
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -154,11 +154,11 @@ private fun CompactBooking(state: BookingState, onEvent: (BookingEvent) -> Unit,
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
-                        text = state.day.formatLong(),
+                        text = state.day.formatRelative(state.today),
                         style = SpaTheme.textStyles.cardTitle,
                         color = MaterialTheme.colorScheme.onBackground,
                     )
-                    DateRail(state.day, onSelect = { onEvent(BookingEvent.DaySelected(it)) })
+                    DateRail(state.day, state.today, onSelect = { onEvent(BookingEvent.DaySelected(it)) })
                     SlotGrid(
                         state = state,
                         onSelect = { onEvent(BookingEvent.SlotSelected(it)) },
@@ -232,10 +232,11 @@ private fun WideBooking(state: BookingState, onEvent: (BookingEvent) -> Unit, on
                     ) {
                         MonthCalendar(
                             selected = state.day,
+                            today = state.today,
                             onSelect = { onEvent(BookingEvent.DaySelected(it)) },
                         )
                         Text(
-                            text = stringResource(Res.string.booking_open_times, state.day.formatLong()),
+                            text = stringResource(Res.string.booking_open_times, state.day.formatRelative(state.today)),
                             style = SpaTheme.textStyles.body,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -290,7 +291,10 @@ private fun ReservationStrip(state: BookingState, onReview: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "${state.day.formatLong()} · ${state.slot?.label ?: stringResource(Res.string.booking_strip_pick_time)} · " +
+                text =
+                "${state.day.formatRelative(state.today)} · ${state.slot?.let {
+                    formatHour(it.startHour)
+                } ?: stringResource(Res.string.booking_strip_pick_time)} · " +
                     stringResource(Res.string.booking_price, state.totalUsd),
                 style = SpaTheme.textStyles.caption,
                 color = SpaTheme.extraColors.onPocketMuted,

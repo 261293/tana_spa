@@ -25,7 +25,11 @@ class SpaCatalogRepositoryImpl(private val networkClient: NetworkClient, private
         val response = networkClient.httpClient.get(baseUrl + BookingApi.CATALOG)
         check(response.status.isSuccess()) { "Catalog request failed with ${response.status.value}" }
         val body = response.body<CatalogResponse>()
-        return Catalog(services = body.services.map { it.toService() }, therapists = body.therapists.map { it.toTherapist() })
+        return Catalog(
+            services = body.services.map { it.toService() },
+            therapists = body.therapists.map { it.toTherapist() },
+            todayEpochDay = body.todayEpochDay,
+        )
     }
 }
 

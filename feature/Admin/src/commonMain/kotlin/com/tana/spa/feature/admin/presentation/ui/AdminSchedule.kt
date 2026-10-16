@@ -26,6 +26,7 @@ import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaAvatar
 import com.tana.spa.core.ui.components.spaCork
 import com.tana.spa.core.ui.components.spaDashedBorder
+import com.tana.spa.core.ui.formatHour
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
 import com.tana.spa.feature.admin.resources.Res
@@ -33,7 +34,6 @@ import com.tana.spa.feature.admin.resources.admin_block_meta
 import com.tana.spa.feature.admin.resources.admin_block_range
 import com.tana.spa.feature.admin.resources.admin_overlap_block
 import com.tana.spa.feature.admin.resources.admin_proposed
-import com.tana.spa.shared.spa.formatHour
 import com.tana.spa.shared.spa.initialsOf
 import org.jetbrains.compose.resources.stringResource
 

@@ -1,3 +1,11 @@
 <resources>
     <string name="brand_name">Jade Bathhouse</string>
+
+    <!-- The app's destinations, in the bottom bar, the rail and the app bar. -->
+    <string name="nav_book">Book</string>
+    <string name="nav_alerts">Alerts</string>
+    <string name="nav_offers">Offers</string>
+    <string name="nav_desk">Desk</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_visits">Your visits</string>
 </resources>

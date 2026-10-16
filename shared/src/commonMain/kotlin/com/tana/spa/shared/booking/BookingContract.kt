@@ -106,12 +106,13 @@ data class TherapistDto(
     val name: String,
     val focus: String,
     val accent: TherapistAccentDto,
-    /** The next free slot, already worded ("Today 2:30 PM"); null when the diary is full. */
-    val nextSlot: String?,
+    /** The next free slot; null when the diary is full. */
+    val nextSlot: SlotMomentDto?,
 )
 
+/** [todayEpochDay] is the day it is at the spa, which is what "today" means on a booking screen. */
 @Serializable
-data class CatalogResponse(val services: List<ServiceDto>, val therapists: List<TherapistDto>)
+data class CatalogResponse(val services: List<ServiceDto>, val therapists: List<TherapistDto>, val todayEpochDay: Int)
 
 @Serializable
 data class OfferDto(
@@ -139,8 +140,12 @@ data class OfferCheckRequest(val code: String, val serviceSlug: String?)
 @Serializable
 data class OfferCheckResponse(val accepted: Boolean, val offer: OfferDto? = null, val discount: Int = 0, val reason: String? = null)
 
+/** A moment in the house's own time zone: [hour] is 14.5 for half past two, which is what a clock face needs. */
 @Serializable
-data class SlotDto(val startAtEpochMillis: Long, val label: String, val available: Boolean)
+data class SlotMomentDto(val dayEpochDay: Int, val hour: Double)
+
+@Serializable
+data class SlotDto(val startAtEpochMillis: Long, val startHour: Double, val available: Boolean)
 
 @Serializable
 data class AvailabilityResponse(val dayEpochDay: Int, val slots: List<SlotDto>)
@@ -173,8 +178,8 @@ data class BookingDto(
     val endAtEpochMillis: Long,
     /** The start in the house's own time zone: 14.5 is 2:30 PM, which is what a day grid measures. */
     val startHour: Double,
-    /** The start already worded in the house's zone ("Wed Oct 15, 2:30 PM"), for lists and notices. */
-    val startLabel: String,
+    /** The day the start falls on in the house's zone; with [startHour] it words a date the reader can read. */
+    val startDayEpochDay: Int,
     val status: BookingStatusDto,
     val subtotal: Int,
     val discount: Int,

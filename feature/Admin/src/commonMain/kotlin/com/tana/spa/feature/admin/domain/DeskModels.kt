@@ -9,9 +9,9 @@ enum class DeskStatus { PENDING, CONFIRMED, DECLINED, COMPLETED, CANCELLED, NO_S
  * schedule show, already worded in the house's own terms.
  *
  * [startHour] is the hour of the day the appointment starts (14.5 for 2:30 PM), which is what the
- * schedule column measures with; [startLabel] carries the day with it ("Wed Oct 15, 2:30 PM"),
- * because a request in the queue can be for any day, not only today. [waitedMinutes] is how long
- * the guest has been waiting for an answer, counted when the queue was read.
+ * schedule column measures with; [startDayEpochDay] carries the day, because a request in the
+ * queue can be for any day, not only today. [waitedMinutes] is how long the guest has been
+ * waiting for an answer, counted when the queue was read.
  */
 data class DeskRequest(
     val id: String,
@@ -24,7 +24,7 @@ data class DeskRequest(
     val therapistName: String,
     val startAtEpochMillis: Long,
     val startHour: Double,
-    val startLabel: String,
+    val startDayEpochDay: Int,
     val status: DeskStatus,
     val waitedMinutes: Int,
     val total: Int,

@@ -1,23 +1,23 @@
 <resources>
-    <string name="promotions_title">Slow down,</string>
-    <string name="promotions_title_accent">for less</string>
-    <string name="promotions_subtitle">Codes are checked when you book. The discount shows only once it applies.</string>
+    <string name="promotions_title">Thư giãn,</string>
+    <string name="promotions_title_accent">tiết kiệm hơn</string>
+    <string name="promotions_subtitle">Mã được kiểm tra khi bạn đặt lịch. Mức giảm chỉ hiện khi mã dùng được.</string>
 
-    <string name="promotions_valid_until">Valid until %1$s</string>
-    <string name="promotions_copy">Copy %1$s</string>
-    <string name="promotions_copied">%1$s copied</string>
-    <string name="promotions_book_eligible">Book a %1$s with %2$s</string>
-    <string name="promotions_book_any">Book with %1$s</string>
+    <string name="promotions_valid_until">Dùng đến %1$s</string>
+    <string name="promotions_copy">Sao chép %1$s</string>
+    <string name="promotions_copied">Đã sao chép %1$s</string>
+    <string name="promotions_book_eligible">Đặt %1$s với %2$s</string>
+    <string name="promotions_book_any">Đặt lịch với %1$s</string>
 
-    <string name="promotions_more">More active codes</string>
-    <string name="promotions_terms_until">%1$s Until %2$s.</string>
-    <string name="promotions_use_code">Use code</string>
+    <string name="promotions_more">Các mã đang áp dụng khác</string>
+    <string name="promotions_terms_until">%1$s Đến %2$s.</string>
+    <string name="promotions_use_code">Dùng mã</string>
 
-    <string name="promotions_have_code_title">Have a code from a gift card or email?</string>
-    <string name="promotions_have_code_body">Check it here before booking.</string>
-    <string name="promotions_code_label">Code</string>
+    <string name="promotions_have_code_title">Bạn có mã từ thẻ quà tặng hoặc email?</string>
+    <string name="promotions_have_code_body">Kiểm tra mã ở đây trước khi đặt lịch.</string>
+    <string name="promotions_code_label">Mã</string>
     <string name="promotions_code_placeholder">MIDWEEK15</string>
-    <string name="promotions_check">Check</string>
+    <string name="promotions_check">Kiểm tra</string>
     <string name="promotions_check_ok">%1$s: %2$s. %3$s</string>
-    <string name="promotions_check_failed">That code isn’t active. Check the spelling or the expiry date.</string>
+    <string name="promotions_check_failed">Mã này không còn hiệu lực. Kiểm tra lại chính tả hoặc hạn dùng.</string>
 </resources>

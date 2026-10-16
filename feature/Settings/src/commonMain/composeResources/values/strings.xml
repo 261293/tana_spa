@@ -1,30 +1,30 @@
 <resources>
-    <string name="settings_title">Your</string>
-    <string name="settings_title_accent">settings</string>
+    <string name="settings_title">Cài đặt</string>
+    <string name="settings_title_accent">của bạn</string>
 
-    <string name="settings_group_account">Account</string>
-    <string name="settings_group_booking">Booking notifications</string>
-    <string name="settings_group_promotions">Promotions</string>
-    <string name="settings_group_payment">Payment &amp; language</string>
+    <string name="settings_group_account">Tài khoản</string>
+    <string name="settings_group_booking">Thông báo lịch hẹn</string>
+    <string name="settings_group_promotions">Ưu đãi</string>
+    <string name="settings_group_payment">Thanh toán &amp; ngôn ngữ</string>
 
-    <string name="settings_edit">Edit</string>
-    <string name="settings_cancel">Cancel</string>
-    <string name="settings_save">Save changes</string>
-    <string name="settings_name">Full name</string>
+    <string name="settings_edit">Sửa</string>
+    <string name="settings_cancel">Hủy</string>
+    <string name="settings_save">Lưu thay đổi</string>
+    <string name="settings_name">Họ và tên</string>
     <string name="settings_email">Email</string>
-    <string name="settings_phone">Mobile</string>
+    <string name="settings_phone">Số điện thoại</string>
 
-    <string name="settings_confirmations">Confirmations &amp; changes</string>
-    <string name="settings_confirmations_help">When the spa confirms, moves or declines a request.</string>
-    <string name="settings_reminder">Day-before reminder</string>
-    <string name="settings_reminder_help">Arrival time and what to bring.</string>
-    <string name="settings_sms">Text messages</string>
-    <string name="settings_sms_help">Send booking updates to %1$s as well.</string>
-    <string name="settings_offers">Offers &amp; discount codes</string>
-    <string name="settings_offers_help">About two emails a month. Booking updates are separate.</string>
+    <string name="settings_confirmations">Xác nhận &amp; thay đổi</string>
+    <string name="settings_confirmations_help">Khi spa xác nhận, dời hoặc từ chối một yêu cầu.</string>
+    <string name="settings_reminder">Nhắc trước một ngày</string>
+    <string name="settings_reminder_help">Giờ đến và những thứ cần mang theo.</string>
+    <string name="settings_sms">Tin nhắn SMS</string>
+    <string name="settings_sms_help">Gửi cập nhật lịch hẹn tới %1$s nữa.</string>
+    <string name="settings_offers">Ưu đãi &amp; mã giảm giá</string>
+    <string name="settings_offers_help">Khoảng hai email mỗi tháng. Cập nhật lịch hẹn được gửi riêng.</string>
 
-    <string name="settings_card">Visa ending 4821</string>
-    <string name="settings_card_help">Held for late cancellations only</string>
-    <string name="settings_language">Language</string>
-    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_card">Visa đuôi 4821</string>
+    <string name="settings_card_help">Chỉ giữ cho trường hợp hủy sát giờ</string>
+    <string name="settings_language">Ngôn ngữ</string>
+    <string name="settings_sign_out">Đăng xuất</string>
 </resources>

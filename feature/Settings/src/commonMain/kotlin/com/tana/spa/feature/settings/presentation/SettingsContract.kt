@@ -1,5 +1,7 @@
 package com.tana.spa.feature.settings.presentation
 
+import com.tana.spa.core.ui.AppLanguage
+
 /** The signed-in account's own details; empty until the session has been read. */
 data class GuestProfile(val name: String = "", val email: String = "", val phone: String = "")
 
@@ -16,11 +18,8 @@ data class SettingsState(
     val draft: GuestProfile = GuestProfile(),
     val editing: Boolean = false,
     val prefs: NotificationPrefs = NotificationPrefs(),
-    val language: String = SupportedLanguages.first(),
+    val language: AppLanguage = AppLanguage.VIETNAMESE,
 )
-
-/** Language names are written in the language itself, so they are the same in every locale. */
-val SupportedLanguages = listOf("English", "Tiếng Việt", "Español", "中文")
 
 enum class NotificationPref { CONFIRMATIONS, DAY_BEFORE_REMINDER, TEXT_MESSAGES, OFFERS }
 
@@ -32,7 +31,7 @@ sealed interface SettingsEvent {
     data class DraftEmailChanged(val value: String) : SettingsEvent
     data class DraftPhoneChanged(val value: String) : SettingsEvent
     data class PrefToggled(val pref: NotificationPref, val enabled: Boolean) : SettingsEvent
-    data class LanguageChanged(val language: String) : SettingsEvent
+    data class LanguageChanged(val language: AppLanguage) : SettingsEvent
     data object SignOut : SettingsEvent
 }
 

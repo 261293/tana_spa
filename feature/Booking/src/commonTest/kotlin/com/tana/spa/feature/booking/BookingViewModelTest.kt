@@ -55,6 +55,21 @@ class BookingViewModelTest {
     }
 
     @Test
+    fun the_offered_day_follows_the_spa_s_own_today() = runTest(dispatcher) {
+        val spaToday = SpaCatalog.today.plusDays(9)
+        val vm = BookingViewModel(
+            FakeSpaCatalogRepository(ServerCatalog.catalog.copy(todayEpochDay = spaToday.epochDay)),
+            bookings,
+        ).also { testScheduler.advanceUntilIdle() }
+
+        assertEquals(spaToday, vm.state.value.today)
+        assertEquals(spaToday.plusDays(2), vm.state.value.day, "an unchosen day is counted from the spa's today")
+
+        vm.onEvent(BookingEvent.DaySelected(spaToday.plusDays(5)))
+        assertEquals(spaToday.plusDays(5), vm.state.value.day, "a day the guest picked is kept")
+    }
+
+    @Test
     fun the_flow_opens_on_any_therapist_and_sends_no_therapist_with_it() = runTest(dispatcher) {
         val vm = loadedViewModel()
         assertEquals(ANY_THERAPIST, vm.state.value.therapistId)
@@ -157,7 +172,7 @@ class BookingViewModelTest {
         vm.chooseFirstFreeSlot()
         assertEquals(1_000, vm.state.value.slotAtEpochMillis)
 
-        bookings.slots = listOf(Slot(1_000, "9:00 AM", available = false), Slot(3_000, "11:30 AM", available = true))
+        bookings.slots = listOf(Slot(1_000, 9.0, available = false), Slot(3_000, 11.5, available = true))
         vm.onEvent(BookingEvent.DaySelected(SpaCatalog.today.plusDays(4)))
         testScheduler.advanceUntilIdle()
 
@@ -169,12 +184,12 @@ class BookingViewModelTest {
     fun a_slow_answer_for_the_day_before_does_not_replace_the_times_on_offer() = runTest(dispatcher) {
         val vm = loadedViewModel()
 
-        bookings.slots = listOf(Slot(9_000, "7:00 PM", available = true))
+        bookings.slots = listOf(Slot(9_000, 19.0, available = true))
         bookings.slowAnswerMillis = 1_000
         vm.onEvent(BookingEvent.DaySelected(SpaCatalog.today.plusDays(3)))
         testScheduler.advanceTimeBy(1)
 
-        bookings.slots = listOf(Slot(5_000, "1:00 PM", available = true))
+        bookings.slots = listOf(Slot(5_000, 13.0, available = true))
         vm.onEvent(BookingEvent.DaySelected(SpaCatalog.today.plusDays(4)))
         testScheduler.advanceUntilIdle()
 

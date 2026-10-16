@@ -15,8 +15,7 @@ class SpaDateTest {
     @Test
     fun weekday_counts_from_monday() {
         assertEquals(3, SpaDate(1970, 1, 1).weekdayIndex) // a Thursday
-        assertEquals("Thu", SpaDate(2026, 10, 15).weekdayShort())
-        assertEquals("Sun", SpaDate(2026, 10, 18).weekdayShort())
+        assertEquals(6, SpaDate(2026, 10, 18).weekdayIndex) // a Sunday
     }
 
     @Test
@@ -37,12 +36,5 @@ class SpaDateTest {
         assertEquals(29, SpaDate.daysInMonth(2000, 2))
         assertEquals(28, SpaDate.daysInMonth(1900, 2))
         assertEquals(30, SpaDate.daysInMonth(2026, 11))
-    }
-
-    @Test
-    fun formats_match_the_design() {
-        assertEquals("Thu, Oct 15", SpaDate(2026, 10, 15).formatLong())
-        assertEquals("October 2026", SpaDate(2026, 10, 15).formatMonthYear())
-        assertEquals("Thursday, October 15", SpaDate(2026, 10, 15).formatFull())
     }
 }

@@ -15,6 +15,7 @@ import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
 import com.tana.spa.shared.booking.ServiceDto
 import com.tana.spa.shared.booking.TherapistDto
+import com.tana.spa.shared.spa.SpaDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -52,7 +53,7 @@ class AdminRequestsViewModelTest {
         therapistName = "Mai Tran",
         startAtEpochMillis = startAtEpochMillis,
         startHour = 14.5,
-        startLabel = "Wed Oct 21, 2:30 PM",
+        startDayEpochDay = SpaDate(2026, 10, 21).epochDay,
         status = status,
         waitedMinutes = waitedMinutes,
         total = 165,

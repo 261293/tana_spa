@@ -1,5 +1,8 @@
 package com.tana.spa
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -8,8 +11,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -28,13 +33,23 @@ import com.tana.spa.core.ui.ProvideSpaWindowSize
 import com.tana.spa.core.ui.components.SpaAvatar
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
+import com.tana.spa.core.ui.components.SpaSplash
 import com.tana.spa.core.ui.model.NavConfig
+import com.tana.spa.core.ui.resources.Res
+import com.tana.spa.core.ui.resources.nav_alerts
+import com.tana.spa.core.ui.resources.nav_book
+import com.tana.spa.core.ui.resources.nav_desk
+import com.tana.spa.core.ui.resources.nav_offers
+import com.tana.spa.core.ui.resources.nav_settings
+import com.tana.spa.core.ui.resources.nav_visits
 import com.tana.spa.core.ui.scafold.AppScaffold
 import com.tana.spa.feature.appupdate.AppUpdateGate
 import com.tana.spa.feature.auth.data.local.SessionStore
 import com.tana.spa.feature.auth.domain.model.UserRoleName
 import com.tana.spa.shared.featureflags.FeatureFlag
 import com.tana.spa.shared.spa.initialsOf
+import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
 /**
@@ -74,12 +89,30 @@ fun App() {
 
         // Measured once, here: every screen below reads the same window size class.
         ProvideSpaWindowSize(Modifier.fillMaxSize()) {
-            CurrentRoute(navigator, current, notificationsEnabled)
-            // Above every route, sign-in included: a build below the supported floor must not get
-            // as far as the login form.
-            AppUpdateGate.Content()
+            // Below the navigator on purpose: changing language composes this subtree again, and
+            // the back stack has to survive that rather than drop the guest back at sign-in.
+            AppLocale {
+                CurrentRoute(navigator, current, notificationsEnabled)
+                // Above every route, sign-in included: a build below the supported floor must not
+                // get as far as the login form.
+                AppUpdateGate.Content()
+            }
+            // Outside AppLocale, whose key() would bring the splash back on every language change.
+            Splash()
         }
     }
+}
+
+private const val SPLASH_HOLD_MS = 1_200L
+
+@Composable
+private fun Splash() {
+    var visible by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(SPLASH_HOLD_MS)
+        visible = false
+    }
+    AnimatedVisibility(visible, enter = EnterTransition.None, exit = fadeOut()) { SpaSplash() }
 }
 
 /**
@@ -127,7 +160,18 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
     val owner = account?.role == UserRoleName.OWNER
 
     AppScaffold(
-        navItems = navDestinations(owner, notificationsEnabled, unread),
+        navItems = navDestinations(
+            owner = owner,
+            notificationsEnabled = notificationsEnabled,
+            unread = unread,
+            labels = NavLabels(
+                book = stringResource(Res.string.nav_book),
+                alerts = stringResource(Res.string.nav_alerts),
+                offers = stringResource(Res.string.nav_offers),
+                desk = stringResource(Res.string.nav_desk),
+                settings = stringResource(Res.string.nav_settings),
+            ),
+        ),
         // A treatment's detail page and the guest's own visits belong to the booking flow, so
         // Book stays the lit destination on both.
         selectedRoute = if (route in BOOKING_FLOW_ROUTES) Routes.BOOKING else route,
@@ -140,7 +184,7 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
                     icon = SpaIcon.CalendarCheck,
                     size = 22.dp,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    contentDescription = "Your visits",
+                    contentDescription = stringResource(Res.string.nav_visits),
                 )
             }
             SpaAvatar(
@@ -155,14 +199,17 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
     }
 }
 
+/** The words on the destinations, read from resources so they follow the chosen language. */
+data class NavLabels(val book: String, val alerts: String, val offers: String, val desk: String, val settings: String)
+
 /**
  * The destinations the signed-in account sees. Desk is the spa's own console: the server refuses
  * its calls for every other role, so leaving it out only keeps it out of a guest's way.
  */
-internal fun navDestinations(owner: Boolean, notificationsEnabled: Boolean, unread: Int): List<NavConfig> = buildList {
-    add(NavConfig(Routes.BOOKING, "Book", SpaIcon.CalendarPlus))
-    add(NavConfig(Routes.NOTIFICATIONS, "Alerts", SpaIcon.Bell, badgeCount = if (notificationsEnabled) unread else 0))
-    add(NavConfig(Routes.PROMOTIONS, "Offers", SpaIcon.Tag))
-    if (owner) add(NavConfig(Routes.ADMIN_REQUESTS, "Desk", SpaIcon.Calendar))
-    add(NavConfig(Routes.SETTINGS, "Settings", SpaIcon.Gear))
+internal fun navDestinations(owner: Boolean, notificationsEnabled: Boolean, unread: Int, labels: NavLabels): List<NavConfig> = buildList {
+    add(NavConfig(Routes.BOOKING, labels.book, SpaIcon.CalendarPlus))
+    add(NavConfig(Routes.NOTIFICATIONS, labels.alerts, SpaIcon.Bell, badgeCount = if (notificationsEnabled) unread else 0))
+    add(NavConfig(Routes.PROMOTIONS, labels.offers, SpaIcon.Tag))
+    if (owner) add(NavConfig(Routes.ADMIN_REQUESTS, labels.desk, SpaIcon.Calendar))
+    add(NavConfig(Routes.SETTINGS, labels.settings, SpaIcon.Gear))
 }

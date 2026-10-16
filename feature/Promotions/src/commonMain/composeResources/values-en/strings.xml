@@ -1,0 +1,23 @@
+<resources>
+    <string name="promotions_title">Slow down,</string>
+    <string name="promotions_title_accent">for less</string>
+    <string name="promotions_subtitle">Codes are checked when you book. The discount shows only once it applies.</string>
+
+    <string name="promotions_valid_until">Valid until %1$s</string>
+    <string name="promotions_copy">Copy %1$s</string>
+    <string name="promotions_copied">%1$s copied</string>
+    <string name="promotions_book_eligible">Book a %1$s with %2$s</string>
+    <string name="promotions_book_any">Book with %1$s</string>
+
+    <string name="promotions_more">More active codes</string>
+    <string name="promotions_terms_until">%1$s Until %2$s.</string>
+    <string name="promotions_use_code">Use code</string>
+
+    <string name="promotions_have_code_title">Have a code from a gift card or email?</string>
+    <string name="promotions_have_code_body">Check it here before booking.</string>
+    <string name="promotions_code_label">Code</string>
+    <string name="promotions_code_placeholder">MIDWEEK15</string>
+    <string name="promotions_check">Check</string>
+    <string name="promotions_check_ok">%1$s: %2$s. %3$s</string>
+    <string name="promotions_check_failed">That code isn’t active. Check the spelling or the expiry date.</string>
+</resources>
