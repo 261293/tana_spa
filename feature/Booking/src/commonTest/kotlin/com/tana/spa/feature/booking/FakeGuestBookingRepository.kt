@@ -6,6 +6,7 @@ import com.tana.spa.feature.booking.domain.GuestBookingRepository
 import com.tana.spa.feature.booking.domain.Slot
 import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.booking.DeclineReasonDto
+import kotlinx.coroutines.delay
 
 /** A request the screen sent, so a test can assert on the slug and the time, not on call counts. */
 data class SentBooking(val serviceSlug: String, val therapistSlug: String?, val startAtEpochMillis: Long, val code: String?)
@@ -46,6 +47,9 @@ class FakeGuestBookingRepository(
     var failAvailability = false
     var failMine = false
 
+    /** Holds up the next availability answer, so an earlier call can answer after a later one. */
+    var slowAnswerMillis = 0L
+
     val sent = mutableListOf<SentBooking>()
     val cancelled = mutableListOf<String>()
     val availabilityAsked = mutableListOf<Pair<Int, String?>>()
@@ -53,7 +57,9 @@ class FakeGuestBookingRepository(
     override suspend fun availability(dayEpochDay: Int, therapistSlug: String?): List<Slot> {
         availabilityAsked += dayEpochDay to therapistSlug
         if (failAvailability) throw IllegalStateException("offline")
-        return slots
+        val answer = slots
+        delay(slowAnswerMillis.also { slowAnswerMillis = 0 })
+        return answer
     }
 
     override suspend fun create(serviceSlug: String, therapistSlug: String?, startAtEpochMillis: Long, code: String?): BookingAttempt {

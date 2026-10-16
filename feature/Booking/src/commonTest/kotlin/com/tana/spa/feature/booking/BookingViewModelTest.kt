@@ -151,6 +151,23 @@ class BookingViewModelTest {
     }
 
     @Test
+    fun a_slow_answer_for_the_day_before_does_not_replace_the_times_on_offer() = runTest(dispatcher) {
+        val vm = loadedViewModel()
+
+        bookings.slots = listOf(Slot(9_000, "7:00 PM", available = true))
+        bookings.slowAnswerMillis = 1_000
+        vm.onEvent(BookingEvent.DaySelected(SpaCatalog.today.plusDays(3)))
+        testScheduler.advanceTimeBy(1)
+
+        bookings.slots = listOf(Slot(5_000, "1:00 PM", available = true))
+        vm.onEvent(BookingEvent.DaySelected(SpaCatalog.today.plusDays(4)))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(listOf(5_000L), vm.state.value.slots.map { it.startAtEpochMillis }, "the day on screen is the day that answered last")
+        assertTrue(!vm.state.value.slotsLoading)
+    }
+
+    @Test
     fun a_request_needs_a_treatment_and_a_time() = runTest(dispatcher) {
         val vm = loadedViewModel()
         assertTrue(!vm.state.value.canRequest)

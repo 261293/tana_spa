@@ -118,19 +118,22 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
     private fun loadSlots(day: SpaDate, therapistSlug: String?) {
         setState { copy(slotsLoading = true) }
         viewModelScope.launch {
-            runCatchingCancellable { bookings.availability(day.epochDay, therapistSlug) }
-                .onSuccess { slots ->
-                    setState {
-                        copy(
-                            slots = slots,
-                            slotsLoading = false,
-                            // Keep the chosen time only while it is still on offer and still free.
-                            slotAtEpochMillis = slotAtEpochMillis
-                                ?.takeIf { chosen -> slots.any { it.startAtEpochMillis == chosen && it.available } },
-                        )
-                    }
+            val open = runCatchingCancellable { bookings.availability(day.epochDay, therapistSlug) }.getOrNull().orEmpty()
+            setState {
+                // The answer names no day of its own, so a slower earlier one would otherwise land
+                // on a newer choice and offer times from another day.
+                if (day != this.day || therapistSlug != this.therapistSlug()) {
+                    this
+                } else {
+                    copy(
+                        slots = open,
+                        slotsLoading = false,
+                        // Keep the chosen time only while it is still on offer and still free.
+                        slotAtEpochMillis = slotAtEpochMillis
+                            ?.takeIf { chosen -> open.any { it.startAtEpochMillis == chosen && it.available } },
+                    )
                 }
-                .onFailure { setState { copy(slots = emptyList(), slotsLoading = false, slotAtEpochMillis = null) } }
+            }
         }
     }
 
