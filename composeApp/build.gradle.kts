@@ -44,6 +44,18 @@ kotlin {
             dependsOn(webMain)
         }
 
+        // Those explicit edges switch the default hierarchy template off for this module,
+        // so the source set the two iOS targets share has to be wired by hand as well.
+        val iosMain by creating {
+            dependsOn(commonMain.get())
+        }
+        iosArm64Main {
+            dependsOn(iosMain)
+        }
+        iosSimulatorArm64Main {
+            dependsOn(iosMain)
+        }
+
         commonMain.dependencies {
             implementation(projects.shared)
             implementation(projects.core.logging)
