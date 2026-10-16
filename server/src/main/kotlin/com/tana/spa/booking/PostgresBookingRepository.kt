@@ -224,6 +224,15 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
         return claimed.mapNotNull { booking(it) }
     }
 
+    override fun releaseReminder(id: String) {
+        dataSource.connection.use { c ->
+            c.prepareStatement("UPDATE bookings SET reminder_sent_at = NULL, updated_at = now() WHERE id = ?::uuid").use { ps ->
+                ps.setString(1, id)
+                ps.executeUpdate()
+            }
+        }
+    }
+
     private fun <T> query(sql: String, vararg args: String, read: (ResultSet) -> T): List<T> = dataSource.connection.use { c ->
         c.prepareStatement(sql).use { ps ->
             args.forEachIndexed { index, value -> ps.setString(index + 1, value) }

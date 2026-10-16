@@ -4,6 +4,7 @@ import com.tana.spa.auth.CreateUserResult
 import com.tana.spa.auth.PostgresUserRepository
 import com.tana.spa.db.TestDatabase
 import com.tana.spa.featureflags.FeatureFlagService
+import com.tana.spa.featureflags.FlagWriteResult
 import com.tana.spa.featureflags.InMemoryFeatureFlagRepository
 import com.tana.spa.notifications.NotificationService
 import com.tana.spa.notifications.PostgresNotificationRepository
@@ -260,6 +261,24 @@ class BookingServiceTest {
 
         service.sendDueReminders()
         assertEquals(1, remindersFor(userId), "a second sweep must not remind the same guest again")
+    }
+
+    @Test
+    fun a_guest_with_notifications_off_does_not_lose_the_reminder_for_good() = runTest {
+        val userId = newUser()
+        assertEquals(FlagWriteResult.Applied, flags.setForUser(FeatureFlag.NOTIFICATIONS, userId, false, null, "test"))
+        val start = reminderSlot(11, 30)
+        val booking = assertIs<BookingOutcome.Created>(
+            service.create(userId, "Amara", "+84333433969", "warm-stone-massage", "tomas", start, null, null),
+        ).booking
+        service.confirm(booking.id, newUser(), force = false)
+        now = start.minus(Duration.ofHours(20))
+
+        assertEquals(0, service.sendDueReminders(), "nothing is stored while the guest has notifications off")
+
+        flags.setForUser(FeatureFlag.NOTIFICATIONS, userId, true, null, "test")
+        assertEquals(1, service.sendDueReminders(), "the claim was given back, so the reminder is still due")
+        assertEquals(1, remindersFor(userId))
     }
 
     @Test
