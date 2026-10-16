@@ -50,6 +50,14 @@ enum class NotificationType(val wire: String) {
     }
 }
 
+/** The keys in a notification's `data`, written by the server and read by the app. */
+object NotificationData {
+    /** On a [NotificationType.BOOKING]: the visit it is about, which the app opens. */
+    const val BOOKING_ID = "bookingId"
+
+    const val BOOKING_REFERENCE = "reference"
+}
+
 /** Where a push token came from. Desktop has no push transport and never registers. */
 enum class DevicePlatform(val wire: String) {
     ANDROID("android"),

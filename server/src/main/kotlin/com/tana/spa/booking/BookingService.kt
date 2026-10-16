@@ -1,12 +1,14 @@
 package com.tana.spa.booking
 
 import com.tana.spa.notifications.NotificationService
+import com.tana.spa.notifications.SendNotificationResult
 import com.tana.spa.shared.booking.BookingErrorCodes
 import com.tana.spa.shared.booking.BookingRules
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
 import com.tana.spa.shared.booking.SpaValidation
+import com.tana.spa.shared.notifications.NotificationData
 import com.tana.spa.shared.notifications.NotificationSendRequest
 import com.tana.spa.shared.notifications.NotificationType
 import kotlinx.coroutines.CoroutineDispatcher
@@ -363,15 +365,23 @@ class BookingService(
     suspend fun sendDueReminders(): Int {
         val now = clock()
         val due = withContext(io) { repository.claimRemindable(now, now.plus(REMINDER_LEAD)) }
-        due.forEach { booking ->
-            notify(
+        val written = due.count { booking ->
+            val outcome = notify(
                 booking,
                 title = "Tomorrow at the spa",
                 body = "${booking.service.name} with ${booking.therapist?.name.orEmpty()} on ${dayAndTime(booking.startAt)}",
             )
+            // Notifications are off for this guest, so nothing was stored and the claim would
+            // otherwise have spent the one reminder this visit gets.
+            if (outcome is SendNotificationResult.FeatureDisabled) {
+                withContext(io) { repository.releaseReminder(booking.id) }
+                false
+            } else {
+                true
+            }
         }
-        if (due.isNotEmpty()) log.info("wrote {} appointment reminders", due.size)
-        return due.size
+        if (written > 0) log.info("wrote {} appointment reminders", written)
+        return written
     }
 
     /** Tries "jade-facial", then "jade-facial-2": a name the owner reuses must not fail to save. */
@@ -393,17 +403,18 @@ class BookingService(
     suspend fun disableCode(code: String): Boolean = withContext(io) { repository.disableVoucher(code) }
 
     /** A guest hears about a decision through the notification centre, not by refreshing. */
-    private suspend fun notify(booking: BookingRow, title: String, body: String) {
-        notifications.send(
-            NotificationSendRequest(
-                userId = booking.userId,
-                type = NotificationType.BOOKING.wire,
-                title = title,
-                body = body,
-                data = mapOf("bookingId" to booking.id, "reference" to booking.reference),
+    private suspend fun notify(booking: BookingRow, title: String, body: String): SendNotificationResult = notifications.send(
+        NotificationSendRequest(
+            userId = booking.userId,
+            type = NotificationType.BOOKING.wire,
+            title = title,
+            body = body,
+            data = mapOf(
+                NotificationData.BOOKING_ID to booking.id,
+                NotificationData.BOOKING_REFERENCE to booking.reference,
             ),
-        )
-    }
+        ),
+    )
 
     private fun isFree(therapist: TherapistRow, day: LocalDate, startAt: Instant, endAt: Instant): Boolean =
         held(therapist.id, day).none { tooClose(startAt, endAt, it) }

@@ -155,4 +155,7 @@ interface BookingRepository {
      * @return the bookings this caller claimed, so a task that runs twice reminds once.
      */
     fun claimRemindable(now: Instant, before: Instant): List<BookingRow>
+
+    /** Gives a claim from [claimRemindable] back, for a reminder that was never written. */
+    fun releaseReminder(id: String)
 }

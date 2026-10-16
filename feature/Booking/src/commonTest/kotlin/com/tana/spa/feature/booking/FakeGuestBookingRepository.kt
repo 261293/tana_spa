@@ -42,6 +42,7 @@ class FakeGuestBookingRepository(
     ),
 ) : GuestBookingRepository {
     var mine: List<GuestBooking> = emptyList()
+    var mineCalls = 0
     var createAnswer: BookingAttempt = BookingAttempt.Done(guestBooking())
     var cancelAnswer: BookingAttempt = BookingAttempt.Done(guestBooking(status = BookingStatusDto.CANCELLED))
     var failAvailability = false
@@ -70,6 +71,7 @@ class FakeGuestBookingRepository(
     }
 
     override suspend fun mine(): List<GuestBooking> {
+        mineCalls++
         if (failMine) throw IllegalStateException("offline")
         return mine
     }

@@ -87,16 +87,21 @@ private val ScreenPadding = 16.dp
 
 /** Stateless: renders [state], reports intents via [onEvent], routes one-shot [effects]. */
 @Composable
-fun NotificationsScreen(state: NotificationsState, effects: Flow<NotificationsEffect>, onEvent: (NotificationsEvent) -> Unit) {
+fun NotificationsScreen(
+    state: NotificationsState,
+    effects: Flow<NotificationsEffect>,
+    onEvent: (NotificationsEvent) -> Unit,
+    onOpenBooking: (String) -> Unit,
+) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(effects) {
         effects.collect { effect ->
-            val message = when (effect) {
-                NotificationsEffect.ShowLoadFailed -> getString(Res.string.notifications_load_failed)
-                NotificationsEffect.ShowPushEnabled -> getString(Res.string.notifications_enabled_message)
-                NotificationsEffect.ShowPushRefused -> getString(Res.string.notifications_refused_message)
+            when (effect) {
+                is NotificationsEffect.OpenBooking -> onOpenBooking(effect.bookingId)
+                NotificationsEffect.ShowLoadFailed -> snackbar.showSnackbar(getString(Res.string.notifications_load_failed))
+                NotificationsEffect.ShowPushEnabled -> snackbar.showSnackbar(getString(Res.string.notifications_enabled_message))
+                NotificationsEffect.ShowPushRefused -> snackbar.showSnackbar(getString(Res.string.notifications_refused_message))
             }
-            snackbar.showSnackbar(message)
         }
     }
 

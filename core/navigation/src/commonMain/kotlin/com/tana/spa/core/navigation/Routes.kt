@@ -36,6 +36,9 @@ object Routes {
 
     /** The treatment a detail page shows. */
     const val ARG_SERVICE = "service"
+
+    /** The visit a notification was about, so the list opens on it. */
+    const val ARG_BOOKING = "booking"
 }
 
 /** Builds "booking?code=JADE20". One argument per route is all this navigator carries. */
