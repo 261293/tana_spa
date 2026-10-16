@@ -19,11 +19,11 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
     ) { it.readService() }.firstOrNull()
 
     override fun therapists(): List<TherapistRow> = query(
-        "SELECT id, slug, name, focus, accent FROM therapists WHERE is_active ORDER BY sort_order",
+        "SELECT id, slug, name, focus, focus_vi, accent FROM therapists WHERE is_active ORDER BY sort_order",
     ) { it.readTherapist() }
 
     override fun therapistBySlug(slug: String): TherapistRow? = query(
-        "SELECT id, slug, name, focus, accent FROM therapists WHERE slug = ? AND is_active",
+        "SELECT id, slug, name, focus, focus_vi, accent FROM therapists WHERE slug = ? AND is_active",
         slug,
     ) { it.readTherapist() }.firstOrNull()
 
@@ -255,6 +255,8 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
         description = getString("description").orEmpty(),
         price = getLong("price_vnd"),
         minutes = getInt("duration_minutes"),
+        nameVi = getString("service_name_vi"),
+        descriptionVi = getString("service_description_vi"),
     )
 
     private fun ResultSet.readTherapist() = TherapistRow(
@@ -263,6 +265,7 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
         name = getString("name"),
         focus = getString("focus"),
         accent = getString("accent"),
+        focusVi = getString("focus_vi"),
     )
 
     private fun ResultSet.readVoucher() = VoucherRow(
@@ -298,6 +301,7 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
                     slug = getString("therapist_slug"),
                     name = getString("therapist_name"),
                     focus = getString("therapist_focus"),
+                    focusVi = getString("therapist_focus_vi"),
                     accent = getString("therapist_accent"),
                 )
             },
@@ -318,9 +322,11 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
     }
 
     private companion object {
+        // The Vietnamese columns travel with the base ones so one reader serves both languages.
         const val SERVICE_SELECT = """
             SELECT s.id AS service_id, s.slug AS service_slug, s.name AS service_name,
-                   c.slug AS category_slug, s.description, s.price_vnd, s.duration_minutes
+                   c.slug AS category_slug, s.description, s.price_vnd, s.duration_minutes,
+                   s.name_vi AS service_name_vi, s.description_vi AS service_description_vi
             FROM services s JOIN service_categories c ON c.id = s.category_id
         """
 
@@ -336,9 +342,10 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
                    b.customer_phone, b.note, b.subtotal_vnd, b.discount_vnd, b.total_vnd,
                    b.created_at, b.decline_reason, b.alternative_offer,
                    b.therapist_id, t.slug AS therapist_slug, t.name AS therapist_name,
-                   t.focus AS therapist_focus, t.accent AS therapist_accent,
+                   t.focus AS therapist_focus, t.focus_vi AS therapist_focus_vi, t.accent AS therapist_accent,
                    s.id AS service_id, s.slug AS service_slug, s.name AS service_name,
                    c.slug AS category_slug, s.description, s.price_vnd, s.duration_minutes,
+                   s.name_vi AS service_name_vi, s.description_vi AS service_description_vi,
                    v.code AS voucher_code
             FROM bookings b
             JOIN booking_items bi ON bi.booking_id = b.id

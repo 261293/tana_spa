@@ -1,8 +1,13 @@
 package com.tana.spa
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,9 +15,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -68,16 +76,45 @@ private val FULL_SCREEN_ROUTES = setOf(
 )
 
 /** Screens the Book destination owns: reaching one does not leave the booking flow. */
-private val BOOKING_FLOW_ROUTES = setOf(Routes.SERVICE_DETAIL, Routes.MY_BOOKINGS)
+private val BOOKING_FLOW_ROUTES = setOf(
+    Routes.BOOKING_THERAPIST,
+    Routes.BOOKING_WHEN,
+    Routes.BOOKING_CONFIRM,
+    Routes.SERVICE_DETAIL,
+    Routes.MY_BOOKINGS,
+)
+
+/** The console, which only the spa and the administrators can use; every call it makes is checked. */
+private val CONSOLE_ROUTES = setOf(Routes.ADMIN_REQUESTS, Routes.ADMIN_MENU, Routes.ADMIN_CODES)
+
+/**
+ * The screen to open on. [urlRoute] is what the web's address bar names and is followed only for
+ * an account that can use it: without a session the only screen is sign-in, and a guest restoring
+ * a console URL would get a screen whose every call the server refuses.
+ */
+internal fun restoredRoute(urlRoute: String, role: UserRoleName?): String {
+    if (role == null) return Routes.AUTH
+    val name = urlRoute.routeName()
+    val console = name in CONSOLE_ROUTES && role != UserRoleName.OWNER && role != UserRoleName.ADMIN
+    val known = FeaturesRegistry.entries.any { it.route == name }
+    return if (known && !console) urlRoute else Routes.BOOKING
+}
 
 @Composable
 fun App() {
     AppTheme {
         // The app opens on the login screen; it forwards to the booking screen itself when a
-        // valid session is already stored.
-        val navigator = rememberNavigator(Routes.AUTH)
+        // valid session is already stored. On the web the URL may name a screen to come back to.
+        val sessions: SessionStore = koinInject()
+        val navigator = rememberNavigator(remember { restoredRoute(RouteUrl.current(Routes.BOOKING), sessions.load()?.user?.role) })
         // `current` is backed by mutableStateOf, so reading it here observes navigation.
         val current = navigator.current
+
+        LaunchedEffect(current) { RouteUrl.push(current) }
+        // shortcut: a browser Back pushes the restored route onto the stack rather than unwinding
+        // it, so in-app Back then retraces the detour. Upgrade when the back stack is mirrored
+        // into history state instead of just the route.
+        LaunchedEffect(Unit) { RouteUrl.observe { navigator.navigate(it) } }
 
         val featureFlags: FeatureFlagStore = koinInject()
         LaunchedEffect(current) { featureFlags.refreshIfStale() }
@@ -92,7 +129,7 @@ fun App() {
             // Below the navigator on purpose: changing language composes this subtree again, and
             // the back stack has to survive that rather than drop the guest back at sign-in.
             AppLocale {
-                CurrentRoute(navigator, current, notificationsEnabled)
+                CurrentRoute(navigator, current, navigator.depth, notificationsEnabled)
                 // Above every route, sign-in included: a build below the supported floor must not
                 // get as far as the login form.
                 AppUpdateGate.Content()
@@ -139,15 +176,14 @@ private fun PushRegistration(current: String, notificationsEnabled: Boolean) {
 }
 
 @Composable
-private fun CurrentRoute(navigator: Navigator, current: String, notificationsEnabled: Boolean) {
+private fun CurrentRoute(navigator: Navigator, current: String, depth: Int, notificationsEnabled: Boolean) {
     // A route may carry an argument ("booking?code=JADE20"); entries are registered under the name.
     val route = current.routeName()
-    val entry = FeaturesRegistry.entries.firstOrNull { it.route == route }
     // Keeps each screen's saveable state (scroll position above all) while it is off screen, so
     // coming back from a detail page lands where the guest left the list.
     val screenState = rememberSaveableStateHolder()
     if (route in FULL_SCREEN_ROUTES) {
-        screenState.SaveableStateProvider(route) { entry?.Content(navigator) }
+        RouteTransition(route, depth, navigator, screenState)
         return
     }
 
@@ -195,9 +231,42 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
             )
         },
     ) {
-        screenState.SaveableStateProvider(route) { entry?.Content(navigator) }
+        RouteTransition(route, depth, navigator, screenState)
     }
 }
+
+/**
+ * Moving between screens reads as a move: the arriving screen fades in from a little to the side
+ * while the one it replaces fades out. Going back mirrors it, so a screen leaves the way it came.
+ * Sign-in, onboarding and the console are drawn by the other branch of [CurrentRoute], so arriving
+ * from one of those stays a cut rather than a slide.
+ */
+@Composable
+private fun RouteTransition(route: String, depth: Int, navigator: Navigator, screenState: SaveableStateHolder) {
+    // The depth the screen now leaving was shown at; a shallower stack is what Back looks like.
+    val shownAt = remember { mutableIntStateOf(depth) }
+    val back = depth < shownAt.intValue
+    SideEffect { shownAt.intValue = depth }
+
+    AnimatedContent(
+        targetState = route,
+        transitionSpec = {
+            val entersFrom: (Int) -> Int = { width -> if (back) -width / ROUTE_SLIDE_FRACTION else width / ROUTE_SLIDE_FRACTION }
+            (fadeIn(tween(ROUTE_ENTER_MS)) + slideInHorizontally(tween(ROUTE_ENTER_MS), entersFrom))
+                .togetherWith(fadeOut(tween(ROUTE_EXIT_MS)))
+        },
+        label = "route",
+    ) { shown ->
+        val entry = FeaturesRegistry.entries.firstOrNull { it.route == shown }
+        screenState.SaveableStateProvider(shown) { entry?.Content(navigator) }
+    }
+}
+
+private const val ROUTE_ENTER_MS = 220
+private const val ROUTE_EXIT_MS = 120
+
+/** How far along the screen the arriving content starts: a hint of travel, not a page turn. */
+private const val ROUTE_SLIDE_FRACTION = 12
 
 /** The words on the destinations, read from resources so they follow the chosen language. */
 data class NavLabels(val book: String, val alerts: String, val offers: String, val desk: String, val settings: String)

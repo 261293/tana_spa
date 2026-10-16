@@ -43,6 +43,7 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
+import io.ktor.server.request.acceptLanguageItems
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
@@ -63,10 +64,11 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
         // The menu and the offers are what a visitor sees before signing in.
         get(BookingApi.CATALOG) {
             val nextSlots = service.nextFreeSlots()
+            val vietnamese = call.vietnamese()
             call.respond(
                 CatalogResponse(
-                    services = service.services().map { it.toDto() },
-                    therapists = service.therapists().map { it.toDto(nextSlots[it.slug]) },
+                    services = service.services().map { it.toDto(vietnamese) },
+                    therapists = service.therapists().map { it.toDto(nextSlots[it.slug], vietnamese) },
                     todayEpochDay = service.epochDayOf(Instant.now()),
                 ),
             )
@@ -111,7 +113,7 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
             route(BookingApi.BOOKINGS) {
                 get {
                     val user = call.signedInUser(auth) ?: return@get
-                    call.respond(BookingsResponse(service.bookingsOf(user.id).map { it.toDto(service) }))
+                    call.respond(BookingsResponse(service.bookingsOf(user.id).map { it.toDto(service, call.vietnamese()) }))
                 }
 
                 post {
@@ -128,8 +130,8 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
                         note = request.note,
                     )
                     when (outcome) {
-                        is BookingOutcome.Created -> call.respond(HttpStatusCode.Created, outcome.booking.toDto(service))
-                        is BookingOutcome.Decided -> call.respond(outcome.booking.toDto(service))
+                        is BookingOutcome.Created -> call.respond(HttpStatusCode.Created, outcome.booking.toDto(service, call.vietnamese()))
+                        is BookingOutcome.Decided -> call.respond(outcome.booking.toDto(service, call.vietnamese()))
                         is BookingOutcome.Refused -> call.respondRefusal(outcome)
                     }
                 }
@@ -148,8 +150,8 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
                     val today = service.dayFromEpochDay(service.epochDayOf(now))
                     call.respond(
                         StaffQueueResponse(
-                            pending = service.pending().map { it.toDto(service, conflict = service.conflictFor(it)) },
-                            scheduled = service.scheduledOn(today).map { it.toDto(service) },
+                            pending = service.pending().map { it.toDto(service, call.vietnamese(), conflict = service.conflictFor(it)) },
+                            scheduled = service.scheduledOn(today).map { it.toDto(service, call.vietnamese()) },
                             dayEpochDay = service.epochDayOf(now),
                         ),
                     )
@@ -192,7 +194,7 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
                         BookingErrorCodes.UNKNOWN_SERVICE,
                         "That treatment could not be added",
                     )
-                call.respond(HttpStatusCode.Created, created.toDto())
+                call.respond(HttpStatusCode.Created, created.toDto(call.vietnamese()))
             }
 
             post(BookingApi.OWNER_THERAPISTS) {
@@ -205,7 +207,7 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
                         BookingErrorCodes.UNKNOWN_THERAPIST,
                         "That therapist could not be added",
                     )
-                call.respond(HttpStatusCode.Created, created.toDto(nextSlot = null))
+                call.respond(HttpStatusCode.Created, created.toDto(nextSlot = null, vietnamese = call.vietnamese()))
             }
 
             route(BookingApi.ADMIN_CODES) {
@@ -281,8 +283,8 @@ private suspend fun ApplicationCall.respondInvalidField(field: String) =
     respondApiError(HttpStatusCode.BadRequest, AuthErrorCodes.INVALID_REQUEST, "The $field is not valid", field)
 
 private suspend fun ApplicationCall.respondOutcome(outcome: BookingOutcome, service: BookingService) = when (outcome) {
-    is BookingOutcome.Created -> respond(outcome.booking.toDto(service))
-    is BookingOutcome.Decided -> respond(outcome.booking.toDto(service))
+    is BookingOutcome.Created -> respond(outcome.booking.toDto(service, vietnamese()))
+    is BookingOutcome.Decided -> respond(outcome.booking.toDto(service, vietnamese()))
     is BookingOutcome.Refused -> respondRefusal(outcome)
 }
 
@@ -310,14 +312,28 @@ private suspend fun io.ktor.server.application.ApplicationCall.respondRefusal(re
     respondApiError(status, refused.code, refused.detail ?: refused.code.replace('_', ' '))
 }
 
-private fun ServiceRow.toDto() = ServiceDto(
+private fun ServiceRow.toDto(vietnamese: Boolean) = ServiceDto(
     slug = slug,
-    name = name,
+    name = inLanguage(nameVi, name, vietnamese),
     minutes = minutes,
     price = price.toInt(),
     category = categorySlug.toCategoryDto(),
-    includes = description,
+    includes = inLanguage(descriptionVi, description, vietnamese),
 )
+
+/**
+ * The language the app is drawing itself in, which it sends on every call. The catalogue is data
+ * rather than resources, so this is the only way the server can know which text to answer with.
+ */
+private fun ApplicationCall.vietnamese(): Boolean =
+    request.acceptLanguageItems().firstOrNull()?.value?.startsWith("vi", ignoreCase = true) == true
+
+/**
+ * Falls back to the text as it was written: a treatment the owner added in one language is shown
+ * to everybody rather than coming back blank in the other.
+ */
+private fun inLanguage(translated: String?, base: String, vietnamese: Boolean): String =
+    translated?.takeIf { vietnamese && it.isNotBlank() } ?: base
 
 private fun String.toCategoryDto(): ServiceCategoryDto = when (lowercase()) {
     "facial" -> ServiceCategoryDto.FACIAL
@@ -325,10 +341,10 @@ private fun String.toCategoryDto(): ServiceCategoryDto = when (lowercase()) {
     else -> ServiceCategoryDto.MASSAGE
 }
 
-private fun TherapistRow.toDto(nextSlot: SlotMomentDto?) = TherapistDto(
+private fun TherapistRow.toDto(nextSlot: SlotMomentDto?, vietnamese: Boolean) = TherapistDto(
     slug = slug,
     name = name,
-    focus = focus,
+    focus = inLanguage(focusVi, focus, vietnamese),
     accent = when (accent) {
         "dusk" -> TherapistAccentDto.DUSK
         "amber" -> TherapistAccentDto.AMBER
@@ -372,13 +388,13 @@ private fun VoucherRow.toAdminDto(): AdminCodeDto {
     )
 }
 
-private fun BookingRow.toDto(service: BookingService, conflict: BookingRow? = null) = BookingDto(
+private fun BookingRow.toDto(service: BookingService, vietnamese: Boolean, conflict: BookingRow? = null) = BookingDto(
     id = id,
     reference = reference,
     guestName = guestName,
     guestPhone = guestPhone,
-    service = this.service.toDto(),
-    therapist = therapist?.toDto(null) ?: TherapistDto("", "", "", TherapistAccentDto.MOSS, null),
+    service = this.service.toDto(vietnamese),
+    therapist = therapist?.toDto(null, vietnamese) ?: TherapistDto("", "", "", TherapistAccentDto.MOSS, null),
     startAtEpochMillis = startAt.toEpochMilli(),
     endAtEpochMillis = endAt.toEpochMilli(),
     startHour = service.hourOfDay(startAt),
