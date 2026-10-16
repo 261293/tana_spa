@@ -174,6 +174,24 @@ class BookingServiceTest {
     }
 
     @Test
+    fun a_slot_a_long_treatment_would_run_past_is_not_offered_for_it() = runTest {
+        // A day of its own, so no other test's booking decides what is free here.
+        val quietDay = day.plusDays(5)
+        val ten = quietDay.atTime(LocalTime.of(10, 0)).atZone(zone).toInstant()
+        val elevenThirty = quietDay.atTime(LocalTime.of(11, 30)).atZone(zone).toInstant()
+        service.create(newUser(), "Held", "+14155550105", "jade-roller-facial", "lena", elevenThirty, null, null)
+
+        val forAnHour = service.availability("lena", quietDay, "jade-roller-facial")
+        val forNinetyMinutes = service.availability("lena", quietDay, "warm-stone-massage")
+
+        assertTrue(forAnHour.single { it.first == ten }.second, "an hour ends at 11:00, in time for the 11:30 booking")
+        assertTrue(
+            forNinetyMinutes.single { it.first == ten }.second.not(),
+            "90 minutes runs into the 11:30 booking, so offering it would only earn a refusal",
+        )
+    }
+
+    @Test
     fun confirming_notifies_the_guest_and_cannot_happen_twice() = runTest {
         val userId = newUser()
         val booking = assertIs<BookingOutcome.Created>(

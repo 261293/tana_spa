@@ -90,7 +90,11 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
         get(BookingApi.AVAILABILITY) {
             val day = call.request.queryParameters[BookingApi.QUERY_DAY]?.toIntOrNull()
                 ?: service.epochDayOf(Instant.now())
-            val slots = service.availability(call.request.queryParameters[BookingApi.QUERY_THERAPIST], service.dayFromEpochDay(day))
+            val slots = service.availability(
+                therapistSlug = call.request.queryParameters[BookingApi.QUERY_THERAPIST],
+                day = service.dayFromEpochDay(day),
+                serviceSlug = call.request.queryParameters[BookingApi.QUERY_SERVICE],
+            )
             call.respond(
                 AvailabilityResponse(
                     dayEpochDay = day,

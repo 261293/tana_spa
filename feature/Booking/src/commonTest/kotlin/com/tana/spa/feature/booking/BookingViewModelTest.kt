@@ -70,7 +70,11 @@ class BookingViewModelTest {
             "the sample \"any\" id must never reach the server",
         )
         val day = SpaCatalog.today.plusDays(2).epochDay
-        assertEquals(listOf(day to null, day to null), bookings.availabilityAsked.toList())
+        assertEquals(
+            listOf(Triple(day, null, ServerCatalog.stone.id), Triple(day, null, ServerCatalog.stone.id)),
+            bookings.availabilityAsked.toList(),
+            "the diary is asked for the treatment being chosen, since its length decides what fits",
+        )
     }
 
     @Test
@@ -87,6 +91,17 @@ class BookingViewModelTest {
         testScheduler.advanceUntilIdle()
 
         assertEquals("mai", bookings.sent.single().therapistSlug)
+    }
+
+    @Test
+    fun choosing_a_treatment_asks_the_diary_again_because_its_length_decides_what_fits() = runTest(dispatcher) {
+        val vm = loadedViewModel()
+        assertEquals(ServerCatalog.stone.id, bookings.availabilityAsked.single().third)
+
+        vm.onEvent(BookingEvent.ServiceSelected(ServerCatalog.facial.id))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(ServerCatalog.facial.id, bookings.availabilityAsked.last().third)
     }
 
     @Test

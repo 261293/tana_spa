@@ -52,10 +52,12 @@ class FakeGuestBookingRepository(
 
     val sent = mutableListOf<SentBooking>()
     val cancelled = mutableListOf<String>()
-    val availabilityAsked = mutableListOf<Pair<Int, String?>>()
 
-    override suspend fun availability(dayEpochDay: Int, therapistSlug: String?): List<Slot> {
-        availabilityAsked += dayEpochDay to therapistSlug
+    /** Day, therapist and treatment of every diary request, in order. */
+    val availabilityAsked = mutableListOf<Triple<Int, String?, String?>>()
+
+    override suspend fun availability(dayEpochDay: Int, therapistSlug: String?, serviceSlug: String?): List<Slot> {
+        availabilityAsked += Triple(dayEpochDay, therapistSlug, serviceSlug)
         if (failAvailability) throw IllegalStateException("offline")
         val answer = slots
         delay(slowAnswerMillis.also { slowAnswerMillis = 0 })

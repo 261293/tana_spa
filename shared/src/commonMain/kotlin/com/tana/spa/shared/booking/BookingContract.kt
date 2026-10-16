@@ -39,6 +39,9 @@ object BookingApi {
     const val ADMIN_BASE = "/api/v1/admin/spa"
     const val ADMIN_CODES = "$ADMIN_BASE/codes"
 
+    /** The treatment the times are asked for: a longer one needs more of the diary free. */
+    const val QUERY_SERVICE = "service"
+
     /** `?therapist=mai&day=20376` (epoch day, in the house's own time zone). */
     const val QUERY_THERAPIST = "therapist"
     const val QUERY_DAY = "day"

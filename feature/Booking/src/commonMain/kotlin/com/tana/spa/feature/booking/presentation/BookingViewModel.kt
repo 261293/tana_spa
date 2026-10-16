@@ -23,27 +23,34 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
 
     init {
         loadCatalog()
-        loadSlots(state.value.day, therapistSlug = null)
     }
 
     override fun handleEvent(event: BookingEvent) = when (event) {
-        is BookingEvent.CodeOffered -> setState { withOfferedCode(event.code) }
+        // An offered code also picks the treatment it is valid for, which the diary answers for.
+        is BookingEvent.CodeOffered -> {
+            setState { withOfferedCode(event.code) }
+            reloadSlots()
+        }
 
-        is BookingEvent.ServiceSelected -> setState {
-            val chosen = copy(serviceId = event.id)
-            // The code was checked against the old treatment; eligibility may no longer hold.
-            chosen.copy(check = check?.let { checkPromoCode(code, chosen.service) })
+        is BookingEvent.ServiceSelected -> {
+            setState {
+                val chosen = copy(serviceId = event.id)
+                // The code was checked against the old treatment; eligibility may no longer hold.
+                chosen.copy(check = check?.let { checkPromoCode(code, chosen.service) })
+            }
+            // A longer treatment needs more of the diary, so it is offered fewer times.
+            reloadSlots()
         }
 
         is BookingEvent.TherapistSelected -> {
             setState { copy(therapistId = event.id) }
             // Another pair of hands has another diary, so the open times change with them.
-            loadSlots(state.value.day, state.value.therapistSlug())
+            reloadSlots()
         }
 
         is BookingEvent.DaySelected -> {
             setState { copy(day = event.day, slotAtEpochMillis = null) }
-            loadSlots(event.day, state.value.therapistSlug())
+            reloadSlots()
         }
 
         is BookingEvent.SlotSelected -> setState { copy(slotAtEpochMillis = event.startAtEpochMillis) }
@@ -56,10 +63,7 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
             copy(check = result)
         }
 
-        BookingEvent.RetryCatalog -> {
-            loadCatalog()
-            loadSlots(state.value.day, state.value.therapistSlug())
-        }
+        BookingEvent.RetryCatalog -> loadCatalog()
 
         BookingEvent.Submit -> submit()
 
@@ -113,16 +117,20 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         }
     }
 
-    private fun reloadSlots() = loadSlots(state.value.day, state.value.therapistSlug())
-
-    private fun loadSlots(day: SpaDate, therapistSlug: String?) {
+    /** The diary is asked for the choice as it stands: the day, the hands and the treatment. */
+    private fun reloadSlots() {
+        val day = state.value.day
+        val therapistSlug = state.value.therapistSlug()
+        val serviceSlug = state.value.serviceId
         setState { copy(slotsLoading = true) }
         viewModelScope.launch {
-            val open = runCatchingCancellable { bookings.availability(day.epochDay, therapistSlug) }.getOrNull().orEmpty()
+            val open = runCatchingCancellable { bookings.availability(day.epochDay, therapistSlug, serviceSlug) }
+                .getOrNull()
+                .orEmpty()
             setState {
-                // The answer names no day of its own, so a slower earlier one would otherwise land
-                // on a newer choice and offer times from another day.
-                if (day != this.day || therapistSlug != this.therapistSlug()) {
+                // The answer names no choice of its own, so a slower earlier one would otherwise
+                // land on a newer one and offer times for another day or treatment.
+                if (day != this.day || therapistSlug != this.therapistSlug() || serviceSlug != serviceId) {
                     this
                 } else {
                     copy(
@@ -154,8 +162,10 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
                         // An offered code can arrive from the offers screen before the menu does.
                         if (menu.code.isNotEmpty() && menu.check == null) menu.withOfferedCode(menu.code) else menu
                     }
+                    // The treatment decides which times fit, so the diary is asked once it is known.
+                    reloadSlots()
                 }
-                .onFailure { setState { copy(catalogLoading = false, catalogFailed = true) } }
+                .onFailure { setState { copy(catalogLoading = false, catalogFailed = true, slotsLoading = false) } }
         }
     }
 

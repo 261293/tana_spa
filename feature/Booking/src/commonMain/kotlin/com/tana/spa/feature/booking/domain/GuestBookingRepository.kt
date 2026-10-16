@@ -55,8 +55,11 @@ sealed interface BookingAttempt {
 }
 
 interface GuestBookingRepository {
-    /** The open times of [dayEpochDay]; a null [therapistSlug] asks for "any therapist". */
-    suspend fun availability(dayEpochDay: Int, therapistSlug: String?): List<Slot>
+    /**
+     * The open times of [dayEpochDay] for [serviceSlug], whose length decides how much of the
+     * diary a slot needs. A null [therapistSlug] asks for "any therapist".
+     */
+    suspend fun availability(dayEpochDay: Int, therapistSlug: String?, serviceSlug: String?): List<Slot>
 
     /** A null [therapistSlug] lets the spa assign whoever is free. */
     suspend fun create(serviceSlug: String, therapistSlug: String?, startAtEpochMillis: Long, code: String?): BookingAttempt

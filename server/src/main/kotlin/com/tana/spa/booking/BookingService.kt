@@ -124,20 +124,26 @@ class BookingService(
     /**
      * Every slot of [day], with the ones already held marked unavailable. A null [therapistSlug]
      * is "any therapist": the slot is open while one of them is still free.
+     *
+     * [serviceSlug] is the treatment being chosen, and it decides as much as the start does: a
+     * 90-minute treatment at 10:00 runs into an 11:30 booking, so the answer has to refuse the
+     * 10:00 slot that a shorter treatment could still have. Without it only the start is judged,
+     * and [create] may then refuse a slot this said was open.
      */
-    suspend fun availability(therapistSlug: String?, day: LocalDate): List<Pair<Instant, Boolean>> = withContext(io) {
-        val therapist = therapistSlug?.let { repository.therapistBySlug(it) }
-        val diaries = if (therapist != null) listOf(therapist.id) else repository.therapists().map { it.id }
-        val heldByTherapist = diaries.associateWith { id -> held(id, day) }
-        val now = clock()
-        SLOT_TIMES.map { time ->
-            val start = day.atTime(time).atZone(zone).toInstant()
-            val free = start > now && heldByTherapist.values.any { diary -> diary.none { start.inside(it) } }
-            start to free
+    suspend fun availability(therapistSlug: String?, day: LocalDate, serviceSlug: String? = null): List<Pair<Instant, Boolean>> =
+        withContext(io) {
+            val therapist = therapistSlug?.let { repository.therapistBySlug(it) }
+            val diaries = if (therapist != null) listOf(therapist.id) else repository.therapists().map { it.id }
+            val heldByTherapist = diaries.associateWith { id -> held(id, day) }
+            val minutes = serviceSlug?.let { repository.serviceBySlug(it) }?.minutes ?: 0
+            val now = clock()
+            SLOT_TIMES.map { time ->
+                val start = day.atTime(time).atZone(zone).toInstant()
+                val end = start.plus(Duration.ofMinutes(minutes.toLong()))
+                val free = start > now && heldByTherapist.values.any { diary -> diary.none { tooClose(start, end, it) } }
+                start to free
+            }
         }
-    }
-
-    private fun Instant.inside(held: BookingRow): Boolean = this >= held.startAt && this < held.endAt.plus(turnaround)
 
     fun slotLabel(start: Instant): String = LocalTime.ofInstant(start, zone).format(SLOT_LABEL)
 

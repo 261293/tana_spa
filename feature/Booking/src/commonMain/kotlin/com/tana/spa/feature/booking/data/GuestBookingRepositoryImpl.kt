@@ -34,10 +34,11 @@ class GuestBookingRepositoryImpl(
     private val tokens: AccessTokenSource,
 ) : GuestBookingRepository {
 
-    override suspend fun availability(dayEpochDay: Int, therapistSlug: String?): List<Slot> {
+    override suspend fun availability(dayEpochDay: Int, therapistSlug: String?, serviceSlug: String?): List<Slot> {
         val response = networkClient.httpClient.get(baseUrl + BookingApi.AVAILABILITY) {
             parameter(BookingApi.QUERY_DAY, dayEpochDay)
             therapistSlug?.let { parameter(BookingApi.QUERY_THERAPIST, it) }
+            serviceSlug?.let { parameter(BookingApi.QUERY_SERVICE, it) }
         }
         check(response.status.isSuccess()) { "Availability request failed with ${response.status.value}" }
         return response.body<AvailabilityResponse>().slots.map { Slot(it.startAtEpochMillis, it.label, it.available) }
