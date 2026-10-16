@@ -8,7 +8,6 @@ import com.tana.spa.feature.booking.domain.GuestBookingRepository
 import com.tana.spa.feature.booking.domain.SpaCatalogRepository
 import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.SpaCatalog
-import com.tana.spa.shared.spa.SpaDate
 import com.tana.spa.shared.spa.checkPromoCode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch

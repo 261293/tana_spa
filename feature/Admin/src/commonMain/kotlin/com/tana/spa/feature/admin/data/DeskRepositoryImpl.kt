@@ -114,6 +114,7 @@ private fun BookingDto.toRequest(nowEpochMillis: Long) = DeskRequest(
     therapistName = therapist.name,
     startAtEpochMillis = startAtEpochMillis,
     startHour = startHour,
+    startLabel = startLabel,
     status = status.toDeskStatus(),
     waitedMinutes = ((nowEpochMillis - createdAtEpochMillis) / MILLIS_PER_MINUTE).toInt().coerceAtLeast(0),
     total = total,

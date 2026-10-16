@@ -52,6 +52,7 @@ class AdminRequestsViewModelTest {
         therapistName = "Mai Tran",
         startAtEpochMillis = startAtEpochMillis,
         startHour = 14.5,
+        startLabel = "Wed Oct 21, 2:30 PM",
         status = status,
         waitedMinutes = waitedMinutes,
         total = 165,

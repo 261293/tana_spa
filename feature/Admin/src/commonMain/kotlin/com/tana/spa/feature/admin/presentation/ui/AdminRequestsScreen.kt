@@ -369,7 +369,8 @@ private fun DecisionPanel(request: DeskRequest, nowEpochMillis: Long, onEvent: (
                     stringResource(Res.string.admin_detail_time),
                     stringResource(
                         Res.string.admin_time_range,
-                        formatHour(request.startHour),
+                        // The spa's own wording, day and all: a request can be for any day.
+                        request.startLabel,
                         formatHour(request.startHour + request.minutes / MINUTES_PER_HOUR.toDouble()),
                     ),
                 )
