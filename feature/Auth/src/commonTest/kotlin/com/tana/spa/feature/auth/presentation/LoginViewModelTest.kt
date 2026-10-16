@@ -63,6 +63,26 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun theOwnerLandsInTheConsoleAndEveryoneElseInTheGuestApp() = runTest {
+        val owner = TestFixtures.response.copy(user = TestFixtures.response.user.copy(role = "owner"))
+        remote.response = owner
+        val vm = viewModel()
+        vm.fill()
+        vm.onEvent(LoginEvent.Submit)
+
+        assertEquals(LoginEffect.NavigateToDesk, vm.effects.first())
+
+        // Signed out again: without this the stored owner session would route the next screen.
+        store.clear()
+        remote.response = TestFixtures.response.copy(user = TestFixtures.response.user.copy(role = "admin"))
+        val administrator = viewModel()
+        administrator.fill()
+        administrator.onEvent(LoginEvent.Submit)
+
+        assertEquals(LoginEffect.NavigateHome, administrator.effects.first(), "operating the system is not running the spa")
+    }
+
+    @Test
     fun emptyFormShowsFieldErrorsWithoutCallingServer() {
         val vm = viewModel()
         vm.onEvent(LoginEvent.Submit)

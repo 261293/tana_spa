@@ -21,8 +21,8 @@ sealed interface LoginEffect {
     data object NavigateHome : LoginEffect
     data object NavigateToSignUp : LoginEffect
 
-    /** The staff console: a separate product reached from the guest sign-in screen. */
-    data object NavigateToStaffConsole : LoginEffect
+    /** The spa's own console, reached by signing in as the owner - there is no other way in. */
+    data object NavigateToDesk : LoginEffect
     data class ShowComingSoon(val feature: ComingSoon) : LoginEffect
 }
 

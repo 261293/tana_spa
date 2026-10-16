@@ -1,15 +1,21 @@
 package com.tana.spa.feature.booking.presentation
 
+import com.tana.spa.feature.booking.domain.GuestBooking
+import com.tana.spa.feature.booking.domain.Slot
 import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.Service
 import com.tana.spa.shared.spa.SpaCatalog
 import com.tana.spa.shared.spa.SpaDate
 import com.tana.spa.shared.spa.Therapist
 
+/** The picker's "whoever is free" choice. It is not a therapist, so it has no slug of its own. */
+const val ANY_THERAPIST = "any"
+
 /**
  * [check] is null until the guest applies a code; a null that follows an edit means "not checked
  * yet", which the screen words differently from a refusal. [services] and [therapists] come from
- * the server's catalogue, so their ids are the slugs a booking has to name.
+ * the server's catalogue, and [slots] from its diary, so everything this screen sends names
+ * something the server knows.
  */
 data class BookingState(
     val services: List<Service> = emptyList(),
@@ -17,18 +23,25 @@ data class BookingState(
     val catalogLoading: Boolean = true,
     val catalogFailed: Boolean = false,
     val serviceId: String? = null,
-    val therapistId: String? = null,
+    /** [ANY_THERAPIST] until the guest names one; the request then carries no therapist. */
+    val therapistId: String = ANY_THERAPIST,
     val day: SpaDate = SpaCatalog.today.plusDays(2),
-    val slot: String? = null,
+    val slots: List<Slot> = emptyList(),
+    val slotsLoading: Boolean = true,
+    val slotAtEpochMillis: Long? = null,
     val code: String = "",
     val check: PromoCheck? = null,
-    val requestSent: Boolean = false,
+    val sending: Boolean = false,
+    /** The booking the spa recorded; the confirmation sheet is open while it is set. */
+    val sent: GuestBooking? = null,
 ) {
     val service: Service? get() = services.firstOrNull { it.id == serviceId }
     val therapist: Therapist? get() = therapists.firstOrNull { it.id == therapistId }
+    val anyTherapist: Boolean get() = therapistId == ANY_THERAPIST
+    val slot: Slot? get() = slots.firstOrNull { it.startAtEpochMillis == slotAtEpochMillis }
     val discountUsd: Int get() = (check as? PromoCheck.Applied)?.discountUsd ?: 0
     val totalUsd: Int get() = (service?.priceUsd ?: 0) - discountUsd
-    val canRequest: Boolean get() = service != null && therapist != null && slot != null
+    val canRequest: Boolean get() = service != null && slot != null && !sending
 }
 
 sealed interface BookingEvent {
@@ -37,15 +50,20 @@ sealed interface BookingEvent {
     data class ServiceSelected(val id: String) : BookingEvent
     data class TherapistSelected(val id: String) : BookingEvent
     data class DaySelected(val day: SpaDate) : BookingEvent
-    data class SlotSelected(val slot: String) : BookingEvent
+    data class SlotSelected(val startAtEpochMillis: Long) : BookingEvent
     data class CodeChanged(val value: String) : BookingEvent
     data object ApplyCode : BookingEvent
     data object RetryCatalog : BookingEvent
     data object Submit : BookingEvent
     data object DismissSent : BookingEvent
     data object OpenNotifications : BookingEvent
+    data object OpenBookings : BookingEvent
 }
 
 sealed interface BookingEffect {
     data object NavigateToNotifications : BookingEffect
+    data object NavigateToBookings : BookingEffect
+
+    /** The spa refused the request; [code] is one of `BookingErrorCodes`, null when nothing arrived. */
+    data class ShowRefusal(val code: String?) : BookingEffect
 }

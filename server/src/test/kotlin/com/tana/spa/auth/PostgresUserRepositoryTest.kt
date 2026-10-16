@@ -191,25 +191,27 @@ class PostgresUserRepositoryTest {
     }
 
     @Test
-    fun ensureAdminCreatesAnAdministratorWithoutAPhoneNumber() {
-        val address = email()
+    fun ensureSeededCreatesAPrivilegedAccountWithoutAPhoneNumber() {
+        for (role in listOf(UserRole.ADMIN, UserRole.OWNER)) {
+            val address = email()
 
-        val admin = assertNotNull(repo.ensureAdmin(address, "Ops", "hash"))
+            val seeded = assertNotNull(repo.ensureSeeded(address, "Ops", "hash", role))
 
-        assertEquals(UserRole.ADMIN, admin.role)
-        assertEquals(address, admin.email)
-        assertNull(admin.phone, "an administrator has no number to verify by SMS")
-        assertEquals(UserRole.ADMIN, assertNotNull(repo.findByEmail(address)).role)
+            assertEquals(role, seeded.role)
+            assertEquals(address, seeded.email)
+            assertNull(seeded.phone, "a seeded account has no number to verify by SMS")
+            assertEquals(role, assertNotNull(repo.findByEmail(address)).role)
+        }
     }
 
     @Test
-    fun ensureAdminIsIdempotentUnderTheEmailUniqueIndex() {
+    fun ensureSeededIsIdempotentUnderTheEmailUniqueIndex() {
         val address = email()
-        val first = assertNotNull(repo.ensureAdmin(address, "Ops", "hash"))
+        val first = assertNotNull(repo.ensureSeeded(address, "Ops", "hash", UserRole.ADMIN))
 
-        val second = assertNotNull(repo.ensureAdmin(address, "Someone Else", "other-hash"))
+        val second = assertNotNull(repo.ensureSeeded(address, "Someone Else", "other-hash", UserRole.OWNER))
 
-        assertEquals(first, second, "a second start-up must not change the account")
+        assertEquals(first, second, "a second start-up must not change the account or its role")
     }
 
     @Test

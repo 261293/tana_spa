@@ -2,6 +2,7 @@ package com.tana.spa.common
 
 import com.tana.spa.core.navigation.FeatureEntry
 import com.tana.spa.feature.admin.AdminCodesEntry
+import com.tana.spa.feature.admin.AdminMenuEntry
 import com.tana.spa.feature.admin.AdminRequestsEntry
 import com.tana.spa.feature.assistant.AssistantEntry
 import com.tana.spa.feature.assistant.ConsentEntry
@@ -10,6 +11,7 @@ import com.tana.spa.feature.auth.AuthEntry
 import com.tana.spa.feature.auth.SignUpEntry
 import com.tana.spa.feature.auth.VerifyPhoneEntry
 import com.tana.spa.feature.booking.BookingEntry
+import com.tana.spa.feature.booking.BookingsEntry
 import com.tana.spa.feature.booking.ServiceDetailEntry
 import com.tana.spa.feature.explore.ExploreEntry
 import com.tana.spa.feature.feed.FeedEntry
@@ -24,10 +26,12 @@ import com.tana.spa.feature.settings.SettingsEntry
 object FeaturesRegistry {
     val entries: List<FeatureEntry> = listOf(
         BookingEntry,
+        BookingsEntry,
         ServiceDetailEntry,
         PromotionsEntry,
         SettingsEntry,
         AdminRequestsEntry,
+        AdminMenuEntry,
         AdminCodesEntry,
         FeedEntry,
         ExploreEntry,

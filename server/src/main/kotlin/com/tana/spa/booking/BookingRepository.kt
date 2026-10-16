@@ -67,6 +67,18 @@ data class NewBooking(
     val voucherId: String?,
 )
 
+/** A treatment the owner added. The slug is generated from the name and made unique. */
+data class NewService(
+    val slug: String,
+    val name: String,
+    val categorySlug: String,
+    val description: String,
+    val price: Long,
+    val minutes: Int,
+)
+
+data class NewTherapist(val slug: String, val name: String, val focus: String, val accent: String)
+
 data class NewVoucher(
     val code: String,
     val title: String,
@@ -121,4 +133,26 @@ interface BookingRepository {
 
     /** @return false when the row was no longer pending, so a double decision cannot land. */
     fun decide(id: String, status: String, decidedBy: String, declineReason: String?, alternativeOffer: String?): Boolean
+
+    /**
+     * Moves a booking on in its lifecycle: cancelled, completed or no-show.
+     *
+     * @param from the statuses the move is allowed from; the update carries the check, so two
+     *   callers racing leave one winner.
+     * @return false when the row had already moved.
+     */
+    fun transition(id: String, from: List<String>, to: String, decidedBy: String?): Boolean
+
+    /** @return null when that slug is taken, so the caller can try the next one. */
+    fun insertService(service: NewService): ServiceRow?
+
+    fun insertTherapist(therapist: NewTherapist): TherapistRow?
+
+    /**
+     * Claims confirmed bookings starting between [now] and [before] that nobody has reminded,
+     * stamping them in the same statement.
+     *
+     * @return the bookings this caller claimed, so a task that runs twice reminds once.
+     */
+    fun claimRemindable(now: Instant, before: Instant): List<BookingRow>
 }

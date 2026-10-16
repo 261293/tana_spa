@@ -19,6 +19,45 @@
 
     <string name="booking_menu_failed">We couldn’t load the treatment menu.</string>
     <string name="booking_menu_retry">Try again</string>
+    <string name="booking_no_times">No open times that day. Try another.</string>
+    <string name="booking_any_therapist">First available</string>
+    <string name="booking_any_therapist_focus">Fastest confirmation</string>
+    <string name="booking_review_any_therapist">Whoever is free</string>
+    <string name="booking_sent_bookings">View your visits</string>
+
+    <string name="refusal_slot_taken">That time has just been taken. Pick another.</string>
+    <string name="refusal_slot_past">That time has passed. Pick another.</string>
+    <string name="refusal_code">The spa didn’t accept that code for this treatment.</string>
+    <string name="refusal_too_late">It’s too close to the start to cancel here — please phone the spa.</string>
+    <string name="refusal_settled">That booking has already been settled.</string>
+    <string name="refusal_menu_changed">The menu changed while you were choosing. Try again.</string>
+    <string name="refusal_signed_out">Please sign in again.</string>
+    <string name="refusal_offline">We couldn’t reach the spa. Check the connection and try again.</string>
+    <string name="refusal_other">The spa couldn’t take that request. Try again.</string>
+
+    <string name="bookings_title">Your</string>
+    <string name="bookings_title_accent">visits</string>
+    <string name="bookings_subtitle">What you’ve asked for, and what the spa has confirmed.</string>
+    <string name="bookings_meta">%1$s · %2$s · %3$s</string>
+    <string name="bookings_empty">You have no visits booked yet.</string>
+    <string name="bookings_failed">We couldn’t load your visits.</string>
+    <string name="bookings_retry">Try again</string>
+    <string name="bookings_status_pending">Awaiting confirmation</string>
+    <string name="bookings_status_confirmed">Confirmed</string>
+    <string name="bookings_status_declined">Declined</string>
+    <string name="bookings_status_cancelled">Cancelled</string>
+    <string name="bookings_status_completed">Visited</string>
+    <string name="bookings_status_no_show">Missed</string>
+    <string name="bookings_decline_overlap">That therapist was already booked at the time you asked for.</string>
+    <string name="bookings_decline_therapist">That therapist wasn’t available at the time you asked for.</string>
+    <string name="bookings_decline_room">No treatment room was free at the time you asked for.</string>
+    <string name="bookings_instead">The spa suggests %1$s instead.</string>
+    <string name="bookings_cancel">Cancel this visit</string>
+    <string name="bookings_cancel_title">Cancel your %1$s?</string>
+    <string name="bookings_cancel_body">%1$s. The spa will release the time to someone else.</string>
+    <string name="bookings_cancel_keep">Keep it</string>
+    <string name="bookings_cancelled_toast">Your visit is cancelled</string>
+    <string name="bookings_too_late">Under two hours away — phone the spa to change it.</string>
 
     <string name="service_back">Treatments</string>
     <string name="service_duration">Duration</string>
@@ -57,7 +96,7 @@
     <string name="booking_strip_action">Review</string>
 
     <string name="booking_sent_title">Request sent</string>
-    <string name="booking_sent_body">%1$s with %2$s on %3$s at %4$s. We’ll notify you as soon as the spa confirms.</string>
+    <string name="booking_sent_body">%1$s with %2$s, %3$s. We’ll notify you as soon as the spa confirms.</string>
     <string name="booking_sent_notifications">View notifications</string>
     <string name="booking_sent_another">Book another treatment</string>
 </resources>

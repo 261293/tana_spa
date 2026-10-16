@@ -14,19 +14,29 @@ Deeper guides, not repeated here: `docs/release-signing.md` (keystore, certifica
 
 | # | What | Where |
 |---|------|-------|
-| 0.1 | **Seed admin accounts have public passwords** | `server/.../auth/AdminSeeder.kt` |
+| 0.1 | **Seed accounts need their passwords configured** | `server/.../auth/AccountSeeder.kt` |
 | 0.2 | **`JWT_SECRET` must be a real secret** | server environment |
 | 0.3 | **No backend or database is deployed** | see section 1 |
 
-### 0.1 Seed admin accounts (critical)
+### 0.1 Seed accounts (critical)
 
-`DEFAULT_ADMINS` hardcodes two administrator accounts sharing one password. This repository is
-**public**, so those credentials are readable by anyone. The moment a server runs with a database
-and `seedAdmins` executes, both accounts exist with those passwords and the `admin` role, which
-grants access to `/admin/` and the feature-flag controls.
+Two administrator accounts (`sanghtruong@tana.local`, `duchnguyen@tana.local`) are created on
+every start-up, and the spa owner with them. Their passwords come from the environment:
 
-Change the passwords, move them to environment variables, or delete the seeding call before the
-server is reachable. Treat the current passwords as already compromised — do not reuse them.
+| Variable | What it seeds |
+|---|---|
+| `SEED_ADMIN_PASSWORD` | the password of the two fixed administrators (required in production) |
+| `SEED_ADMINS` | further administrators, `email\|Name\|password` separated by `;` |
+| `SEED_OWNER` | the spa owner, `email\|Name\|password` (required in production) |
+
+With `APP_ENV=production` the server refuses to start without `SEED_ADMIN_PASSWORD` and
+`SEED_OWNER`. Outside production a missing password is generated per start and logged once.
+
+Seeding never promotes an existing account: an address someone already registered keeps the role
+it has, and a warning is logged.
+
+Any password that was ever committed to this repository is public — treat it as compromised and
+do not reuse it.
 
 ### 0.2 JWT secret
 

@@ -30,6 +30,7 @@ object BookingEntry : FeatureEntry {
             effects = viewModel.effects,
             onEvent = viewModel::onEvent,
             onOpenNotifications = { navigator.navigate(Routes.NOTIFICATIONS) },
+            onOpenBookings = { navigator.navigate(Routes.MY_BOOKINGS) },
             onOpenService = { navigator.navigate(Routes.SERVICE_DETAIL.withArg(Routes.ARG_SERVICE, it)) },
         )
     }

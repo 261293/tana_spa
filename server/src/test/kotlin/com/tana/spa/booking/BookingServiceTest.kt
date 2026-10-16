@@ -13,6 +13,7 @@ import com.tana.spa.shared.booking.DeclineReasonDto
 import com.tana.spa.shared.featureflags.ConfigurableFeatureFlags
 import com.tana.spa.shared.featureflags.FeatureFlag
 import kotlinx.coroutines.test.runTest
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -40,7 +41,7 @@ class BookingServiceTest {
 
     /** A Wednesday well clear of today, so no other test's bookings share it. */
     private val day: LocalDate = LocalDate.now(zone).plusDays(21)
-    private val now: Instant = day.minusDays(1).atTime(12, 0).atZone(zone).toInstant()
+    private var now: Instant = day.minusDays(1).atTime(12, 0).atZone(zone).toInstant()
 
     // Notifications ship off; the guest only hears about a decision when the flag is on.
     private val flags = FeatureFlagService(
@@ -64,6 +65,10 @@ class BookingServiceTest {
     }
 
     private fun slot(hour: Int, minute: Int = 0): Instant = day.atTime(LocalTime.of(hour, minute)).atZone(zone).toInstant()
+
+    /** A day of its own: the reminder sweep moves the clock, which the diary tests rely on. */
+    private fun reminderSlot(hour: Int, minute: Int = 0): Instant =
+        day.plusDays(3).atTime(LocalTime.of(hour, minute)).atZone(zone).toInstant()
 
     @Test
     fun the_seeded_catalogue_is_served() = runTest {
@@ -169,6 +174,24 @@ class BookingServiceTest {
     }
 
     @Test
+    fun a_slot_a_long_treatment_would_run_past_is_not_offered_for_it() = runTest {
+        // A day of its own, so no other test's booking decides what is free here.
+        val quietDay = day.plusDays(5)
+        val ten = quietDay.atTime(LocalTime.of(10, 0)).atZone(zone).toInstant()
+        val elevenThirty = quietDay.atTime(LocalTime.of(11, 30)).atZone(zone).toInstant()
+        service.create(newUser(), "Held", "+14155550105", "jade-roller-facial", "lena", elevenThirty, null, null)
+
+        val forAnHour = service.availability("lena", quietDay, "jade-roller-facial")
+        val forNinetyMinutes = service.availability("lena", quietDay, "warm-stone-massage")
+
+        assertTrue(forAnHour.single { it.first == ten }.second, "an hour ends at 11:00, in time for the 11:30 booking")
+        assertTrue(
+            forNinetyMinutes.single { it.first == ten }.second.not(),
+            "90 minutes runs into the 11:30 booking, so offering it would only earn a refusal",
+        )
+    }
+
+    @Test
     fun confirming_notifies_the_guest_and_cannot_happen_twice() = runTest {
         val userId = newUser()
         val booking = assertIs<BookingOutcome.Created>(
@@ -207,6 +230,54 @@ class BookingServiceTest {
     fun an_unknown_booking_cannot_be_decided() = runTest {
         val missing = service.confirm(UUID.randomUUID().toString(), newUser(), force = false)
         assertEquals(BookingErrorCodes.UNKNOWN_BOOKING, assertIs<BookingOutcome.Refused>(missing).code)
+    }
+
+    /**
+     * Counted per guest, not per sweep: every test in this class shares one database, so another
+     * test's confirmed booking may well be due at the same time.
+     */
+    private fun remindersFor(userId: String): Int = notificationRepository
+        .list(userId, limit = 20, beforeEpochMicros = null)
+        .count { it.title == "Tomorrow at the spa" }
+
+    @Test
+    fun a_confirmed_visit_is_reminded_once_however_often_the_sweep_runs() = runTest {
+        val userId = newUser()
+        val start = reminderSlot(14, 30)
+        val booking = assertIs<BookingOutcome.Created>(
+            service.create(userId, "Amara", "+84333433969", "warm-stone-massage", "mai", start, null, null),
+        ).booking
+        service.confirm(booking.id, newUser(), force = false)
+
+        // A day and a half out: nothing is due yet.
+        now = start.minus(Duration.ofHours(36))
+        service.sendDueReminders()
+        assertEquals(0, remindersFor(userId))
+
+        now = start.minus(Duration.ofHours(20))
+        service.sendDueReminders()
+        assertEquals(1, remindersFor(userId))
+
+        service.sendDueReminders()
+        assertEquals(1, remindersFor(userId), "a second sweep must not remind the same guest again")
+    }
+
+    @Test
+    fun a_visit_that_is_not_confirmed_is_never_reminded() = runTest {
+        val waiting = newUser()
+        val refused = newUser()
+        val start = reminderSlot(16)
+        service.create(waiting, "Amara", "+84333433969", "warm-stone-massage", "mai", start, null, null)
+        val declined = assertIs<BookingOutcome.Created>(
+            service.create(refused, "Diego", "+84333433970", "jade-roller-facial", "lena", start, null, null),
+        ).booking
+        service.decline(declined.id, newUser(), DeclineReasonDto.NO_ROOM, null)
+
+        now = start.minus(Duration.ofHours(2))
+        service.sendDueReminders()
+
+        assertEquals(0, remindersFor(waiting))
+        assertEquals(0, remindersFor(refused))
     }
 
     @Test

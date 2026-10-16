@@ -5,7 +5,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-/** `SignOutAction` is bound in `composeApp`, which is the only module that sees the session. */
+/** `CurrentProfile` and `SignOutAction` are bound in `composeApp`: it is the only module that sees the session. */
 val settingsModule: Module = module {
     viewModelOf(::SettingsViewModel)
 }

@@ -45,11 +45,15 @@ import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
+import com.tana.spa.feature.booking.presentation.ANY_THERAPIST
 import com.tana.spa.feature.booking.presentation.BookingState
 import com.tana.spa.feature.booking.resources.Res
+import com.tana.spa.feature.booking.resources.booking_any_therapist
+import com.tana.spa.feature.booking.resources.booking_any_therapist_focus
 import com.tana.spa.feature.booking.resources.booking_day_full
 import com.tana.spa.feature.booking.resources.booking_menu_failed
 import com.tana.spa.feature.booking.resources.booking_menu_retry
+import com.tana.spa.feature.booking.resources.booking_no_times
 import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.booking_service_meta
 import com.tana.spa.feature.booking.resources.booking_slot_taken
@@ -66,8 +70,10 @@ import org.jetbrains.compose.resources.stringResource
 private val ServiceTileShape = RoundedCornerShape(topStart = 22.dp, topEnd = 10.dp, bottomEnd = 10.dp, bottomStart = 22.dp)
 private val SERVICE_ROW_HEIGHT = 88.dp
 private val THERAPIST_CARD_HEIGHT = 108.dp
+private val SLOT_ROW_HEIGHT = 40.dp
 private const val SERVICE_PLACEHOLDERS = 4
 private const val THERAPIST_PLACEHOLDER_ROWS = 2
+private const val SLOT_PLACEHOLDER_ROWS = 3
 private const val DAYS_ON_RAIL = 14
 private const val BOOKING_HORIZON_DAYS = 60
 private const val MILLIS_PER_DAY = 86_400_000L
@@ -182,7 +188,13 @@ private fun ServiceRow(service: Service, selected: Boolean, onSelect: () -> Unit
     }
 }
 
-/** Empty after a failed load: one request fetches both halves of the menu, and the retry for it sits with the treatments. */
+/**
+ * "First available" leads, because it is the fastest way to a confirmed time; it is a scheduling
+ * choice rather than a person, so it carries no slug and the spa assigns whoever is free.
+ *
+ * Empty after a failed load: one request fetches both halves of the menu, and its retry sits with
+ * the treatments.
+ */
 @Composable
 internal fun TherapistPicker(state: BookingState, onSelect: (String) -> Unit, columns: Int, modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -190,7 +202,8 @@ internal fun TherapistPicker(state: BookingState, onSelect: (String) -> Unit, co
             repeat(THERAPIST_PLACEHOLDER_ROWS) { SpaSkeleton(THERAPIST_CARD_HEIGHT) }
             return@Column
         }
-        state.therapists.chunked(columns).forEach { row ->
+        val choices = listOf(anyTherapist()) + state.therapists
+        choices.chunked(columns).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { therapist ->
                     TherapistCard(
@@ -205,6 +218,15 @@ internal fun TherapistPicker(state: BookingState, onSelect: (String) -> Unit, co
         }
     }
 }
+
+@Composable
+private fun anyTherapist() = Therapist(
+    id = ANY_THERAPIST,
+    name = stringResource(Res.string.booking_any_therapist),
+    focus = stringResource(Res.string.booking_any_therapist_focus),
+    nextSlot = null,
+    anyAvailable = true,
+)
 
 @Composable
 private fun TherapistCard(therapist: Therapist, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier) {
@@ -300,25 +322,37 @@ internal fun MonthCalendar(selected: SpaDate, onSelect: (SpaDate) -> Unit, modif
     )
 }
 
-/** The day's open times as filter chips; a taken time is a disabled chip. */
+/**
+ * The day's open times, as the spa's diary has them: a time it did not offer cannot be chosen,
+ * and a taken one is a disabled chip.
+ */
 @Composable
-internal fun SlotGrid(day: SpaDate, selected: String?, onSelect: (String) -> Unit, columns: Int, modifier: Modifier = Modifier) {
+internal fun SlotGrid(state: BookingState, onSelect: (Long) -> Unit, columns: Int, modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SpaCatalog.slotTimes.withIndex().chunked(columns).forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { (index, time) ->
-                    val taken = SpaCatalog.isSlotTaken(day, index)
-                    val isSelected = time == selected
-                    SpaFilterChip(
-                        label = if (taken) stringResource(Res.string.booking_slot_taken, time) else time,
-                        selected = isSelected,
-                        enabled = !taken,
-                        onClick = { onSelect(time) },
-                        leadingIcon = if (isSelected) SpaIcon.Check else null,
-                        modifier = Modifier.weight(1f),
-                    )
+        when {
+            state.slotsLoading && state.slots.isEmpty() -> repeat(SLOT_PLACEHOLDER_ROWS) { SpaSkeleton(SLOT_ROW_HEIGHT) }
+
+            state.slots.isEmpty() -> Text(
+                text = stringResource(Res.string.booking_no_times),
+                style = SpaTheme.textStyles.body,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            else -> state.slots.chunked(columns).forEach { row ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEach { slot ->
+                        val isSelected = slot.startAtEpochMillis == state.slotAtEpochMillis
+                        SpaFilterChip(
+                            label = if (slot.available) slot.label else stringResource(Res.string.booking_slot_taken, slot.label),
+                            selected = isSelected,
+                            enabled = slot.available,
+                            onClick = { onSelect(slot.startAtEpochMillis) },
+                            leadingIcon = if (isSelected) SpaIcon.Check else null,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
                 }
-                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
     }

@@ -67,19 +67,20 @@ class PostgresUserRepository(private val dataSource: DataSource, private val new
         }
     }
 
-    override fun ensureAdmin(email: String, displayName: String, passwordHash: String): User? {
+    override fun ensureSeeded(email: String, displayName: String, passwordHash: String, role: UserRole): User? {
         dataSource.connection.use { c ->
             // The unique index decides, not a "SELECT then INSERT": two instances starting at
             // once must not both create the account.
             c.prepareStatement(
                 """INSERT INTO users (email, full_name, password_hash, referral_code, role)
-                   VALUES (?, ?, ?, ?, 'admin')
+                   VALUES (?, ?, ?, ?, ?)
                    ON CONFLICT DO NOTHING""",
             ).use { ps ->
                 ps.setString(1, email)
                 ps.setString(2, displayName)
                 ps.setString(3, passwordHash)
                 ps.setString(4, newReferralCode())
+                ps.setString(5, role.sql)
                 ps.executeUpdate()
             }
         }

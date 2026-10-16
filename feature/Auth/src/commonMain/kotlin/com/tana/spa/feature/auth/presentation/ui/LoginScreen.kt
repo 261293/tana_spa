@@ -62,7 +62,6 @@ import com.tana.spa.feature.auth.resources.password_label
 import com.tana.spa.feature.auth.resources.password_placeholder
 import com.tana.spa.feature.auth.resources.show_password
 import com.tana.spa.feature.auth.resources.sign_up_now
-import com.tana.spa.feature.auth.resources.staff_sign_in
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
@@ -76,7 +75,7 @@ fun LoginScreen(
     onEvent: (LoginEvent) -> Unit,
     onNavigateHome: () -> Unit,
     onNavigateToSignUp: () -> Unit,
-    onNavigateToStaffConsole: () -> Unit,
+    onNavigateToDesk: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -87,7 +86,7 @@ fun LoginScreen(
 
                 LoginEffect.NavigateToSignUp -> onNavigateToSignUp()
 
-                LoginEffect.NavigateToStaffConsole -> onNavigateToStaffConsole()
+                LoginEffect.NavigateToDesk -> onNavigateToDesk()
 
                 is LoginEffect.ShowComingSoon -> {
                     snackbarHostState.currentSnackbarData?.dismiss()
@@ -208,15 +207,4 @@ private fun ColumnScope.LoginForm(state: LoginState, onEvent: (LoginEvent) -> Un
         onClick = { onEvent(LoginEvent.SignUpClicked) },
         modifier = Modifier.fillMaxWidth(),
     )
-
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = stringResource(Res.string.staff_sign_in),
-            style = SpaTheme.textStyles.caption,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .clickable(enabled = !state.isLoading, role = Role.Button) { onEvent(LoginEvent.StaffSignInClicked) }
-                .padding(8.dp),
-        )
-    }
 }

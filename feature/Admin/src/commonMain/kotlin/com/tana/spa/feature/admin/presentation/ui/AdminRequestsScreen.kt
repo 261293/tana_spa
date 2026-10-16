@@ -48,15 +48,17 @@ import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPocketButton
+import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaStatusPill
 import com.tana.spa.core.ui.components.spaPocket
+import com.tana.spa.feature.admin.domain.DeskRequest
+import com.tana.spa.feature.admin.domain.DeskStatus
 import com.tana.spa.feature.admin.presentation.AdminRequestsEffect
 import com.tana.spa.feature.admin.presentation.AdminRequestsEvent
 import com.tana.spa.feature.admin.presentation.AdminRequestsState
 import com.tana.spa.feature.admin.presentation.AlternativeOffer
-import com.tana.spa.feature.admin.presentation.DeclineReason
 import com.tana.spa.feature.admin.resources.Res
 import com.tana.spa.feature.admin.resources.admin_confirm
 import com.tana.spa.feature.admin.resources.admin_confirm_anyway
@@ -76,25 +78,36 @@ import com.tana.spa.feature.admin.resources.admin_decline_suggest_tomorrow
 import com.tana.spa.feature.admin.resources.admin_decline_title
 import com.tana.spa.feature.admin.resources.admin_declined_toast
 import com.tana.spa.feature.admin.resources.admin_declined_toast_alternative
+import com.tana.spa.feature.admin.resources.admin_desk_failed
+import com.tana.spa.feature.admin.resources.admin_desk_retry
 import com.tana.spa.feature.admin.resources.admin_detail_price
 import com.tana.spa.feature.admin.resources.admin_detail_therapist
 import com.tana.spa.feature.admin.resources.admin_detail_time
 import com.tana.spa.feature.admin.resources.admin_detail_treatment
+import com.tana.spa.feature.admin.resources.admin_no_show
+import com.tana.spa.feature.admin.resources.admin_no_show_toast
 import com.tana.spa.feature.admin.resources.admin_overlap
 import com.tana.spa.feature.admin.resources.admin_price
 import com.tana.spa.feature.admin.resources.admin_price_code
+import com.tana.spa.feature.admin.resources.admin_queue_empty
+import com.tana.spa.feature.admin.resources.admin_refused
+import com.tana.spa.feature.admin.resources.admin_refused_overlap
 import com.tana.spa.feature.admin.resources.admin_requests_subtitle
 import com.tana.spa.feature.admin.resources.admin_requests_title
 import com.tana.spa.feature.admin.resources.admin_requests_title_accent
 import com.tana.spa.feature.admin.resources.admin_schedule_title
 import com.tana.spa.feature.admin.resources.admin_service_meta
+import com.tana.spa.feature.admin.resources.admin_stale
 import com.tana.spa.feature.admin.resources.admin_status_confirmed
 import com.tana.spa.feature.admin.resources.admin_status_declined
 import com.tana.spa.feature.admin.resources.admin_status_pending
+import com.tana.spa.feature.admin.resources.admin_status_recorded
 import com.tana.spa.feature.admin.resources.admin_time_range
-import com.tana.spa.shared.spa.BookingRequest
-import com.tana.spa.shared.spa.RequestStatus
-import com.tana.spa.shared.spa.SpaCatalog
+import com.tana.spa.feature.admin.resources.admin_visit_completed
+import com.tana.spa.feature.admin.resources.admin_visit_toast
+import com.tana.spa.feature.admin.resources.admin_waited
+import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.spa.SpaDate
 import com.tana.spa.shared.spa.formatFull
 import com.tana.spa.shared.spa.formatHour
 import kotlinx.coroutines.flow.Flow
@@ -102,6 +115,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 private val QUEUE_WIDTH = 340.dp
+private const val MINUTES_PER_HOUR = 60
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
 @Composable
@@ -110,6 +124,7 @@ fun AdminRequestsScreen(
     effects: Flow<AdminRequestsEffect>,
     onEvent: (AdminRequestsEvent) -> Unit,
     onOpenCodes: () -> Unit,
+    onOpenMenu: () -> Unit,
     onOpenGuestApp: () -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
@@ -123,6 +138,14 @@ fun AdminRequestsScreen(
                 } else {
                     getString(Res.string.admin_declined_toast, effect.guest)
                 }
+
+                is AdminRequestsEffect.ShowVisitRecorded -> getString(
+                    if (effect.attended) Res.string.admin_visit_toast else Res.string.admin_no_show_toast,
+                    effect.guest,
+                )
+
+                is AdminRequestsEffect.ShowRefused ->
+                    getString(if (effect.overlap) Res.string.admin_refused_overlap else Res.string.admin_refused)
             }
             snackbar.currentSnackbarData?.dismiss()
             snackbar.showSnackbar(message)
@@ -132,7 +155,13 @@ fun AdminRequestsScreen(
     AdminScaffold(
         section = AdminSection.REQUESTS,
         pendingCount = state.pending.size,
-        onSelect = { if (it == AdminSection.CODES) onOpenCodes() },
+        onSelect = {
+            when (it) {
+                AdminSection.CODES -> onOpenCodes()
+                AdminSection.MENU -> onOpenMenu()
+                AdminSection.REQUESTS -> Unit
+            }
+        },
         onOpenGuestApp = onOpenGuestApp,
     ) { wide ->
         Box(Modifier.fillMaxSize()) {
@@ -147,7 +176,7 @@ fun AdminRequestsScreen(
                             Queue(state, onEvent)
                         }
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                            state.selected?.let { DecisionPanel(it, onEvent) }
+                            state.selected?.let { DecisionPanel(it, state.nowEpochMillis, onEvent) }
                             ScheduleSection(state)
                         }
                     }
@@ -160,7 +189,7 @@ fun AdminRequestsScreen(
                 ) {
                     Header(state)
                     Queue(state, onEvent)
-                    state.selected?.let { DecisionPanel(it, onEvent) }
+                    state.selected?.let { DecisionPanel(it, state.nowEpochMillis, onEvent) }
                     ScheduleSection(state)
                 }
             }
@@ -176,7 +205,11 @@ private fun Header(state: AdminRequestsState) {
     SpaScreenHeader(
         title = stringResource(Res.string.admin_requests_title),
         accent = stringResource(Res.string.admin_requests_title_accent),
-        subtitle = stringResource(Res.string.admin_requests_subtitle, SpaCatalog.today.formatFull(), state.pending.size),
+        subtitle = stringResource(
+            Res.string.admin_requests_subtitle,
+            SpaDate.fromEpochDay(state.dayEpochDay).formatFull(),
+            state.pending.size,
+        ),
     )
 }
 
@@ -184,9 +217,21 @@ private fun Header(state: AdminRequestsState) {
 private fun Queue(state: AdminRequestsState, onEvent: (AdminRequestsEvent) -> Unit) {
     SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(6.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            state.requests.forEach { request ->
-                QueueRow(request, request.id == state.selectedId) {
-                    onEvent(AdminRequestsEvent.RequestSelected(request.id))
+            when {
+                state.failed -> QueueMessage(
+                    text = stringResource(Res.string.admin_desk_failed),
+                    action = stringResource(Res.string.admin_desk_retry),
+                    onAction = { onEvent(AdminRequestsEvent.Refresh) },
+                )
+
+                state.loading && state.requests.isEmpty() -> QueueMessage(text = stringResource(Res.string.admin_queue_empty))
+
+                state.requests.isEmpty() -> QueueMessage(text = stringResource(Res.string.admin_queue_empty))
+
+                else -> state.requests.forEach { request ->
+                    QueueRow(request, request.id == state.selectedId) {
+                        onEvent(AdminRequestsEvent.RequestSelected(request.id))
+                    }
                 }
             }
         }
@@ -194,8 +239,18 @@ private fun Queue(state: AdminRequestsState, onEvent: (AdminRequestsEvent) -> Un
 }
 
 @Composable
-private fun QueueRow(request: BookingRequest, selected: Boolean, onSelect: () -> Unit) {
-    val service = SpaCatalog.service(request.serviceId)
+private fun QueueMessage(text: String, action: String? = null, onAction: () -> Unit = {}) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(text, style = SpaTheme.textStyles.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (action != null) SpaSecondaryButton(text = action, onClick = onAction)
+    }
+}
+
+@Composable
+private fun QueueRow(request: DeskRequest, selected: Boolean, onSelect: () -> Unit) {
     ListItem(
         headlineContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -205,34 +260,25 @@ private fun QueueRow(request: BookingRequest, selected: Boolean, onSelect: () ->
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    text = request.requested,
+                    text = waitedLabel(request.waitedMinutes),
                     style = SpaTheme.textStyles.caption,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (request.stale) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
         supportingContent = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    text = "${service?.name.orEmpty()} · ${formatHour(request.startHour)}",
+                    text = "${request.serviceName} · ${formatHour(request.startHour)}",
                     style = SpaTheme.textStyles.body,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     StatusPill(request.status)
-                    if (request.conflict != null && request.status == RequestStatus.PENDING) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            SpaIconImage(SpaIcon.Warning, size = 14.dp, tint = MaterialTheme.colorScheme.error)
-                            Text(
-                                text = stringResource(Res.string.admin_overlap),
-                                style = SpaTheme.textStyles.label.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        }
+                    if (request.conflict != null && request.status == DeskStatus.PENDING) {
+                        WarningTag(stringResource(Res.string.admin_overlap))
                     }
+                    if (request.stale) WarningTag(stringResource(Res.string.admin_stale))
                 }
             }
         },
@@ -248,36 +294,59 @@ private fun QueueRow(request: BookingRequest, selected: Boolean, onSelect: () ->
 }
 
 @Composable
-private fun StatusPill(status: RequestStatus) {
+private fun WarningTag(text: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        SpaIconImage(SpaIcon.Warning, size = 14.dp, tint = MaterialTheme.colorScheme.error)
+        Text(
+            text = text,
+            style = SpaTheme.textStyles.label.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
+}
+
+/** "9 min ago", then hours once a request has been waiting that long. */
+@Composable
+private fun waitedLabel(minutes: Int): String = stringResource(
+    Res.string.admin_waited,
+    if (minutes < MINUTES_PER_HOUR) "$minutes min" else "${minutes / MINUTES_PER_HOUR} h",
+)
+
+@Composable
+private fun StatusPill(status: DeskStatus) {
     when (status) {
-        RequestStatus.PENDING -> SpaStatusPill(
+        DeskStatus.PENDING -> SpaStatusPill(
             text = stringResource(Res.string.admin_status_pending),
             container = SpaTheme.extraColors.warningContainer,
             content = SpaTheme.extraColors.warning,
             icon = SpaIcon.Clock,
         )
 
-        RequestStatus.CONFIRMED -> SpaStatusPill(
+        DeskStatus.CONFIRMED -> SpaStatusPill(
             text = stringResource(Res.string.admin_status_confirmed),
             container = MaterialTheme.colorScheme.primaryContainer,
             content = MaterialTheme.colorScheme.primary,
             icon = SpaIcon.Check,
         )
 
-        RequestStatus.DECLINED -> SpaStatusPill(
+        DeskStatus.DECLINED, DeskStatus.CANCELLED, DeskStatus.NO_SHOW -> SpaStatusPill(
             text = stringResource(Res.string.admin_status_declined),
             container = MaterialTheme.colorScheme.errorContainer,
             content = MaterialTheme.colorScheme.onErrorContainer,
             icon = SpaIcon.Close,
         )
+
+        DeskStatus.COMPLETED -> SpaStatusPill(
+            text = stringResource(Res.string.admin_status_recorded),
+            container = MaterialTheme.colorScheme.surfaceVariant,
+            content = MaterialTheme.colorScheme.onSurface,
+            icon = SpaIcon.CheckCircle,
+        )
     }
 }
 
 @Composable
-private fun DecisionPanel(request: BookingRequest, onEvent: (AdminRequestsEvent) -> Unit) {
-    val service = SpaCatalog.service(request.serviceId) ?: return
-    val therapist = SpaCatalog.therapist(request.therapistId) ?: return
-
+private fun DecisionPanel(request: DeskRequest, nowEpochMillis: Long, onEvent: (AdminRequestsEvent) -> Unit) {
     SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(20.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -286,22 +355,23 @@ private fun DecisionPanel(request: BookingRequest, onEvent: (AdminRequestsEvent)
                     style = SpaTheme.textStyles.cardTitle,
                     color = MaterialTheme.colorScheme.onBackground,
                 )
-                Text(request.id, style = SpaTheme.textStyles.caption, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(request.reference, style = SpaTheme.textStyles.caption, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 StatusPill(request.status)
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 DetailRow(
                     stringResource(Res.string.admin_detail_treatment),
-                    stringResource(Res.string.admin_service_meta, service.name, service.minutes),
+                    stringResource(Res.string.admin_service_meta, request.serviceName, request.minutes),
                 )
-                DetailRow(stringResource(Res.string.admin_detail_therapist), therapist.name)
+                DetailRow(stringResource(Res.string.admin_detail_therapist), request.therapistName)
                 DetailRow(
                     stringResource(Res.string.admin_detail_time),
                     stringResource(
                         Res.string.admin_time_range,
-                        formatHour(request.startHour),
-                        formatHour(request.startHour + service.minutes / 60.0),
+                        // The spa's own wording, day and all: a request can be for any day.
+                        request.startLabel,
+                        formatHour(request.startHour + request.minutes / MINUTES_PER_HOUR.toDouble()),
                     ),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -312,7 +382,7 @@ private fun DecisionPanel(request: BookingRequest, onEvent: (AdminRequestsEvent)
                         modifier = Modifier.width(96.dp),
                     )
                     Text(
-                        text = stringResource(Res.string.admin_price, service.priceUsd - (request.discountUsd ?: 0)),
+                        text = stringResource(Res.string.admin_price, request.total),
                         style = SpaTheme.textStyles.body,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
@@ -321,7 +391,7 @@ private fun DecisionPanel(request: BookingRequest, onEvent: (AdminRequestsEvent)
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                             SpaIconImage(SpaIcon.Percent, size = 14.dp, tint = MaterialTheme.colorScheme.secondary)
                             Text(
-                                text = stringResource(Res.string.admin_price_code, code, request.discountUsd ?: 0),
+                                text = stringResource(Res.string.admin_price_code, code, request.discount),
                                 style = SpaTheme.textStyles.body,
                                 color = MaterialTheme.colorScheme.secondary,
                             )
@@ -342,7 +412,7 @@ private fun DecisionPanel(request: BookingRequest, onEvent: (AdminRequestsEvent)
                     content = MaterialTheme.colorScheme.onSurface,
                 )
             }
-            if (request.conflict != null && request.status == RequestStatus.PENDING) {
+            if (request.conflict != null && request.status == DeskStatus.PENDING) {
                 NoteBox(
                     icon = SpaIcon.Warning,
                     text = stringResource(Res.string.admin_conflict, request.conflict.orEmpty()),
@@ -351,23 +421,35 @@ private fun DecisionPanel(request: BookingRequest, onEvent: (AdminRequestsEvent)
                 )
             }
 
-            if (request.status == RequestStatus.PENDING) {
+            if (request.status == DeskStatus.PENDING) {
                 Column(
                     modifier = Modifier.fillMaxWidth().spaPocket().padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    val clash = request.conflict != null
                     SpaPocketButton(
-                        text = if (request.conflict != null) {
-                            stringResource(Res.string.admin_confirm_anyway)
-                        } else {
-                            stringResource(Res.string.admin_confirm)
-                        },
-                        onClick = { onEvent(AdminRequestsEvent.Confirmed(request.id)) },
+                        text = stringResource(if (clash) Res.string.admin_confirm_anyway else Res.string.admin_confirm),
+                        // A clash is confirmed deliberately: the first press is the owner saying so.
+                        onClick = { onEvent(AdminRequestsEvent.Confirmed(request.id, force = clash)) },
                         icon = SpaIcon.Check,
                     )
                     SpaSecondaryButton(
                         text = stringResource(Res.string.admin_decline),
                         onClick = { onEvent(AdminRequestsEvent.DeclineStarted(request.id)) },
+                    )
+                }
+            }
+
+            // Only after the visit was due to start: the server refuses it before then.
+            if (request.visitRecordable(nowEpochMillis)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SpaPrimaryButton(
+                        text = stringResource(Res.string.admin_visit_completed),
+                        onClick = { onEvent(AdminRequestsEvent.VisitRecorded(request.id, attended = true)) },
+                    )
+                    SpaSecondaryButton(
+                        text = stringResource(Res.string.admin_no_show),
+                        onClick = { onEvent(AdminRequestsEvent.VisitRecorded(request.id, attended = false)) },
                     )
                 }
             }
@@ -415,8 +497,8 @@ private fun ScheduleSection(state: AdminRequestsState) {
 
 @Composable
 private fun DeclineDialog(
-    request: BookingRequest,
-    reason: DeclineReason,
+    request: DeskRequest,
+    reason: DeclineReasonDto,
     alternative: AlternativeOffer,
     onEvent: (AdminRequestsEvent) -> Unit,
 ) {
@@ -437,15 +519,15 @@ private fun DeclineDialog(
                     style = SpaTheme.textStyles.body,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                ReasonOption(stringResource(Res.string.admin_decline_reason_overlap), reason == DeclineReason.OVERLAP) {
-                    onEvent(AdminRequestsEvent.ReasonChosen(DeclineReason.OVERLAP))
+                ReasonOption(stringResource(Res.string.admin_decline_reason_overlap), reason == DeclineReasonDto.OVERLAP) {
+                    onEvent(AdminRequestsEvent.ReasonChosen(DeclineReasonDto.OVERLAP))
                 }
                 ReasonOption(
                     label = stringResource(Res.string.admin_decline_reason_therapist),
-                    selected = reason == DeclineReason.THERAPIST_UNAVAILABLE,
-                ) { onEvent(AdminRequestsEvent.ReasonChosen(DeclineReason.THERAPIST_UNAVAILABLE)) }
-                ReasonOption(stringResource(Res.string.admin_decline_reason_room), reason == DeclineReason.NO_ROOM) {
-                    onEvent(AdminRequestsEvent.ReasonChosen(DeclineReason.NO_ROOM))
+                    selected = reason == DeclineReasonDto.THERAPIST_UNAVAILABLE,
+                ) { onEvent(AdminRequestsEvent.ReasonChosen(DeclineReasonDto.THERAPIST_UNAVAILABLE)) }
+                ReasonOption(stringResource(Res.string.admin_decline_reason_room), reason == DeclineReasonDto.NO_ROOM) {
+                    onEvent(AdminRequestsEvent.ReasonChosen(DeclineReasonDto.NO_ROOM))
                 }
 
                 Text(

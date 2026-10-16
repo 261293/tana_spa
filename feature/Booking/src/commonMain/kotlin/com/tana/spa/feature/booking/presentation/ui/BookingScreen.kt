@@ -20,6 +20,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,6 +65,7 @@ import com.tana.spa.feature.booking.resources.booking_title_accent
 import com.tana.spa.shared.spa.formatLong
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
@@ -72,22 +75,34 @@ fun BookingScreen(
     effects: Flow<BookingEffect>,
     onEvent: (BookingEvent) -> Unit,
     onOpenNotifications: () -> Unit,
+    onOpenBookings: () -> Unit,
     onOpenService: (String) -> Unit,
 ) {
+    val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
                 BookingEffect.NavigateToNotifications -> onOpenNotifications()
+
+                BookingEffect.NavigateToBookings -> onOpenBookings()
+
+                is BookingEffect.ShowRefusal -> {
+                    snackbar.currentSnackbarData?.dismiss()
+                    snackbar.showSnackbar(getString(refusalText(effect.code)))
+                }
             }
         }
     }
 
-    if (SpaWindow.size.isWide) {
-        WideBooking(state, onEvent, onOpenService)
-    } else {
-        CompactBooking(state, onEvent, onOpenService)
+    Box(Modifier.fillMaxSize()) {
+        if (SpaWindow.size.isWide) {
+            WideBooking(state, onEvent, onOpenService)
+        } else {
+            CompactBooking(state, onEvent, onOpenService)
+        }
+        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
     }
-    if (state.requestSent) RequestSentDialog(state, onEvent)
+    state.sent?.let { RequestSentDialog(it, onEvent) }
 }
 
 /** Choosing a treatment also opens its detail; the flow keeps the choice, so Back there resumes it. */
@@ -145,8 +160,7 @@ private fun CompactBooking(state: BookingState, onEvent: (BookingEvent) -> Unit,
                     )
                     DateRail(state.day, onSelect = { onEvent(BookingEvent.DaySelected(it)) })
                     SlotGrid(
-                        day = state.day,
-                        selected = state.slot,
+                        state = state,
                         onSelect = { onEvent(BookingEvent.SlotSelected(it)) },
                         columns = 3,
                     )
@@ -226,8 +240,7 @@ private fun WideBooking(state: BookingState, onEvent: (BookingEvent) -> Unit, on
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         SlotGrid(
-                            day = state.day,
-                            selected = state.slot,
+                            state = state,
                             onSelect = { onEvent(BookingEvent.SlotSelected(it)) },
                             columns = 3,
                         )
@@ -277,7 +290,7 @@ private fun ReservationStrip(state: BookingState, onReview: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "${state.day.formatLong()} · ${state.slot ?: stringResource(Res.string.booking_strip_pick_time)} · " +
+                text = "${state.day.formatLong()} · ${state.slot?.label ?: stringResource(Res.string.booking_strip_pick_time)} · " +
                     stringResource(Res.string.booking_price, state.totalUsd),
                 style = SpaTheme.textStyles.caption,
                 color = SpaTheme.extraColors.onPocketMuted,

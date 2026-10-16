@@ -155,6 +155,75 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
             }
         }
 
+    override fun transition(id: String, from: List<String>, to: String, decidedBy: String?): Boolean = dataSource.connection.use { c ->
+        // The status list is part of the WHERE, so the update itself is the lock.
+        val allowed = from.joinToString(", ") { "?" }
+        c.prepareStatement(
+            """UPDATE bookings
+                   SET status = ?, decided_at = now(), decided_by = COALESCE(?::uuid, decided_by),
+                       cancelled_at = CASE WHEN ? = 'cancelled' THEN now() ELSE cancelled_at END,
+                       updated_at = now()
+                   WHERE id = ?::uuid AND status IN ($allowed)""",
+        ).use { ps ->
+            ps.setString(1, to)
+            ps.setString(2, decidedBy)
+            // `bookings_cancel_consistent`: a cancelled row has to carry when it was cancelled.
+            ps.setString(3, to)
+            ps.setString(4, id)
+            from.forEachIndexed { index, status -> ps.setString(5 + index, status) }
+            ps.executeUpdate() == 1
+        }
+    }
+
+    override fun insertService(service: NewService): ServiceRow? = dataSource.connection.use { c ->
+        val inserted = c.prepareStatement(
+            """INSERT INTO services (category_id, name, slug, description, price_vnd, duration_minutes, sort_order)
+               SELECT cat.id, ?, ?, ?, ?, ?, COALESCE((SELECT max(sort_order) + 1 FROM services), 1)
+               FROM service_categories cat WHERE cat.slug = ?
+               ON CONFLICT (slug) DO NOTHING""",
+        ).use { ps ->
+            ps.setString(1, service.name)
+            ps.setString(2, service.slug)
+            ps.setString(3, service.description)
+            ps.setLong(4, service.price)
+            ps.setInt(5, service.minutes)
+            ps.setString(6, service.categorySlug)
+            ps.executeUpdate() == 1
+        }
+        if (inserted) serviceBySlug(service.slug) else null
+    }
+
+    override fun insertTherapist(therapist: NewTherapist): TherapistRow? = dataSource.connection.use { c ->
+        val inserted = c.prepareStatement(
+            """INSERT INTO therapists (slug, name, focus, accent, sort_order)
+               VALUES (?, ?, ?, ?, COALESCE((SELECT max(sort_order) + 1 FROM therapists), 1))
+               ON CONFLICT (slug) DO NOTHING""",
+        ).use { ps ->
+            ps.setString(1, therapist.slug)
+            ps.setString(2, therapist.name)
+            ps.setString(3, therapist.focus)
+            ps.setString(4, therapist.accent)
+            ps.executeUpdate() == 1
+        }
+        if (inserted) therapistBySlug(therapist.slug) else null
+    }
+
+    override fun claimRemindable(now: Instant, before: Instant): List<BookingRow> {
+        val claimed = dataSource.connection.use { c ->
+            c.prepareStatement(
+                """UPDATE bookings SET reminder_sent_at = now(), updated_at = now()
+                   WHERE status = 'confirmed' AND reminder_sent_at IS NULL
+                     AND start_at > ? AND start_at <= ?
+                   RETURNING id""",
+            ).use { ps ->
+                ps.setTimestamp(1, Timestamp.from(now))
+                ps.setTimestamp(2, Timestamp.from(before))
+                ps.executeQuery().use { rs -> rs.readAll { it.getString("id") } }
+            }
+        }
+        return claimed.mapNotNull { booking(it) }
+    }
+
     private fun <T> query(sql: String, vararg args: String, read: (ResultSet) -> T): List<T> = dataSource.connection.use { c ->
         c.prepareStatement(sql).use { ps ->
             args.forEachIndexed { index, value -> ps.setString(index + 1, value) }

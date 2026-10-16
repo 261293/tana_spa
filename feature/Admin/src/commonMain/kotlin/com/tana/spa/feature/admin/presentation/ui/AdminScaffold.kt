@@ -33,11 +33,12 @@ import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.feature.admin.resources.Res
 import com.tana.spa.feature.admin.resources.admin_nav_codes
+import com.tana.spa.feature.admin.resources.admin_nav_menu
 import com.tana.spa.feature.admin.resources.admin_nav_requests
 import com.tana.spa.feature.admin.resources.admin_open_guest_app
 import org.jetbrains.compose.resources.stringResource
 
-internal enum class AdminSection { REQUESTS, CODES }
+internal enum class AdminSection { REQUESTS, MENU, CODES }
 
 /**
  * The staff console's frame. Material's navigation rail on a desk screen and its tabs on a phone —
@@ -88,6 +89,13 @@ private fun Rail(section: AdminSection, pendingCount: Int, onSelect: (AdminSecti
             onClick = { onSelect(AdminSection.REQUESTS) },
             icon = { QueueIcon(SpaIcon.CalendarCheck, pendingCount) },
             label = { Text(stringResource(Res.string.admin_nav_requests), style = SpaTheme.textStyles.label) },
+            colors = colors,
+        )
+        NavigationRailItem(
+            selected = section == AdminSection.MENU,
+            onClick = { onSelect(AdminSection.MENU) },
+            icon = { SpaIconImage(SpaIcon.Leaf, size = 22.dp) },
+            label = { Text(stringResource(Res.string.admin_nav_menu), style = SpaTheme.textStyles.label) },
             colors = colors,
         )
         NavigationRailItem(
@@ -150,6 +158,16 @@ private fun CompactTabs(section: AdminSection, pendingCount: Int, onSelect: (Adm
                             }
                         }
                     }
+                },
+            )
+            Tab(
+                selected = section == AdminSection.MENU,
+                onClick = { onSelect(AdminSection.MENU) },
+                text = {
+                    Text(
+                        text = stringResource(Res.string.admin_nav_menu),
+                        style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
+                    )
                 },
             )
             Tab(

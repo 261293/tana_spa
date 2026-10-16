@@ -98,6 +98,7 @@ fun AdminCodesScreen(
     onEvent: (AdminCodesEvent) -> Unit,
     pendingRequests: Int,
     onOpenRequests: () -> Unit,
+    onOpenMenu: () -> Unit,
     onOpenGuestApp: () -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
@@ -115,7 +116,13 @@ fun AdminCodesScreen(
     AdminScaffold(
         section = AdminSection.CODES,
         pendingCount = pendingRequests,
-        onSelect = { if (it == AdminSection.REQUESTS) onOpenRequests() },
+        onSelect = {
+            when (it) {
+                AdminSection.REQUESTS -> onOpenRequests()
+                AdminSection.MENU -> onOpenMenu()
+                AdminSection.CODES -> Unit
+            }
+        },
         onOpenGuestApp = onOpenGuestApp,
     ) { wide ->
         Box(Modifier.fillMaxSize()) {

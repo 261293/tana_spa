@@ -18,12 +18,18 @@ object Routes {
 
     /** One treatment from the booking menu, named by [ARG_SERVICE]. */
     const val SERVICE_DETAIL = "serviceDetail"
+
+    /** The signed-in guest's own visits: their status, and cancelling one. */
+    const val MY_BOOKINGS = "myBookings"
     const val PROMOTIONS = "promotions"
     const val SETTINGS = "settings"
 
     /** Staff console, reached from the sign-in screen rather than the guest tab bar. */
     const val ADMIN_REQUESTS = "adminRequests"
     const val ADMIN_CODES = "adminCodes"
+
+    /** The owner's menu: adding a treatment or a therapist. */
+    const val ADMIN_MENU = "adminMenu"
 
     /** A discount code carried from the offers screen. */
     const val ARG_CODE = "code"

@@ -10,6 +10,7 @@ import com.tana.spa.feature.auth.domain.model.OtpFailure
 import com.tana.spa.feature.auth.domain.model.OtpSendResult
 import com.tana.spa.feature.auth.domain.model.OtpVerifyResult
 import com.tana.spa.feature.auth.domain.model.Session
+import com.tana.spa.feature.auth.domain.model.UserRoleName
 import com.tana.spa.feature.auth.domain.repository.AuthOutcome
 import com.tana.spa.feature.auth.domain.repository.AuthRepository
 import com.tana.spa.shared.auth.AuthErrorCodes
@@ -158,7 +159,7 @@ private fun AuthApiException.toAuthFailure(): AuthFailure = when {
     else -> AuthFailure.SERVER
 }
 
-private fun UserDto.toAuthUser() = AuthUser(id, email, displayName, phone, phoneVerified)
+private fun UserDto.toAuthUser() = AuthUser(id, email, displayName, phone, phoneVerified, UserRoleName.fromWire(role))
 
 private fun AuthResponse.toSession(nowMillis: Long) = Session(
     accessToken = accessToken,

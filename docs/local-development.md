@@ -73,14 +73,17 @@ curl http://localhost:8081/                           # Hello, Ktor!
 curl http://localhost:8081/api/v1/feature-flags       # {"flags":{"phone_otp_verification":false}}
 ```
 
-Then open **<http://localhost:8081/admin/>** and sign in with `sanghtruong@tana.local` /
-`P@ssw0rd26` (created automatically on every start-up — see
-[feature-flags.md](feature-flags.md)). You should see the flag table.
+Then open **<http://localhost:8081/admin/>** and sign in with `sanghtruong@tana.local`. Its
+password is `SEED_ADMIN_PASSWORD`; leave that unset and the server generates one per start and
+prints it in the log. The spa owner is seeded the same way (`SEED_OWNER`, or a generated
+`owner@tana.local`) and signs in through the app itself — see [owner-role.md](owner-role.md).
 
 In the startup log you should find:
 
 ```
-Created administrator sanghtruong@tana.local (…)
+Nothing configured for the two fixed administrators: seeding with the generated password …
+Created admin sanghtruong@tana.local (…)
+Created owner owner@tana.local (…)
 Starting server on port 8081 (env=unset, store=postgres)
 Feature flag deploy defaults: phone_otp_verification=off
 ```

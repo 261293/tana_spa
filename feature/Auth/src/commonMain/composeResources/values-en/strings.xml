@@ -5,7 +5,6 @@
     <string name="login_intro">Sign in to book treatments, see confirmations and use your codes.</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="continue_with">or continue with</string>
-    <string name="staff_sign_in">Staff sign in</string>
     <string name="email_label">Email</string>
     <string name="email_placeholder">Enter your email</string>
     <string name="password_label">Password</string>
