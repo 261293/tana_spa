@@ -3,6 +3,8 @@ package com.tana.spa
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,12 +27,14 @@ import com.tana.spa.core.ui.AppTheme
 import com.tana.spa.core.ui.ProvideSpaWindowSize
 import com.tana.spa.core.ui.components.SpaAvatar
 import com.tana.spa.core.ui.components.SpaIcon
+import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.model.NavConfig
 import com.tana.spa.core.ui.scafold.AppScaffold
 import com.tana.spa.feature.appupdate.AppUpdateGate
 import com.tana.spa.feature.auth.data.local.SessionStore
 import com.tana.spa.feature.auth.domain.model.UserRoleName
 import com.tana.spa.shared.featureflags.FeatureFlag
+import com.tana.spa.shared.spa.initialsOf
 import org.koin.compose.koinInject
 
 /**
@@ -119,27 +123,28 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
 
     // Read per route change rather than observed: a sign-in or sign-out always navigates.
     val sessions: SessionStore = koinInject()
-    val owner = remember(current) { sessions.load()?.user?.role == UserRoleName.OWNER }
-
-    val navItems = buildList {
-        add(NavConfig(Routes.BOOKING, "Book", SpaIcon.CalendarPlus))
-        add(NavConfig(Routes.NOTIFICATIONS, "Alerts", SpaIcon.Bell, badgeCount = if (notificationsEnabled) unread else 0))
-        add(NavConfig(Routes.PROMOTIONS, "Offers", SpaIcon.Tag))
-        // The spa's own console. The server refuses its calls for every other role; this only
-        // keeps the destination out of a guest's way.
-        if (owner) add(NavConfig(Routes.ADMIN_REQUESTS, "Desk", SpaIcon.Calendar))
-        add(NavConfig(Routes.SETTINGS, "Settings", SpaIcon.Gear))
-    }
+    val account = remember(current) { sessions.load()?.user }
+    val owner = account?.role == UserRoleName.OWNER
 
     AppScaffold(
-        navItems = navItems,
+        navItems = navDestinations(owner, notificationsEnabled, unread),
         // A treatment's detail page and the guest's own visits belong to the booking flow, so
         // Book stays the lit destination on both.
         selectedRoute = if (route in BOOKING_FLOW_ROUTES) Routes.BOOKING else route,
         onSelect = { navigator.navigate(it) },
         topBarActions = {
+            // The only other way into the visits list is the sheet shown right after booking, so
+            // without this a guest who reopens the app cannot see or cancel what they booked.
+            IconButton(onClick = { navigator.navigate(Routes.MY_BOOKINGS) }) {
+                SpaIconImage(
+                    icon = SpaIcon.CalendarCheck,
+                    size = 22.dp,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentDescription = "Your visits",
+                )
+            }
             SpaAvatar(
-                initials = "AL",
+                initials = initialsOf(account?.displayName.orEmpty()),
                 modifier = Modifier
                     .padding(end = 12.dp)
                     .clickable(role = Role.Button) { navigator.navigate(Routes.SETTINGS) },
@@ -148,4 +153,16 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
     ) {
         screenState.SaveableStateProvider(route) { entry?.Content(navigator) }
     }
+}
+
+/**
+ * The destinations the signed-in account sees. Desk is the spa's own console: the server refuses
+ * its calls for every other role, so leaving it out only keeps it out of a guest's way.
+ */
+internal fun navDestinations(owner: Boolean, notificationsEnabled: Boolean, unread: Int): List<NavConfig> = buildList {
+    add(NavConfig(Routes.BOOKING, "Book", SpaIcon.CalendarPlus))
+    add(NavConfig(Routes.NOTIFICATIONS, "Alerts", SpaIcon.Bell, badgeCount = if (notificationsEnabled) unread else 0))
+    add(NavConfig(Routes.PROMOTIONS, "Offers", SpaIcon.Tag))
+    if (owner) add(NavConfig(Routes.ADMIN_REQUESTS, "Desk", SpaIcon.Calendar))
+    add(NavConfig(Routes.SETTINGS, "Settings", SpaIcon.Gear))
 }
