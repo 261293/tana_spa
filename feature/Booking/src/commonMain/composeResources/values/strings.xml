@@ -8,6 +8,9 @@
     <string name="booking_step_when">Ngày &amp; giờ</string>
     <string name="booking_step_review">Buổi hẹn của bạn</string>
     <string name="booking_step_done">Đã xong bước này</string>
+    <string name="booking_continue">Tiếp tục</string>
+    <string name="booking_back">Quay lại</string>
+    <string name="booking_service_details">Xem chi tiết</string>
 
     <string name="booking_service_meta">%1$d phút · %2$s</string>
     <string name="booking_price">%1$d$</string>
@@ -95,7 +98,6 @@
 
     <string name="booking_strip_choose">Chọn một dịch vụ</string>
     <string name="booking_strip_pick_time">chọn giờ</string>
-    <string name="booking_strip_action">Xem lại</string>
 
     <string name="booking_sent_title">Đã gửi yêu cầu</string>
     <string name="booking_sent_body">%1$s với %2$s, %3$s. Spa xác nhận xong là bạn sẽ nhận được thông báo ngay.</string>

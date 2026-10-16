@@ -3,7 +3,9 @@ package com.tana.spa
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidedValue
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.key
+import com.tana.spa.core.network.RequestLanguage
 import com.tana.spa.core.ui.SelectedLanguage
 
 /**
@@ -24,6 +26,9 @@ expect object LocalAppLocale {
 @Composable
 fun AppLocale(content: @Composable () -> Unit) {
     val language = SelectedLanguage.value
+    // The same choice has to reach the server: the catalogue is data, so the treatments come back
+    // in whatever language this asks for. Here, because this is where the choice is already read.
+    SideEffect { RequestLanguage.tag = language.tag }
     CompositionLocalProvider(LocalAppLocale provides language.tag) {
         key(language) { content() }
     }

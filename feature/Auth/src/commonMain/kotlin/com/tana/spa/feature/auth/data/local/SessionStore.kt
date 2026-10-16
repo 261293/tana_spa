@@ -17,9 +17,10 @@ interface SessionStore {
 /**
  * Persists the session as JSON in the app's [KeyValueCache].
  *
- * Note: the cache is a plain SQLite file on Android/iOS and in-memory on web, so the token is
- * neither encrypted at rest nor kept across a browser reload. Move this behind Keystore /
- * Keychain-backed storage before shipping to production.
+ * Note: the cache is a plain SQLite file on Android/iOS and localStorage on web, so the token is
+ * not encrypted at rest and, in the browser, is readable by any script the page runs. Move this
+ * behind Keystore / Keychain-backed storage, and the web session behind a cookie the page cannot
+ * read, before shipping to production.
  */
 class SessionStoreImpl(private val cache: KeyValueCache) : SessionStore {
 

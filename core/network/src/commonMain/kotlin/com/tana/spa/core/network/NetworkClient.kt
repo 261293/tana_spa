@@ -1,8 +1,10 @@
 package com.tana.spa.core.network
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -18,6 +20,10 @@ fun HttpClient.withDefaults(): HttpClient = config {
         json(Json { ignoreUnknownKeys = true })
     }
     install(RequestTracing)
+    // Read per request, not once at install: the guest can change language without restarting.
+    install(DefaultRequest) {
+        headers[HttpHeaders.AcceptLanguage] = RequestLanguage.tag
+    }
     install(HttpTimeout) {
         requestTimeoutMillis = 20_000
     }

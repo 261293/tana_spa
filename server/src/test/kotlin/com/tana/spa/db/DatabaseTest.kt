@@ -23,9 +23,10 @@ class DatabaseTest {
                         rs.next()
                         rs.getInt(1)
                     }
-                    assertEquals(10, applied)
-                    // A table from the last migration proves the whole chain ran in order.
-                    c.createStatement().executeQuery("SELECT count(*) FROM therapists").use { rs -> assertTrue(rs.next()) }
+                    assertEquals(11, applied)
+                    // A column from the last migration proves the whole chain ran in order.
+                    val lastMigration = "SELECT count(*) FROM services WHERE name_vi IS NOT NULL"
+                    c.createStatement().executeQuery(lastMigration).use { rs -> assertTrue(rs.next()) }
                 }
                 assertEquals("tana-spa", pool.poolName)
             }
@@ -43,7 +44,7 @@ class DatabaseTest {
                         rs.next()
                         rs.getInt(1)
                     }
-                    assertEquals(10, applied, "a second start must not re-run migrations")
+                    assertEquals(11, applied, "a second start must not re-run migrations")
                 }
             }
         }
