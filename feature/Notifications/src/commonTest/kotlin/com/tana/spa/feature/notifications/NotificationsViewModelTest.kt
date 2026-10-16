@@ -18,10 +18,12 @@ import com.tana.spa.shared.featureflags.ConfigurableFeatureFlags
 import com.tana.spa.shared.featureflags.FeatureFlag
 import com.tana.spa.shared.notifications.DevicePlatform
 import com.tana.spa.shared.notifications.DeviceRegistrationRequest
+import com.tana.spa.shared.notifications.NotificationData
 import com.tana.spa.shared.notifications.NotificationListResponse
 import com.tana.spa.shared.notifications.NotificationType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -108,6 +110,17 @@ class NotificationsViewModelTest {
         data = emptyMap(),
         read = read,
         createdAtEpochMillis = createdAt,
+    )
+
+    /** The reminder the server writes a day before a visit, payload and all. */
+    private fun reminder(id: String, bookingId: String? = "bk-1", read: Boolean = false) = NotificationItem(
+        id = id,
+        type = NotificationType.BOOKING,
+        title = "Tomorrow at the spa",
+        body = "Warm Stone Massage with Mai Tran on Wed Oct 21, 2:30 PM",
+        data = bookingId?.let { mapOf(NotificationData.BOOKING_ID to it, NotificationData.BOOKING_REFERENCE to "BK-7") }.orEmpty(),
+        read = read,
+        createdAtEpochMillis = 1_000L,
     )
 
     private fun viewModel(): NotificationsViewModel {
@@ -227,6 +240,49 @@ class NotificationsViewModelTest {
         assertEquals(0, viewModel.state.value.unreadCount)
         testScheduler.advanceUntilIdle()
         assertEquals(listOf("a"), repository.readIds)
+    }
+
+    @Test
+    fun tappingAReminderOpensTheVisitItIsAboutAndMarksItRead() = runTest(dispatcher) {
+        repository.pages.addLast(NotificationPage(listOf(reminder("n1", bookingId = "bk-9")), 1, null))
+        val viewModel = viewModel()
+        testScheduler.advanceUntilIdle()
+
+        viewModel.onEvent(NotificationsEvent.ItemClicked("n1"))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(NotificationsEffect.OpenBooking("bk-9"), viewModel.effects.first())
+        assertEquals(listOf("n1"), repository.readIds)
+    }
+
+    @Test
+    fun aReminderAlreadyReadStillOpensTheVisit() = runTest(dispatcher) {
+        repository.pages.addLast(NotificationPage(listOf(reminder("n1", read = true)), 0, null))
+        val viewModel = viewModel()
+        testScheduler.advanceUntilIdle()
+
+        viewModel.onEvent(NotificationsEvent.ItemClicked("n1"))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(NotificationsEffect.OpenBooking("bk-1"), viewModel.effects.first())
+        assertTrue(repository.readIds.isEmpty(), "it was read already; the tap was for the visit")
+    }
+
+    @Test
+    fun aNotificationWithNothingToOpenOnlyMarksItselfRead() = runTest(dispatcher) {
+        // An order, and a booking notification from a server that sent no payload with it.
+        repository.pages.addLast(NotificationPage(listOf(item("a"), reminder("n1", bookingId = null)), 2, null))
+        val viewModel = viewModel()
+        testScheduler.advanceUntilIdle()
+        val seen = mutableListOf<NotificationsEffect>()
+        backgroundScope.launch { viewModel.effects.collect { seen += it } }
+
+        viewModel.onEvent(NotificationsEvent.ItemClicked("a"))
+        viewModel.onEvent(NotificationsEvent.ItemClicked("n1"))
+        testScheduler.advanceUntilIdle()
+
+        assertTrue(seen.isEmpty(), "nowhere to go, so the centre stays put")
+        assertEquals(listOf("a", "n1"), repository.readIds)
     }
 
     @Test

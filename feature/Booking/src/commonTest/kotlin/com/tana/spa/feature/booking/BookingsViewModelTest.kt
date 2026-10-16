@@ -55,6 +55,24 @@ class BookingsViewModelTest {
     }
 
     @Test
+    fun arriving_from_a_notification_picks_out_that_visit_and_reads_the_list_again() = runTest(dispatcher) {
+        bookings.mine = listOf(guestBooking("a"), guestBooking("b"))
+        val vm = viewModel()
+        val reads = bookings.mineCalls
+
+        vm.onEvent(BookingsEvent.Opened(null))
+        testScheduler.advanceUntilIdle()
+        assertNull(vm.state.value.openedId, "the screen was opened on its own")
+        assertEquals(reads, bookings.mineCalls, "there is nothing to catch up with")
+
+        vm.onEvent(BookingsEvent.Opened("b"))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals("b", vm.state.value.openedId)
+        assertEquals(reads + 1, bookings.mineCalls, "a notification can be older than the list in hand")
+    }
+
+    @Test
     fun a_list_that_cannot_be_read_offers_a_retry() = runTest(dispatcher) {
         bookings.failMine = true
         val vm = viewModel()

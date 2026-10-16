@@ -21,6 +21,13 @@ class BookingsViewModel(private val bookings: GuestBookingRepository) :
         when (event) {
             BookingsEvent.Refresh -> refresh()
 
+            is BookingsEvent.Opened -> {
+                setState { copy(openedId = event.bookingId) }
+                // The notification may be older than the list in hand, or the list older than the
+                // spa's answer, so the visit it is about is read again.
+                if (event.bookingId != null) refresh()
+            }
+
             is BookingsEvent.CancelStarted -> setState {
                 copy(cancelling = bookings.firstOrNull { it.id == event.id })
             }

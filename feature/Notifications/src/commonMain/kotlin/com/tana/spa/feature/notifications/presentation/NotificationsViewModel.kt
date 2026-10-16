@@ -8,6 +8,8 @@ import com.tana.spa.core.notifications.PushPermissions
 import com.tana.spa.core.notifications.PushRegistrar
 import com.tana.spa.core.notifications.PushRegistration
 import com.tana.spa.feature.notifications.domain.NotificationsRepository
+import com.tana.spa.shared.notifications.NotificationData
+import com.tana.spa.shared.notifications.NotificationType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -31,7 +33,7 @@ class NotificationsViewModel(
         when (event) {
             NotificationsEvent.Refresh -> refresh()
             NotificationsEvent.LoadMore -> loadMore()
-            is NotificationsEvent.ItemClicked -> markRead(event.id)
+            is NotificationsEvent.ItemClicked -> open(event.id)
             NotificationsEvent.MarkAllRead -> markAllRead()
             NotificationsEvent.EnablePushClicked -> enablePush()
         }
@@ -79,6 +81,21 @@ class NotificationsViewModel(
                     sendEffect(NotificationsEffect.ShowLoadFailed)
                 }
         }
+    }
+
+    /**
+     * A tap takes the guest where the notification is about, and marks it read on the way. An
+     * entry already read still opens: reading it is not what the tap was for.
+     */
+    private fun open(id: String) {
+        val item = state.value.items.firstOrNull { it.id == id } ?: return
+        if (item.type == NotificationType.BOOKING) {
+            item.data[NotificationData.BOOKING_ID]?.let { booking ->
+                AppLog.i(logTag) { "opening the booking a notification is about" }
+                sendEffect(NotificationsEffect.OpenBooking(booking))
+            }
+        }
+        markRead(id)
     }
 
     private fun markRead(id: String) {

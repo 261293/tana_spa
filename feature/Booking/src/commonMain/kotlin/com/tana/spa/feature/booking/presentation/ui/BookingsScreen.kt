@@ -105,7 +105,13 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
                 state.bookings.isEmpty() -> Message(text = stringResource(Res.string.bookings_empty))
 
                 else -> state.bookings.forEach { booking ->
-                    BookingRow(booking, state.nowEpochMillis, enabled = !state.working, onEvent = onEvent)
+                    BookingRow(
+                        booking = booking,
+                        nowEpochMillis = state.nowEpochMillis,
+                        enabled = !state.working,
+                        opened = booking.id == state.openedId,
+                        onEvent = onEvent,
+                    )
                 }
             }
         }
@@ -115,9 +121,10 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
     state.cancelling?.let { CancelDialog(it, onEvent) }
 }
 
+/** [opened] is the visit a notification sent the guest here for, which the card picks out. */
 @Composable
-private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boolean, onEvent: (BookingsEvent) -> Unit) {
-    SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(16.dp)) {
+private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boolean, opened: Boolean, onEvent: (BookingsEvent) -> Unit) {
+    SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(16.dp), selected = opened) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(

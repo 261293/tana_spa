@@ -66,12 +66,18 @@ curl -s localhost:8081/api/v1/notifications/send -H "Authorization: Bearer $TOKE
 rejected as dead, which this call deleted. `503 push_unavailable` means the row was stored but no
 device could be reached; the id is in the message.
 
-## Two rules worth knowing before changing any of this
+## Rules worth knowing before changing any of this
 
 **A token belongs to a device, not to an account.** `device_tokens.token` is globally unique and
 registering it *moves* it to the signed-in user. Without that, the previous user of a shared phone
 keeps receiving the next user's notifications. The client re-registers with `force = true` whenever
 the access token changes, which is what makes the move happen.
+
+**A tap goes where the notification is about.** The centre routes on `NotificationItem.data`: a
+`booking` notification — a reminder, a confirmation or a decline — opens the guest's own visits on
+that booking (`NotificationData.BOOKING_ID`, written by the server and read by the app, so the two
+keys cannot drift). An entry already read still opens; reading it is not what the tap was for, and
+a notification with no payload to act on only marks itself read.
 
 **A dead token is deleted, not retried.** FCM answers `UNREGISTERED` (uninstalled) or
 `SENDER_ID_MISMATCH` (a token from another Firebase project); both are permanent, so the row goes.
@@ -168,12 +174,11 @@ because it is an ordinary authenticated list.
 
 ## Still to do
 
-- **Sign-out does not call `PushRegistrar.unregister()`**, because the app has no sign-out flow yet
-  (the Profile screen is a placeholder). Wire it in when that screen lands, or the next user of the
-  device will keep receiving the previous user's pushes until a token rotation or a re-registration
-  moves it.
-- Tapping a row marks it read but does not navigate: the payload is carried in
-  `NotificationItem.data` and nothing consumes it yet.
+- **Sign-out does not call `PushRegistrar.unregister()`.** Settings ends the session, but the
+  device keeps its registration, so the next user of that device would keep receiving the previous
+  user's pushes until a token rotation or a re-registration moves it.
+- Only `booking` notifications route anywhere. An order or a promotion still just marks itself
+  read, because neither has a screen to open yet.
 - No per-type preferences (mute promotions, keep order updates). The flag is all-or-nothing per
   user today.
 - No scheduled or batched sends, and no topics — `send` addresses one account at a time.

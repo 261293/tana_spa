@@ -32,4 +32,7 @@ sealed interface NotificationsEffect {
     data object ShowLoadFailed : NotificationsEffect
     data object ShowPushEnabled : NotificationsEffect
     data object ShowPushRefused : NotificationsEffect
+
+    /** A notification about a visit was tapped: the guest's own list opens on that booking. */
+    data class OpenBooking(val bookingId: String) : NotificationsEffect
 }

@@ -70,7 +70,8 @@ A sweep runs hourly and writes one notification per confirmed booking about 24 h
 starts (`BookingRules.REMINDER_LEAD_HOURS`). The claim is part of the same update
 (`bookings.reminder_sent_at`, V10), so a task that runs twice — or two instances — still reminds
 each guest once. Declined, cancelled and past bookings are never reminded. Delivery follows the
-usual notification rules, including the recipient's `notifications` flag.
+usual notification rules, including the recipient's `notifications` flag, and tapping the reminder
+in the centre opens the visit it is about.
 
 ## In the app
 
