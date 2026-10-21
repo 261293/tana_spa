@@ -126,11 +126,6 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
     state.cancelling?.let { CancelDialog(it, onEvent) }
 }
 
-/**
- * [opened] is the visit a notification sent the guest here for, or the one they tapped; its row is
- * picked out and shows how far along the visit is. The others stay a compact summary, because a
- * list of visits is read by scanning it.
- */
 @Composable
 private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boolean, opened: Boolean, onEvent: (BookingsEvent) -> Unit) {
     SpaCard(
@@ -196,10 +191,6 @@ private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boo
     }
 }
 
-/**
- * The track a visit that goes to plan runs along. A visit that ended off it draws nothing: the
- * status pill and the spa's reason, both already on the card, are the whole story in that case.
- */
 @Composable
 private fun VisitProgress(booking: GuestBooking, nowEpochMillis: Long) {
     val reached = visitStep(booking.status) ?: return

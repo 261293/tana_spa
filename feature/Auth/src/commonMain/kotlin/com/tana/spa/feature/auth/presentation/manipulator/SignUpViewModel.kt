@@ -25,7 +25,6 @@ class SignUpViewModel(private val register: RegisterUseCase, private val feature
             is SignUpEvent.PasswordChanged ->
                 setState { copy(password = event.value, passwordError = null, failure = null) }
 
-            // Leaving a field is where what was typed gets checked; see errorOnceTyped.
             SignUpEvent.NameBlurred -> setState { copy(nameError = errorOnceTyped(name, AuthValidation::validateName)) }
 
             SignUpEvent.EmailBlurred -> setState { copy(emailError = errorOnceTyped(email, AuthValidation::validateEmail)) }

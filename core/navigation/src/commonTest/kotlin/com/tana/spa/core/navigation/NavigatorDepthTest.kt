@@ -3,7 +3,6 @@ package com.tana.spa.core.navigation
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** Depth is what the app reads to tell forward navigation from a return, so it has to track the stack. */
 class NavigatorDepthTest {
 
     @Test

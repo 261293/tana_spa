@@ -26,13 +26,6 @@ private val CurrentDotSize = 14.dp
 private val TrackHeight = 2.dp
 private const val FUTURE_ALPHA = 0.4f
 
-/**
- * The steps something passes through, with every step up to [reached] marked as behind it.
- *
- * A terminal outcome is not a step on this track: a caller whose subject ended early says what
- * happened in its own words rather than drawing a track that leads nowhere. [description] is read
- * in place of the labels, which on their own reach a screen reader as three unrelated words.
- */
 @Composable
 fun SpaStepper(steps: List<String>, reached: Int, modifier: Modifier = Modifier, description: String? = null) {
     val done = MaterialTheme.colorScheme.primary
@@ -50,8 +43,6 @@ fun SpaStepper(steps: List<String>, reached: Int, modifier: Modifier = Modifier,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    // The half-tracks on the outer edges stay empty so the line starts and ends
-                    // at a dot rather than running off the row.
                     Track(if (passed) done else future, drawn = index > 0, modifier = Modifier.weight(1f))
                     Dot(color = if (passed) done else future, current = index == reached)
                     Track(if (index < reached) done else future, drawn = index < steps.lastIndex, modifier = Modifier.weight(1f))

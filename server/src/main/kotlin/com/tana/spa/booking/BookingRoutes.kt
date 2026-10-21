@@ -1,13 +1,14 @@
 package com.tana.spa.booking
 
 import com.tana.spa.admin.requireAdmin
-import com.tana.spa.admin.requireOwner
+import com.tana.spa.admin.requirePermission
 import com.tana.spa.admin.respondApiError
 import com.tana.spa.auth.AuthService
 import com.tana.spa.auth.JWT_AUTH
 import com.tana.spa.auth.User
 import com.tana.spa.promotions.PromotionService
 import com.tana.spa.shared.auth.AuthErrorCodes
+import com.tana.spa.shared.auth.SpaPermission
 import com.tana.spa.shared.booking.AdminCodeDto
 import com.tana.spa.shared.booking.AdminCodesResponse
 import com.tana.spa.shared.booking.AvailabilityResponse
@@ -143,7 +144,7 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
 
             route(BookingApi.OWNER_BOOKINGS) {
                 get {
-                    call.requireOwner(auth) ?: return@get
+                    call.requirePermission(auth, SpaPermission.MANAGE_BOOKINGS) ?: return@get
                     val now = Instant.now()
                     val today = service.dayFromEpochDay(service.epochDayOf(now))
                     call.respond(
@@ -156,34 +157,34 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
                 }
 
                 post("/{id}/confirm") {
-                    val owner = call.requireOwner(auth) ?: return@post
+                    val owner = call.requirePermission(auth, SpaPermission.MANAGE_BOOKINGS) ?: return@post
                     val id = call.bookingId() ?: return@post
                     val force = runCatching { call.receive<ConfirmBookingRequest>() }.getOrNull()?.force ?: false
                     call.respondOutcome(service.confirm(id, owner.id, force), service)
                 }
 
                 post("/{id}/decline") {
-                    val owner = call.requireOwner(auth) ?: return@post
+                    val owner = call.requirePermission(auth, SpaPermission.MANAGE_BOOKINGS) ?: return@post
                     val id = call.bookingId() ?: return@post
                     val request = call.receive<DeclineBookingRequest>()
                     call.respondOutcome(service.decline(id, owner.id, request.reason, request.alternativeOffer), service)
                 }
 
                 post("/{id}/complete") {
-                    val owner = call.requireOwner(auth) ?: return@post
+                    val owner = call.requirePermission(auth, SpaPermission.MANAGE_BOOKINGS) ?: return@post
                     val id = call.bookingId() ?: return@post
                     call.respondOutcome(service.recordVisit(id, owner.id, attended = true), service)
                 }
 
                 post("/{id}/no-show") {
-                    val owner = call.requireOwner(auth) ?: return@post
+                    val owner = call.requirePermission(auth, SpaPermission.MANAGE_BOOKINGS) ?: return@post
                     val id = call.bookingId() ?: return@post
                     call.respondOutcome(service.recordVisit(id, owner.id, attended = false), service)
                 }
             }
 
             post(BookingApi.OWNER_SERVICES) {
-                call.requireOwner(auth) ?: return@post
+                call.requirePermission(auth, SpaPermission.MANAGE_SERVICES) ?: return@post
                 val request = call.receive<CreateServiceRequest>()
                 SpaValidation.firstInvalidField(request)?.let { return@post call.respondInvalidField(it) }
                 val created = service.createService(request)
@@ -196,7 +197,7 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
             }
 
             post(BookingApi.OWNER_THERAPISTS) {
-                call.requireOwner(auth) ?: return@post
+                call.requirePermission(auth, SpaPermission.MANAGE_THERAPISTS) ?: return@post
                 val request = call.receive<CreateTherapistRequest>()
                 SpaValidation.firstInvalidField(request)?.let { return@post call.respondInvalidField(it) }
                 val created = service.createTherapist(request)

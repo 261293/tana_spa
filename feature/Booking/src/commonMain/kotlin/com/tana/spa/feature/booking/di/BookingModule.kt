@@ -18,7 +18,6 @@ val bookingModule: Module = module {
     single<SpaCatalogRepository> { SpaCatalogRepositoryImpl(get(), Constants.apiBaseUrl(get<Platform>().type)) }
     single<GuestBookingRepository> { GuestBookingRepositoryImpl(get(), Constants.apiBaseUrl(get<Platform>().type), get()) }
 
-    // Held for the whole app, not a screen: the strip that reads it outlives every screen below it.
     single { CurrentVisit(get(), get()) }
 
     viewModelOf(::BookingViewModel)

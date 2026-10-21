@@ -3,6 +3,7 @@ package com.tana.spa.feature.admin.presentation.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,7 @@ import com.tana.spa.feature.admin.presentation.AdminMenuEffect
 import com.tana.spa.feature.admin.presentation.AdminMenuEvent
 import com.tana.spa.feature.admin.presentation.AdminMenuState
 import com.tana.spa.feature.admin.resources.Res
+import com.tana.spa.feature.admin.resources.admin_menu_add_person
 import com.tana.spa.feature.admin.resources.admin_menu_add_service
 import com.tana.spa.feature.admin.resources.admin_menu_add_therapist
 import com.tana.spa.feature.admin.resources.admin_menu_category
@@ -51,8 +53,23 @@ import com.tana.spa.feature.admin.resources.admin_menu_minutes
 import com.tana.spa.feature.admin.resources.admin_menu_minutes_hint
 import com.tana.spa.feature.admin.resources.admin_menu_name
 import com.tana.spa.feature.admin.resources.admin_menu_name_hint
+import com.tana.spa.feature.admin.resources.admin_menu_person_added
+import com.tana.spa.feature.admin.resources.admin_menu_person_email
+import com.tana.spa.feature.admin.resources.admin_menu_person_email_error
+import com.tana.spa.feature.admin.resources.admin_menu_person_email_hint
+import com.tana.spa.feature.admin.resources.admin_menu_person_name_error
+import com.tana.spa.feature.admin.resources.admin_menu_person_name_hint
+import com.tana.spa.feature.admin.resources.admin_menu_person_password
+import com.tana.spa.feature.admin.resources.admin_menu_person_password_error
+import com.tana.spa.feature.admin.resources.admin_menu_person_password_hint
+import com.tana.spa.feature.admin.resources.admin_menu_person_role
+import com.tana.spa.feature.admin.resources.admin_menu_person_title
 import com.tana.spa.feature.admin.resources.admin_menu_price
 import com.tana.spa.feature.admin.resources.admin_menu_price_hint
+import com.tana.spa.feature.admin.resources.admin_menu_role_admin
+import com.tana.spa.feature.admin.resources.admin_menu_role_customer
+import com.tana.spa.feature.admin.resources.admin_menu_role_owner
+import com.tana.spa.feature.admin.resources.admin_menu_role_staff
 import com.tana.spa.feature.admin.resources.admin_menu_service_added
 import com.tana.spa.feature.admin.resources.admin_menu_service_title
 import com.tana.spa.feature.admin.resources.admin_menu_subtitle
@@ -63,6 +80,8 @@ import com.tana.spa.feature.admin.resources.admin_menu_therapist_title
 import com.tana.spa.feature.admin.resources.admin_menu_title
 import com.tana.spa.feature.admin.resources.admin_menu_title_accent
 import com.tana.spa.feature.admin.resources.admin_refused
+import com.tana.spa.shared.auth.SpaPermission
+import com.tana.spa.shared.auth.SpaRoles
 import com.tana.spa.shared.booking.DurationError
 import com.tana.spa.shared.booking.PriceError
 import com.tana.spa.shared.booking.ServiceCategoryDto
@@ -88,6 +107,7 @@ fun AdminMenuScreen(
             val message = when (effect) {
                 is AdminMenuEffect.ShowServiceAdded -> getString(Res.string.admin_menu_service_added, effect.name)
                 is AdminMenuEffect.ShowTherapistAdded -> getString(Res.string.admin_menu_therapist_added, effect.name)
+                is AdminMenuEffect.ShowPersonAdded -> getString(Res.string.admin_menu_person_added, effect.name)
                 is AdminMenuEffect.ShowRefused -> getString(Res.string.admin_refused)
             }
             snackbar.currentSnackbarData?.dismiss()
@@ -118,15 +138,18 @@ fun AdminMenuScreen(
                     accent = stringResource(Res.string.admin_menu_title_accent),
                     subtitle = stringResource(Res.string.admin_menu_subtitle),
                 )
+                val menu = SpaPermission.MANAGE_SERVICES in state.permissions
+                val roster = SpaPermission.MANAGE_THERAPISTS in state.permissions
                 if (wide) {
                     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        Box(Modifier.weight(1f)) { ServiceForm(state, onEvent) }
-                        Box(Modifier.weight(1f)) { TherapistForm(state, onEvent) }
+                        if (menu) Box(Modifier.weight(1f)) { ServiceForm(state, onEvent) }
+                        if (roster) Box(Modifier.weight(1f)) { TherapistForm(state, onEvent) }
                     }
                 } else {
-                    ServiceForm(state, onEvent)
-                    TherapistForm(state, onEvent)
+                    if (menu) ServiceForm(state, onEvent)
+                    if (roster) TherapistForm(state, onEvent)
                 }
+                if (SpaPermission.MANAGE_ACCOUNTS in state.permissions) PersonForm(state, onEvent)
             }
             SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
         }
@@ -230,6 +253,67 @@ private fun TherapistForm(state: AdminMenuState, onEvent: (AdminMenuEvent) -> Un
             )
         }
     }
+}
+
+@Composable
+private fun PersonForm(state: AdminMenuState, onEvent: (AdminMenuEvent) -> Unit) {
+    val form = state.person
+    SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(20.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            FormTitle(stringResource(Res.string.admin_menu_person_title))
+            SpaTextField(
+                label = stringResource(Res.string.admin_menu_name),
+                value = form.name,
+                onValueChange = { onEvent(AdminMenuEvent.PersonNameChanged(it)) },
+                placeholder = stringResource(Res.string.admin_menu_person_name_hint),
+                error = form.nameError?.let { stringResource(Res.string.admin_menu_person_name_error) },
+                enabled = !state.savingPerson,
+            )
+            SpaTextField(
+                label = stringResource(Res.string.admin_menu_person_email),
+                value = form.email,
+                onValueChange = { onEvent(AdminMenuEvent.PersonEmailChanged(it)) },
+                placeholder = stringResource(Res.string.admin_menu_person_email_hint),
+                error = form.emailError?.let { stringResource(Res.string.admin_menu_person_email_error) },
+                enabled = !state.savingPerson,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            )
+            SpaTextField(
+                label = stringResource(Res.string.admin_menu_person_password),
+                value = form.password,
+                onValueChange = { onEvent(AdminMenuEvent.PersonPasswordChanged(it)) },
+                placeholder = stringResource(Res.string.admin_menu_person_password_hint),
+                error = form.passwordError?.let { stringResource(Res.string.admin_menu_person_password_error) },
+                enabled = !state.savingPerson,
+            )
+            Text(
+                text = stringResource(Res.string.admin_menu_person_role),
+                style = SpaTheme.textStyles.caption,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.creatableRoles.forEach { role ->
+                    SpaFilterChip(
+                        label = stringResource(roleLabel(role)),
+                        selected = form.role == role,
+                        onClick = { onEvent(AdminMenuEvent.PersonRoleChanged(role)) },
+                    )
+                }
+            }
+            SpaPrimaryButton(
+                text = stringResource(Res.string.admin_menu_add_person),
+                onClick = { onEvent(AdminMenuEvent.SavePerson) },
+                loading = state.savingPerson,
+            )
+        }
+    }
+}
+
+private fun roleLabel(role: String) = when (role) {
+    SpaRoles.ADMIN -> Res.string.admin_menu_role_admin
+    SpaRoles.OWNER -> Res.string.admin_menu_role_owner
+    SpaRoles.STAFF -> Res.string.admin_menu_role_staff
+    else -> Res.string.admin_menu_role_customer
 }
 
 @Composable

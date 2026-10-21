@@ -55,6 +55,27 @@ class AuthService(
         }
     }
 
+    suspend fun createAccount(displayName: String, email: String, password: String, role: UserRole): AuthResult = withContext(io) {
+        val name = displayName.trim()
+        if (AuthValidation.validateName(name) != null) return@withContext AuthResult.InvalidInput
+        if (AuthValidation.validateEmail(email) != null) return@withContext AuthResult.InvalidInput
+        if (AuthValidation.validatePassword(password) != null ||
+            password.length > AuthValidation.MAX_PASSWORD_LENGTH
+        ) {
+            return@withContext AuthResult.InvalidInput
+        }
+
+        val normalizedEmail = AuthValidation.normalizeEmail(email)
+        if (users.findByEmail(normalizedEmail) != null) return@withContext AuthResult.EmailTaken
+
+        val account = users.ensureSeeded(normalizedEmail, name, hasher.hash(password), role)
+            ?: return@withContext AuthResult.InvalidInput
+        if (account.role != role) return@withContext AuthResult.EmailTaken
+        AuthResult.Success(account)
+    }
+
+    suspend fun changeRole(id: String, role: UserRole): Boolean = withContext(io) { users.setRole(id, role) }
+
     suspend fun login(email: String, password: String): AuthResult = withContext(io) {
         // Cap length before hashing so a huge payload cannot be used to burn CPU.
         if (AuthValidation.validateEmail(email) != null || password.isEmpty() ||

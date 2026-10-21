@@ -2,6 +2,7 @@ package com.tana.spa.di
 
 import com.tana.spa.core.cache.KeyValueCache
 import com.tana.spa.core.network.AccessTokenSource
+import com.tana.spa.core.network.CallerRole
 import com.tana.spa.core.ui.AppLanguage
 import com.tana.spa.feature.auth.data.local.SessionStore
 import com.tana.spa.feature.feed.domain.HomeUserName
@@ -18,6 +19,11 @@ val appModule: Module = module {
         val sessions = get<SessionStore>()
         // Read per call, not captured: the token changes on every sign-in and sign-out.
         AccessTokenSource { sessions.load()?.accessToken }
+    }
+
+    single<CallerRole> {
+        val sessions = get<SessionStore>()
+        CallerRole { sessions.load()?.user?.role?.wire.orEmpty() }
     }
 
     single<SignOutAction> {

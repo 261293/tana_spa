@@ -7,6 +7,9 @@ import com.tana.spa.feature.admin.domain.DeskRefused
 import com.tana.spa.feature.admin.domain.DeskRepository
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
+import com.tana.spa.shared.auth.AccountsApi
+import com.tana.spa.shared.auth.CreateAccountRequest
+import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.auth.ErrorResponse
 import com.tana.spa.shared.booking.BookingApi
 import com.tana.spa.shared.booking.BookingDto
@@ -82,6 +85,15 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
 
     override suspend fun createTherapist(request: CreateTherapistRequest): TherapistDto {
         val response = networkClient.httpClient.post(baseUrl + BookingApi.OWNER_THERAPISTS) {
+            authorize()
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return response.requireSuccess().body()
+    }
+
+    override suspend fun createAccount(request: CreateAccountRequest): CreatedAccountDto {
+        val response = networkClient.httpClient.post(baseUrl + AccountsApi.BASE) {
             authorize()
             contentType(ContentType.Application.Json)
             setBody(request)

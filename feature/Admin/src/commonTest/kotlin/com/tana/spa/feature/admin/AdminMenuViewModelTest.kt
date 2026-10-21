@@ -1,5 +1,6 @@
 package com.tana.spa.feature.admin
 
+import com.tana.spa.core.network.CallerRole
 import com.tana.spa.feature.admin.domain.DeskQueue
 import com.tana.spa.feature.admin.domain.DeskRefused
 import com.tana.spa.feature.admin.domain.DeskRepository
@@ -7,6 +8,10 @@ import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.presentation.AdminMenuEffect
 import com.tana.spa.feature.admin.presentation.AdminMenuEvent
 import com.tana.spa.feature.admin.presentation.AdminMenuViewModel
+import com.tana.spa.shared.auth.CreateAccountRequest
+import com.tana.spa.shared.auth.CreatedAccountDto
+import com.tana.spa.shared.auth.SpaPermission
+import com.tana.spa.shared.auth.SpaRoles
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
@@ -28,6 +33,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -38,6 +44,7 @@ class AdminMenuViewModelTest {
     private class FakeDesk : DeskRepository {
         val services = mutableListOf<CreateServiceRequest>()
         val therapists = mutableListOf<CreateTherapistRequest>()
+        val accounts = mutableListOf<CreateAccountRequest>()
         var refusal: DeskRefused? = null
 
         override suspend fun queue() = DeskQueue(emptyList(), emptyList(), 0)
@@ -63,10 +70,16 @@ class AdminMenuViewModelTest {
             refusal?.let { throw it }
             return TherapistDto(SpaValidation.slugify(request.name), request.name, request.focus, TherapistAccentDto.MOSS, null)
         }
+
+        override suspend fun createAccount(request: CreateAccountRequest): CreatedAccountDto {
+            accounts += request
+            refusal?.let { throw it }
+            return CreatedAccountDto(id = "u1", displayName = request.displayName, email = request.email, role = request.role)
+        }
     }
 
     private val desk = FakeDesk()
-    private fun viewModel() = AdminMenuViewModel(desk)
+    private fun viewModel(role: String = SpaRoles.OWNER) = AdminMenuViewModel(desk, CallerRole { role })
 
     private fun AdminMenuViewModel.fillService(
         name: String = "Pine Ritual",
@@ -171,5 +184,77 @@ class AdminMenuViewModelTest {
 
         assertEquals(listOf(CreateTherapistRequest("Noor", "Facials & skin")), desk.therapists.toList())
         assertEquals(AdminMenuEffect.ShowTherapistAdded("Noor"), vm.effects.first())
+    }
+
+    @Test
+    fun the_owner_is_offered_staff_and_customer_but_never_owner() {
+        val vm = viewModel(SpaRoles.OWNER)
+
+        assertEquals(listOf(SpaRoles.STAFF, SpaRoles.CUSTOMER), vm.state.value.creatableRoles)
+        assertEquals(SpaRoles.STAFF, vm.state.value.person.role)
+    }
+
+    @Test
+    fun an_administrator_is_offered_every_role() {
+        val vm = viewModel(SpaRoles.ADMIN)
+
+        assertEquals(
+            listOf(SpaRoles.ADMIN, SpaRoles.OWNER, SpaRoles.STAFF, SpaRoles.CUSTOMER),
+            vm.state.value.creatableRoles,
+        )
+    }
+
+    @Test
+    fun staff_are_offered_no_forms_at_all_on_this_screen() {
+        val vm = viewModel(SpaRoles.STAFF)
+
+        assertTrue(vm.state.value.creatableRoles.isEmpty())
+        assertTrue(SpaPermission.MANAGE_SERVICES !in vm.state.value.permissions)
+        assertTrue(SpaPermission.MANAGE_THERAPISTS !in vm.state.value.permissions)
+        assertTrue(SpaPermission.MANAGE_ACCOUNTS !in vm.state.value.permissions)
+    }
+
+    @Test
+    fun taking_somebody_on_sends_the_form_and_clears_it() = runTest(dispatcher) {
+        val vm = viewModel(SpaRoles.OWNER)
+        vm.onEvent(AdminMenuEvent.PersonNameChanged("Linh Nguyen"))
+        vm.onEvent(AdminMenuEvent.PersonEmailChanged("linh@tana.local"))
+        vm.onEvent(AdminMenuEvent.PersonPasswordChanged("password123"))
+
+        vm.onEvent(AdminMenuEvent.SavePerson)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(1, desk.accounts.size)
+        assertEquals(SpaRoles.STAFF, desk.accounts.single().role)
+        assertEquals("", vm.state.value.person.name)
+    }
+
+    @Test
+    fun a_form_that_fails_the_shared_rules_is_never_sent() = runTest(dispatcher) {
+        val vm = viewModel(SpaRoles.OWNER)
+        vm.onEvent(AdminMenuEvent.PersonNameChanged("Linh Nguyen"))
+        vm.onEvent(AdminMenuEvent.PersonEmailChanged("not-an-email"))
+        vm.onEvent(AdminMenuEvent.PersonPasswordChanged("short"))
+
+        vm.onEvent(AdminMenuEvent.SavePerson)
+        testScheduler.advanceUntilIdle()
+
+        assertTrue(desk.accounts.isEmpty())
+        assertNotNull(vm.state.value.person.emailError)
+        assertNotNull(vm.state.value.person.passwordError)
+    }
+
+    @Test
+    fun an_owner_asking_for_an_owner_account_is_not_even_sent() = runTest(dispatcher) {
+        val vm = viewModel(SpaRoles.OWNER)
+        vm.onEvent(AdminMenuEvent.PersonNameChanged("Someone Else"))
+        vm.onEvent(AdminMenuEvent.PersonEmailChanged("someone@tana.local"))
+        vm.onEvent(AdminMenuEvent.PersonPasswordChanged("password123"))
+        vm.onEvent(AdminMenuEvent.PersonRoleChanged(SpaRoles.OWNER))
+
+        vm.onEvent(AdminMenuEvent.SavePerson)
+        testScheduler.advanceUntilIdle()
+
+        assertTrue(desk.accounts.isEmpty())
     }
 }

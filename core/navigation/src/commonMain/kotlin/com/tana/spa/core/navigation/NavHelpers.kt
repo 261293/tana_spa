@@ -18,7 +18,6 @@ class MutableNavigator(start: String) : Navigator {
     override var current: String by mutableStateOf(start)
         private set
 
-    // Observable, because the transition between two routes is chosen from the direction of travel.
     override var depth: Int by mutableStateOf(stack.size)
         private set
 

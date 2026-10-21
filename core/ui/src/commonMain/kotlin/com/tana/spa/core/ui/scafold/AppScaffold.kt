@@ -45,8 +45,6 @@ fun AppScaffold(
                 actions = topBarActions,
             )
         },
-        // The strip rides with the bottom bar so it clears the destinations at phone width and
-        // still sits at the foot of the window at the widths that have no bottom bar at all.
         bottomBar = {
             Column {
                 bottomStrip()

@@ -151,4 +151,20 @@
     <string name="admin_eligible_massages">Massage</string>
     <string name="admin_eligible_facials">Chăm sóc da mặt</string>
     <string name="admin_eligible_body">Chăm sóc toàn thân</string>
+    <string name="admin_menu_person_title">Thêm người vào spa</string>
+    <string name="admin_menu_person_name_hint">Nguyễn Thị Linh</string>
+    <string name="admin_menu_person_email">Email đăng nhập</string>
+    <string name="admin_menu_person_email_hint">linh@tana.local</string>
+    <string name="admin_menu_person_password">Mật khẩu tạm</string>
+    <string name="admin_menu_person_password_hint">Ít nhất 8 ký tự</string>
+    <string name="admin_menu_person_role">Vai trò</string>
+    <string name="admin_menu_add_person">Tạo tài khoản</string>
+    <string name="admin_menu_person_added">Đã tạo tài khoản cho %1$s</string>
+    <string name="admin_menu_role_admin">Quản trị hệ thống</string>
+    <string name="admin_menu_role_owner">Chủ spa</string>
+    <string name="admin_menu_role_staff">Nhân viên</string>
+    <string name="admin_menu_role_customer">Khách hàng</string>
+    <string name="admin_menu_person_name_error">Hãy nhập tên</string>
+    <string name="admin_menu_person_email_error">Email không hợp lệ</string>
+    <string name="admin_menu_person_password_error">Mật khẩu cần ít nhất 8 ký tự</string>
 </resources>

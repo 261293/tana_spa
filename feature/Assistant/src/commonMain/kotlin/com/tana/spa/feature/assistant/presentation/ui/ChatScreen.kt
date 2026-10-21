@@ -307,7 +307,6 @@ private fun TypingRow() {
         ) {
             val motion = SpaTheme.motion
             repeat(3) { index ->
-                // Under reduced motion the dots stand still: a loop has no end state to snap to.
                 val alpha = if (motion.reduced) 1f else typingDotAlpha(transition, index, motion.long)
                 Box(Modifier.size(7.dp).alpha(alpha).background(MaterialTheme.colorScheme.onSurfaceVariant, CircleShape))
             }
@@ -315,7 +314,6 @@ private fun TypingRow() {
     }
 }
 
-/** The dots fade in turn rather than together, which is what reads as typing. */
 @Composable
 private fun typingDotAlpha(transition: InfiniteTransition, index: Int, durationMs: Int): Float {
     val alpha by transition.animateFloat(

@@ -26,10 +26,6 @@ import com.tana.spa.feature.booking.resources.visit_in_progress
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
-/**
- * The visit in hand, kept above the destinations wherever the guest is. Draws nothing at all when
- * there is no visit to follow, so the frame costs no height on the screens that do not need it.
- */
 @Composable
 fun CurrentVisitStrip(onOpen: (String) -> Unit) {
     val current: CurrentVisit = koinInject()

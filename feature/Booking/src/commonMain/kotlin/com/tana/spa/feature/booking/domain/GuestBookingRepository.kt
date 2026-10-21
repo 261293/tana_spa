@@ -41,11 +41,6 @@ data class GuestBooking(
     fun cancelTooLate(nowEpochMillis: Long): Boolean =
         status in CANCELLABLE && !cancellable(nowEpochMillis) && startAtEpochMillis > nowEpochMillis
 
-    /**
-     * Whether the visit is happening right now. The spa has no status for it and does not need
-     * one: the hour and the treatment's length already say when it runs, and a status would only
-     * be as fresh as the last time someone at the desk remembered to set it.
-     */
     fun inProgress(nowEpochMillis: Long): Boolean = status == BookingStatusDto.CONFIRMED &&
         nowEpochMillis >= startAtEpochMillis &&
         nowEpochMillis < startAtEpochMillis + minutes * MILLIS_PER_MINUTE

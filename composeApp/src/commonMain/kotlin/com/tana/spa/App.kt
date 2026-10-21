@@ -57,9 +57,10 @@ import com.tana.spa.core.ui.resources.nav_visits
 import com.tana.spa.core.ui.scafold.AppScaffold
 import com.tana.spa.feature.appupdate.AppUpdateGate
 import com.tana.spa.feature.auth.data.local.SessionStore
-import com.tana.spa.feature.auth.domain.model.UserRoleName
 import com.tana.spa.feature.booking.presentation.CurrentVisit
 import com.tana.spa.feature.booking.presentation.ui.CurrentVisitStrip
+import com.tana.spa.shared.auth.SpaPermission
+import com.tana.spa.shared.auth.SpaRoles
 import com.tana.spa.shared.featureflags.FeatureFlag
 import com.tana.spa.shared.spa.initialsOf
 import kotlinx.coroutines.delay
@@ -84,10 +85,6 @@ private val FULL_SCREEN_ROUTES = setOf(
 /** Screens the Book destination owns: reaching one does not leave the booking flow. */
 private val BOOKING_FLOW_ROUTES = setOf(Routes.SERVICE_DETAIL, Routes.MY_BOOKINGS)
 
-/**
- * Where the current-visit strip stays out of the way: the booking screen has its own strip for the
- * booking being composed, and the visits list is where the strip would send them anyway.
- */
 private val NO_VISIT_STRIP_ROUTES = setOf(Routes.BOOKING, Routes.MY_BOOKINGS)
 
 @Composable
@@ -159,10 +156,6 @@ private fun PushRegistration(current: String, notificationsEnabled: Boolean) {
     }
 }
 
-/**
- * Re-read as the guest moves about, like the unread badge beside it: a visit the spa confirms or
- * declines while the app is open changes what the strip should say, and nothing else tells it.
- */
 @Composable
 private fun CurrentVisitRefresh(current: String) {
     val visit: CurrentVisit = koinInject()
@@ -189,11 +182,11 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
     // Read per route change rather than observed: a sign-in or sign-out always navigates.
     val sessions: SessionStore = koinInject()
     val account = remember(current) { sessions.load()?.user }
-    val owner = account?.role == UserRoleName.OWNER
+    val worksTheDesk = SpaRoles.has(account?.role?.wire.orEmpty(), SpaPermission.MANAGE_BOOKINGS)
 
     AppScaffold(
         navItems = navDestinations(
-            owner = owner,
+            desk = worksTheDesk,
             notificationsEnabled = notificationsEnabled,
             unread = unread,
             labels = NavLabels(
@@ -238,11 +231,6 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
     }
 }
 
-/**
- * One screen of the back stack, with the move to it animated. The route name, not the full route,
- * is the content key: adding an argument to the route being shown is the same screen, so a
- * discount code arriving on the booking route must not replay the transition.
- */
 @Composable
 private fun RouteContent(navigator: Navigator, route: String, screenState: SaveableStateHolder) {
     val motion = SpaTheme.motion
@@ -257,13 +245,8 @@ private fun RouteContent(navigator: Navigator, route: String, screenState: Savea
     }
 }
 
-/** A sixth of the width: enough to read as travel, short of the screen sliding fully aside. */
 private const val SLIDE_FRACTION = 6
 
-/**
- * Going deeper arrives from the trailing edge and leaves towards the leading one, and coming back
- * reverses both, so the motion agrees with the direction the back stack moved.
- */
 private fun routeTransition(forward: Boolean, motion: SpaMotion): ContentTransform {
     if (motion.reduced) return EnterTransition.None togetherWith ExitTransition.None
     val edge = if (forward) 1 else -1
@@ -281,10 +264,10 @@ data class NavLabels(val book: String, val alerts: String, val offers: String, v
  * The destinations the signed-in account sees. Desk is the spa's own console: the server refuses
  * its calls for every other role, so leaving it out only keeps it out of a guest's way.
  */
-internal fun navDestinations(owner: Boolean, notificationsEnabled: Boolean, unread: Int, labels: NavLabels): List<NavConfig> = buildList {
+internal fun navDestinations(desk: Boolean, notificationsEnabled: Boolean, unread: Int, labels: NavLabels): List<NavConfig> = buildList {
     add(NavConfig(Routes.BOOKING, labels.book, SpaIcon.CalendarPlus))
     add(NavConfig(Routes.NOTIFICATIONS, labels.alerts, SpaIcon.Bell, badgeCount = if (notificationsEnabled) unread else 0))
     add(NavConfig(Routes.PROMOTIONS, labels.offers, SpaIcon.Tag))
-    if (owner) add(NavConfig(Routes.ADMIN_REQUESTS, labels.desk, SpaIcon.Calendar))
+    if (desk) add(NavConfig(Routes.ADMIN_REQUESTS, labels.desk, SpaIcon.Calendar))
     add(NavConfig(Routes.SETTINGS, labels.settings, SpaIcon.Gear))
 }
