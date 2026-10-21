@@ -148,4 +148,19 @@ class BookingsViewModelTest {
         assertEquals(BookingStatusDto.PENDING, vm.state.value.bookings.single().status)
         assertFalse(vm.state.value.working)
     }
+
+    @Test
+    fun tapping_a_visit_opens_it_and_tapping_the_open_one_folds_it_away() = runTest(dispatcher) {
+        bookings.mine = listOf(guestBooking("a"), guestBooking("b"))
+        val vm = viewModel()
+
+        vm.onEvent(BookingsEvent.RowToggled("a"))
+        assertEquals("a", vm.state.value.openedId)
+
+        vm.onEvent(BookingsEvent.RowToggled("b"))
+        assertEquals("b", vm.state.value.openedId)
+
+        vm.onEvent(BookingsEvent.RowToggled("b"))
+        assertNull(vm.state.value.openedId)
+    }
 }

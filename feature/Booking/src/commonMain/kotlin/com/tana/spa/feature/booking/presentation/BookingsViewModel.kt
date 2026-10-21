@@ -28,6 +28,10 @@ class BookingsViewModel(private val bookings: GuestBookingRepository) :
                 if (event.bookingId != null) refresh()
             }
 
+            is BookingsEvent.RowToggled -> setState {
+                copy(openedId = if (openedId == event.id) null else event.id)
+            }
+
             is BookingsEvent.CancelStarted -> setState {
                 copy(cancelling = bookings.firstOrNull { it.id == event.id })
             }

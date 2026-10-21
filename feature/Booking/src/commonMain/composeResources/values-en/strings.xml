@@ -99,4 +99,6 @@
     <string name="booking_sent_body">%1$s with %2$s, %3$s. We’ll notify you as soon as the spa confirms.</string>
     <string name="booking_sent_notifications">View notifications</string>
     <string name="booking_sent_another">Book another treatment</string>
+    <string name="visit_in_progress">This visit is under way</string>
+    <string name="visit_progress_description">Step %1$d of %2$d: %3$s</string>
 </resources>

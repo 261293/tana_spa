@@ -32,8 +32,10 @@ import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
 import com.tana.spa.core.ui.components.SpaStatusPill
+import com.tana.spa.core.ui.components.SpaStepper
 import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.feature.booking.domain.GuestBooking
+import com.tana.spa.feature.booking.domain.visitStep
 import com.tana.spa.feature.booking.presentation.BookingsEffect
 import com.tana.spa.feature.booking.presentation.BookingsEvent
 import com.tana.spa.feature.booking.presentation.BookingsState
@@ -62,6 +64,8 @@ import com.tana.spa.feature.booking.resources.bookings_subtitle
 import com.tana.spa.feature.booking.resources.bookings_title
 import com.tana.spa.feature.booking.resources.bookings_title_accent
 import com.tana.spa.feature.booking.resources.bookings_too_late
+import com.tana.spa.feature.booking.resources.visit_in_progress
+import com.tana.spa.feature.booking.resources.visit_progress_description
 import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.booking.DeclineReasonDto
 import kotlinx.coroutines.flow.Flow
@@ -122,10 +126,19 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
     state.cancelling?.let { CancelDialog(it, onEvent) }
 }
 
-/** [opened] is the visit a notification sent the guest here for, which the card picks out. */
+/**
+ * [opened] is the visit a notification sent the guest here for, or the one they tapped; its row is
+ * picked out and shows how far along the visit is. The others stay a compact summary, because a
+ * list of visits is read by scanning it.
+ */
 @Composable
 private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boolean, opened: Boolean, onEvent: (BookingsEvent) -> Unit) {
-    SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(16.dp), selected = opened) {
+    SpaCard(
+        Modifier.fillMaxWidth(),
+        padding = PaddingValues(16.dp),
+        selected = opened,
+        onClick = { onEvent(BookingsEvent.RowToggled(booking.id)) },
+    ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -136,6 +149,8 @@ private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boo
                 )
                 StatusPill(booking.status)
             }
+
+            if (opened) VisitProgress(booking, nowEpochMillis)
             Text(
                 text = stringResource(
                     Res.string.bookings_meta,
@@ -177,6 +192,40 @@ private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boo
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+    }
+}
+
+/**
+ * The track a visit that goes to plan runs along. A visit that ended off it draws nothing: the
+ * status pill and the spa's reason, both already on the card, are the whole story in that case.
+ */
+@Composable
+private fun VisitProgress(booking: GuestBooking, nowEpochMillis: Long) {
+    val reached = visitStep(booking.status) ?: return
+    val labels = listOf(
+        stringResource(Res.string.bookings_status_pending),
+        stringResource(Res.string.bookings_status_confirmed),
+        stringResource(Res.string.bookings_status_completed),
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SpaStepper(
+            steps = labels,
+            reached = reached.ordinal,
+            modifier = Modifier.fillMaxWidth(),
+            description = stringResource(
+                Res.string.visit_progress_description,
+                reached.ordinal + 1,
+                labels.size,
+                labels[reached.ordinal],
+            ),
+        )
+        if (booking.inProgress(nowEpochMillis)) {
+            Text(
+                text = stringResource(Res.string.visit_in_progress),
+                style = SpaTheme.textStyles.caption,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }

@@ -5,6 +5,7 @@ import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
 import com.tana.spa.feature.auth.domain.model.RegisterResult
 import com.tana.spa.feature.auth.domain.usecase.RegisterUseCase
+import com.tana.spa.shared.auth.AuthValidation
 import com.tana.spa.shared.featureflags.FeatureFlag
 import com.tana.spa.shared.featureflags.FeatureFlags
 import kotlinx.coroutines.launch
@@ -23,6 +24,16 @@ class SignUpViewModel(private val register: RegisterUseCase, private val feature
 
             is SignUpEvent.PasswordChanged ->
                 setState { copy(password = event.value, passwordError = null, failure = null) }
+
+            // Leaving a field is where what was typed gets checked; see errorOnceTyped.
+            SignUpEvent.NameBlurred -> setState { copy(nameError = errorOnceTyped(name, AuthValidation::validateName)) }
+
+            SignUpEvent.EmailBlurred -> setState { copy(emailError = errorOnceTyped(email, AuthValidation::validateEmail)) }
+
+            SignUpEvent.PhoneBlurred -> setState { copy(phoneError = errorOnceTyped(phone, AuthValidation::validatePhone)) }
+
+            SignUpEvent.PasswordBlurred ->
+                setState { copy(passwordError = errorOnceTyped(password, AuthValidation::validatePassword)) }
 
             SignUpEvent.TogglePasswordVisibility -> setState { copy(passwordVisible = !passwordVisible) }
 

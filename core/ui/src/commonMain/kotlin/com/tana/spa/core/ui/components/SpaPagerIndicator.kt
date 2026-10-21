@@ -1,6 +1,7 @@
 package com.tana.spa.core.ui.components
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import com.tana.spa.core.ui.SpaTheme
 
 private val DotSize = 8.dp
 private val ActiveWidth = 20.dp
@@ -32,7 +34,7 @@ fun SpaPagerIndicator(pageCount: Int, currentPage: Int, modifier: Modifier = Mod
     ) {
         repeat(pageCount) { index ->
             val selected = index == currentPage
-            val width by animateDpAsState(if (selected) ActiveWidth else DotSize)
+            val width by animateDpAsState(if (selected) ActiveWidth else DotSize, tween(SpaTheme.motion.short))
             val color = MaterialTheme.colorScheme.primary
             Box(
                 Modifier

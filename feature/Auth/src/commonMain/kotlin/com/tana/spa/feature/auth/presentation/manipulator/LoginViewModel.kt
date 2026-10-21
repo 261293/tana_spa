@@ -8,6 +8,7 @@ import com.tana.spa.feature.auth.domain.model.Session
 import com.tana.spa.feature.auth.domain.model.UserRoleName
 import com.tana.spa.feature.auth.domain.usecase.GetCurrentSessionUseCase
 import com.tana.spa.feature.auth.domain.usecase.LoginUseCase
+import com.tana.spa.shared.auth.AuthValidation
 import kotlinx.coroutines.launch
 
 class LoginViewModel(private val login: LoginUseCase, getCurrentSession: GetCurrentSessionUseCase) :
@@ -28,6 +29,12 @@ class LoginViewModel(private val login: LoginUseCase, getCurrentSession: GetCurr
 
             is LoginEvent.PasswordChanged ->
                 setState { copy(password = event.value, passwordError = null, failure = null) }
+
+            // Leaving a field is where what was typed gets checked; see errorOnceTyped.
+            LoginEvent.EmailBlurred -> setState { copy(emailError = errorOnceTyped(email, AuthValidation::validateEmail)) }
+
+            LoginEvent.PasswordBlurred ->
+                setState { copy(passwordError = errorOnceTyped(password, AuthValidation::validatePassword)) }
 
             LoginEvent.TogglePasswordVisibility -> setState { copy(passwordVisible = !passwordVisible) }
 

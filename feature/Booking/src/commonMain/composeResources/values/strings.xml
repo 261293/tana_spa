@@ -99,4 +99,6 @@
     <string name="booking_sent_body">%1$s với %2$s, %3$s. Spa xác nhận xong là bạn sẽ nhận được thông báo ngay.</string>
     <string name="booking_sent_notifications">Xem thông báo</string>
     <string name="booking_sent_another">Đặt thêm dịch vụ khác</string>
+    <string name="visit_in_progress">Buổi trị liệu đang diễn ra</string>
+    <string name="visit_progress_description">Bước %1$d trên %2$d: %3$s</string>
 </resources>

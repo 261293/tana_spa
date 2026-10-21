@@ -1,6 +1,11 @@
 package com.tana.spa.feature.booking.presentation.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -179,7 +184,11 @@ private fun ServiceRow(service: Service, selected: Boolean, onSelect: () -> Unit
                 },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             )
-            AnimatedVisibility(selected) {
+            AnimatedVisibility(
+                visible = selected,
+                enter = fadeIn(tween(SpaTheme.motion.short)) + expandVertically(tween(SpaTheme.motion.short)),
+                exit = fadeOut(tween(SpaTheme.motion.exit)) + shrinkVertically(tween(SpaTheme.motion.exit)),
+            ) {
                 Row(
                     modifier = Modifier.padding(start = 80.dp, end = 16.dp, bottom = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),

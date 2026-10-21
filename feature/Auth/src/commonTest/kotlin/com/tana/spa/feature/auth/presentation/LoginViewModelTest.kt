@@ -147,4 +147,46 @@ class LoginViewModelTest {
         vm.onEvent(LoginEvent.SignUpClicked)
         assertEquals(LoginEffect.NavigateToSignUp, vm.effects.first())
     }
+
+    @Test
+    fun leavingAMistypedEmailReportsItWithoutCallingTheServer() {
+        val vm = viewModel()
+        vm.onEvent(LoginEvent.EmailChanged("lan@@example"))
+        vm.onEvent(LoginEvent.EmailBlurred)
+
+        assertEquals(EmailError.INVALID, vm.state.value.emailError)
+        assertEquals(0, remote.calls)
+    }
+
+    @Test
+    fun leavingAFieldTheGuestNeverFilledInAccusesThemOfNothing() {
+        val vm = viewModel()
+        vm.onEvent(LoginEvent.EmailBlurred)
+        vm.onEvent(LoginEvent.PasswordBlurred)
+
+        assertNull(vm.state.value.emailError)
+        assertNull(vm.state.value.passwordError)
+    }
+
+    @Test
+    fun aShortPasswordIsReportedOnLeavingAndClearedOnTyping() {
+        val vm = viewModel()
+        vm.onEvent(LoginEvent.PasswordChanged("short"))
+        vm.onEvent(LoginEvent.PasswordBlurred)
+        assertEquals(PasswordError.TOO_SHORT, vm.state.value.passwordError)
+
+        vm.onEvent(LoginEvent.PasswordChanged("short-no-longer"))
+        assertNull(vm.state.value.passwordError)
+    }
+
+    @Test
+    fun leavingAValidFieldSaysNothing() {
+        val vm = viewModel()
+        vm.fill()
+        vm.onEvent(LoginEvent.EmailBlurred)
+        vm.onEvent(LoginEvent.PasswordBlurred)
+
+        assertNull(vm.state.value.emailError)
+        assertNull(vm.state.value.passwordError)
+    }
 }

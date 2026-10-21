@@ -78,9 +78,11 @@ fun AppTheme(content: @Composable () -> Unit) {
     val fontFamily = poppinsFontFamily()
     val typography = remember(fontFamily) { Typography().withFontFamily(fontFamily) }
     val textStyles = remember(typography) { spaTextStyles(typography) }
+    val motion = if (platformPrefersReducedMotion()) NoMotion else FullMotion
     CompositionLocalProvider(
         LocalSpaExtraColors provides LightExtraColors,
         LocalSpaTextStyles provides textStyles,
+        LocalSpaMotion provides motion,
     ) {
         MaterialTheme(colorScheme = SpaColorScheme, typography = typography, shapes = SpaShapes, content = content)
     }

@@ -8,6 +8,7 @@ import com.tana.spa.feature.auth.presentation.manipulator.ComingSoon
 import com.tana.spa.feature.auth.presentation.manipulator.SignUpEffect
 import com.tana.spa.feature.auth.presentation.manipulator.SignUpEvent
 import com.tana.spa.feature.auth.presentation.manipulator.SignUpViewModel
+import com.tana.spa.shared.auth.AuthValidation
 import com.tana.spa.shared.auth.EmailError
 import com.tana.spa.shared.auth.NameError
 import com.tana.spa.shared.auth.PasswordError
@@ -155,5 +156,44 @@ class SignUpViewModelTest {
         assertEquals(SignUpEffect.NavigateToLogin, vm.effects.first())
         vm.onEvent(SignUpEvent.GoogleClicked)
         assertEquals(SignUpEffect.ShowComingSoon(ComingSoon.GOOGLE), vm.effects.first())
+    }
+
+    @Test
+    fun eachFieldReportsItselfWhenFocusLeavesIt() {
+        val vm = viewModel()
+        vm.onEvent(SignUpEvent.EmailChanged("lan@@example"))
+        vm.onEvent(SignUpEvent.EmailBlurred)
+        vm.onEvent(SignUpEvent.PhoneChanged("12"))
+        vm.onEvent(SignUpEvent.PhoneBlurred)
+        vm.onEvent(SignUpEvent.PasswordChanged("short"))
+        vm.onEvent(SignUpEvent.PasswordBlurred)
+
+        assertEquals(EmailError.INVALID, vm.state.value.emailError)
+        assertEquals(PhoneError.INVALID, vm.state.value.phoneError)
+        assertEquals(PasswordError.TOO_SHORT, vm.state.value.passwordError)
+        assertNull(vm.state.value.nameError)
+    }
+
+    @Test
+    fun tabbingThroughAnUntouchedFormReportsNothing() {
+        val vm = viewModel()
+        vm.onEvent(SignUpEvent.NameBlurred)
+        vm.onEvent(SignUpEvent.EmailBlurred)
+        vm.onEvent(SignUpEvent.PhoneBlurred)
+        vm.onEvent(SignUpEvent.PasswordBlurred)
+
+        assertNull(vm.state.value.nameError)
+        assertNull(vm.state.value.emailError)
+        assertNull(vm.state.value.phoneError)
+        assertNull(vm.state.value.passwordError)
+    }
+
+    @Test
+    fun aTooLongNameIsCaughtOnLeavingTheField() {
+        val vm = viewModel()
+        vm.onEvent(SignUpEvent.NameChanged("a".repeat(AuthValidation.MAX_NAME_LENGTH + 1)))
+        vm.onEvent(SignUpEvent.NameBlurred)
+
+        assertEquals(NameError.TOO_LONG, vm.state.value.nameError)
     }
 }

@@ -1,6 +1,7 @@
 package com.tana.spa.core.ui.scafold
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ fun AppScaffold(
     selectedRoute: String,
     onSelect: (String) -> Unit,
     topBarActions: @Composable RowScope.() -> Unit = {},
+    bottomStrip: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val size = SpaWindow.size
@@ -43,7 +45,14 @@ fun AppScaffold(
                 actions = topBarActions,
             )
         },
-        bottomBar = { if (size.isCompact && navItems.isNotEmpty()) NavBar(navItems, selectedRoute, onSelect) },
+        // The strip rides with the bottom bar so it clears the destinations at phone width and
+        // still sits at the foot of the window at the widths that have no bottom bar at all.
+        bottomBar = {
+            Column {
+                bottomStrip()
+                if (size.isCompact && navItems.isNotEmpty()) NavBar(navItems, selectedRoute, onSelect)
+            }
+        },
     ) { padding ->
         Row(Modifier.fillMaxSize().padding(padding)) {
             if (size == SpaWindowSize.MEDIUM && navItems.isNotEmpty()) {

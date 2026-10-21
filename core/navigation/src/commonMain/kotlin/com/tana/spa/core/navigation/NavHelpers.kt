@@ -18,10 +18,15 @@ class MutableNavigator(start: String) : Navigator {
     override var current: String by mutableStateOf(start)
         private set
 
+    // Observable, because the transition between two routes is chosen from the direction of travel.
+    override var depth: Int by mutableStateOf(stack.size)
+        private set
+
     override fun navigate(route: String) {
         AppLog.i(TAG) { "navigate $current -> $route (depth ${stack.size + 1})" }
         stack.add(route)
         current = route
+        depth = stack.size
     }
 
     override fun replaceAll(route: String) {
@@ -29,6 +34,7 @@ class MutableNavigator(start: String) : Navigator {
         stack.clear()
         stack.add(route)
         current = route
+        depth = stack.size
     }
 
     override fun back() {
@@ -36,6 +42,7 @@ class MutableNavigator(start: String) : Navigator {
             val from = current
             stack.removeAt(stack.lastIndex)
             current = stack.last()
+            depth = stack.size
             AppLog.i(TAG) { "back $from -> $current (depth ${stack.size})" }
         } else {
             AppLog.d(TAG) { "back ignored at root $current" }

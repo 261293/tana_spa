@@ -74,4 +74,8 @@ object SpaTheme {
     val textStyles: SpaTextStyles
         @Composable @ReadOnlyComposable
         get() = LocalSpaTextStyles.current
+
+    val motion: SpaMotion
+        @Composable @ReadOnlyComposable
+        get() = LocalSpaMotion.current
 }

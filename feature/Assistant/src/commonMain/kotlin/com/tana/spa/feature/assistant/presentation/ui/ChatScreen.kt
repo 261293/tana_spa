@@ -1,5 +1,6 @@
 package com.tana.spa.feature.assistant.presentation.ui
 
+import androidx.compose.animation.core.InfiniteTransition
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.StartOffset
 import androidx.compose.animation.core.animateFloat
@@ -162,7 +163,7 @@ private fun ChatHeader(onClose: () -> Unit) {
 
 @Composable
 private fun ProgressStrip(progress: Float) {
-    val animated by animateFloatAsState(progress.coerceIn(0f, 1f), tween(400))
+    val animated by animateFloatAsState(progress.coerceIn(0f, 1f), tween(SpaTheme.motion.long))
     val percent = (animated * 100).toInt()
     val description = pluralStringResource(Res.plurals.chat_progress_description, percent, percent)
     Row(
@@ -304,22 +305,33 @@ private fun TypingRow() {
                 },
             horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
+            val motion = SpaTheme.motion
             repeat(3) { index ->
-                val alpha by transition.animateFloat(
-                    initialValue = 0.25f,
-                    targetValue = 1f,
-                    animationSpec = infiniteRepeatable(
-                        tween(500),
-                        RepeatMode.Reverse,
-                        initialStartOffset = StartOffset(index * 160),
-                    ),
-                    label = "dot$index",
-                )
+                // Under reduced motion the dots stand still: a loop has no end state to snap to.
+                val alpha = if (motion.reduced) 1f else typingDotAlpha(transition, index, motion.long)
                 Box(Modifier.size(7.dp).alpha(alpha).background(MaterialTheme.colorScheme.onSurfaceVariant, CircleShape))
             }
         }
     }
 }
+
+/** The dots fade in turn rather than together, which is what reads as typing. */
+@Composable
+private fun typingDotAlpha(transition: InfiniteTransition, index: Int, durationMs: Int): Float {
+    val alpha by transition.animateFloat(
+        initialValue = 0.25f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            tween(durationMs),
+            RepeatMode.Reverse,
+            initialStartOffset = StartOffset(index * DOT_STAGGER_MS),
+        ),
+        label = "dot$index",
+    )
+    return alpha
+}
+
+private const val DOT_STAGGER_MS = 160
 
 @Composable
 private fun FailedRow(onRetry: () -> Unit) {

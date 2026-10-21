@@ -24,13 +24,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
@@ -53,6 +58,8 @@ private const val DISABLED_ALPHA = 0.6f
  * instead; swap it back when the two artifacts line up again. See `docs/material-design.md`.
  *
  * @param helper supporting text shown under the field; [error] replaces it and turns it red.
+ * @param onFocusLost called when focus leaves a field that had it, which is where a form checks
+ *   what was typed: validating on every keystroke accuses the guest mid-word.
  */
 @Composable
 fun SpaTextField(
@@ -64,6 +71,7 @@ fun SpaTextField(
     leadingIcon: Painter? = null,
     helper: String? = null,
     error: String? = null,
+    onFocusLost: (() -> Unit)? = null,
     enabled: Boolean = true,
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -73,6 +81,7 @@ fun SpaTextField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
+    var hadFocus by remember { mutableStateOf(false) }
     val textStyle = SpaTheme.textStyles.fieldText.copy(color = MaterialTheme.colorScheme.onSurface)
     val outline = when {
         error != null -> MaterialTheme.colorScheme.error
@@ -105,6 +114,10 @@ fun SpaTextField(
             interactionSource = interactionSource,
             modifier = Modifier
                 .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    if (hadFocus && !focusState.isFocused) onFocusLost?.invoke()
+                    hadFocus = focusState.isFocused
+                }
                 .background(MaterialTheme.colorScheme.background, FieldShape)
                 .border(BorderStroke(outlineWidth, outline), FieldShape)
                 .semantics {
@@ -143,6 +156,9 @@ fun SpaTextField(
                 style = SpaTheme.textStyles.fieldError.copy(
                     color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
+                // An error raised as focus leaves is announced where it appears. The field carries
+                // the same text as error() semantics, which only reaches a reader already on it.
+                modifier = if (error != null) Modifier.semantics { liveRegion = LiveRegionMode.Polite } else Modifier,
             )
         }
     }

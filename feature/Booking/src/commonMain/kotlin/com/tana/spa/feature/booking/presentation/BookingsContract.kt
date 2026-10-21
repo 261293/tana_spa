@@ -22,6 +22,9 @@ sealed interface BookingsEvent {
 
     /** Arrived from a notification about [bookingId]; null is the screen opened on its own. */
     data class Opened(val bookingId: String?) : BookingsEvent
+
+    /** The guest tapped a visit to see where it has got to, or tapped the open one to fold it. */
+    data class RowToggled(val id: String) : BookingsEvent
     data class CancelStarted(val id: String) : BookingsEvent
     data object CancelConfirmed : BookingsEvent
     data object CancelDismissed : BookingsEvent

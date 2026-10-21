@@ -1,6 +1,7 @@
 package com.tana.spa.feature.booking.presentation.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
@@ -178,8 +179,8 @@ private fun CompactBooking(state: BookingState, onEvent: (BookingEvent) -> Unit,
 
         AnimatedVisibility(
             visible = stripVisible,
-            enter = fadeIn(),
-            exit = fadeOut(),
+            enter = fadeIn(tween(SpaTheme.motion.medium)),
+            exit = fadeOut(tween(SpaTheme.motion.exit)),
             modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp),
         ) {
             ReservationStrip(state) {

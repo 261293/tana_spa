@@ -27,6 +27,10 @@ sealed interface SignUpEvent {
     data class EmailChanged(val value: String) : SignUpEvent
     data class PhoneChanged(val value: String) : SignUpEvent
     data class PasswordChanged(val value: String) : SignUpEvent
+    data object NameBlurred : SignUpEvent
+    data object EmailBlurred : SignUpEvent
+    data object PhoneBlurred : SignUpEvent
+    data object PasswordBlurred : SignUpEvent
     data object TogglePasswordVisibility : SignUpEvent
     data object Submit : SignUpEvent
     data object GoogleClicked : SignUpEvent
