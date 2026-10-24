@@ -2,10 +2,11 @@
     <string name="brand_name">Jade Bathhouse</string>
 
     <!-- The app's destinations, in the bottom bar, the rail and the app bar. -->
+    <string name="nav_treatments">Liệu trình</string>
     <string name="nav_book">Đặt lịch</string>
     <string name="nav_alerts">Thông báo</string>
     <string name="nav_offers">Ưu đãi</string>
-    <string name="nav_desk">Quầy lễ tân</string>
+    <string name="nav_desk">Lễ tân</string>
     <string name="nav_settings">Cài đặt</string>
     <string name="nav_visits">Lịch hẹn của bạn</string>
 </resources>

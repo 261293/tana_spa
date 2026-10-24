@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
@@ -184,9 +185,8 @@ fun SpaCard(
 }
 
 /**
- * The display title that opens every screen. [accent] is the moss-coloured tail of the headline
- * ("What does your body *need today?*"), which the design sets in italic serif; this build has one
- * sans family, so the accent carries colour and weight instead.
+ * The display title that opens every screen. [accent] is the tail of the headline the design sets
+ * in clay italic serif ("Space to *exhale.*").
  */
 @Composable
 fun SpaDisplayTitle(lead: String, accent: String? = null, modifier: Modifier = Modifier) {
@@ -194,7 +194,7 @@ fun SpaDisplayTitle(lead: String, accent: String? = null, modifier: Modifier = M
         append(lead)
         if (accent != null) {
             append(" ")
-            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)) {
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.tertiary, fontStyle = FontStyle.Italic)) {
                 append(accent)
             }
         }
@@ -207,13 +207,20 @@ fun SpaDisplayTitle(lead: String, accent: String? = null, modifier: Modifier = M
     )
 }
 
-/** Display title plus the line of explanation under it. */
+/** The design's page head: an uppercase [eyebrow], the display title, then the line under it. */
 @Composable
-fun SpaScreenHeader(title: String, accent: String? = null, subtitle: String? = null, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+fun SpaScreenHeader(
+    title: String,
+    accent: String? = null,
+    subtitle: String? = null,
+    modifier: Modifier = Modifier,
+    eyebrow: String? = null,
+) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        eyebrow?.let { SpaEyebrow(it) }
         SpaDisplayTitle(title, accent)
         subtitle?.let {
-            Text(text = it, style = SpaTheme.textStyles.bodyRelaxed, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = it, style = SpaTheme.textStyles.sectionLead, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

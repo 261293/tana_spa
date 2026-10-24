@@ -23,11 +23,10 @@ import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
-import com.tana.spa.core.ui.components.SpaPocketButton
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
+import com.tana.spa.core.ui.components.SpaSummaryRow
 import com.tana.spa.core.ui.components.SpaTextField
-import com.tana.spa.core.ui.components.spaPocket
 import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.core.ui.formatHour
 import com.tana.spa.core.ui.formatRelative
@@ -60,6 +59,7 @@ import com.tana.spa.feature.booking.resources.booking_sent_bookings
 import com.tana.spa.feature.booking.resources.booking_sent_notifications
 import com.tana.spa.feature.booking.resources.booking_sent_title
 import com.tana.spa.feature.booking.resources.booking_service_meta
+import com.tana.spa.feature.booking.resources.booking_subtotal
 import com.tana.spa.feature.booking.resources.booking_total_label
 import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.PromoRejection
@@ -72,23 +72,21 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
     Column(modifier.fillMaxWidth()) {
         val notChosen = stringResource(Res.string.booking_review_not_chosen)
         val service = state.service
-        SummaryRow(
+        SpaSummaryRow(
             label = stringResource(Res.string.booking_review_treatment),
-            value = service?.let { "${it.name} · ${stringResource(Res.string.booking_service_meta, it.minutes, it.category.label)}" },
-            fallback = notChosen,
+            value = service?.let { "${it.name} · ${stringResource(Res.string.booking_service_meta, it.minutes, it.category.label)}" }
+                ?: notChosen,
         )
-        SummaryRow(
+        SpaSummaryRow(
             label = stringResource(Res.string.booking_review_therapist),
             value = state.therapist?.name ?: stringResource(Res.string.booking_review_any_therapist),
-            fallback = notChosen,
         )
-        SummaryRow(
+        SpaSummaryRow(
             label = stringResource(Res.string.booking_review_when),
-            value = state.slot?.let { "${state.day.formatRelative(state.today)}, ${formatHour(it.startHour)}" },
-            fallback = stringResource(Res.string.booking_review_pick_time, state.day.formatRelative(state.today)),
+            value = state.slot?.let { "${state.day.formatRelative(state.today)}, ${formatHour(it.startHour)}" }
+                ?: stringResource(Res.string.booking_review_pick_time, state.day.formatRelative(state.today)),
         )
 
-        val applied = state.check as? PromoCheck.Applied
         SpaTextField(
             label = stringResource(Res.string.booking_code_label),
             value = state.code,
@@ -107,47 +105,32 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
             },
         )
 
-        Column(
-            modifier = Modifier
-                .padding(top = 20.dp)
-                .fillMaxWidth()
-                .spaPocket()
-                .padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            PocketRow(
-                label = stringResource(Res.string.booking_review_treatment),
+        val applied = state.check as? PromoCheck.Applied
+        Column(Modifier.padding(top = 20.dp)) {
+            SpaSummaryRow(
+                label = stringResource(Res.string.booking_subtotal),
                 value = service?.let { stringResource(Res.string.booking_price, it.priceUsd) } ?: "—",
-                color = SpaTheme.extraColors.onPocketMuted,
             )
-            if (applied != null) {
-                PocketRow(
-                    label = applied.promo.code,
-                    value = "−${stringResource(Res.string.booking_price, applied.discountUsd)}",
-                    color = SpaTheme.extraColors.pocketAction,
-                    icon = SpaIcon.Percent,
+            applied?.let {
+                SpaSummaryRow(
+                    label = it.promo.code,
+                    value = "−${stringResource(Res.string.booking_price, it.discountUsd)}",
                 )
             }
-            Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = stringResource(Res.string.booking_total_label),
-                    style = SpaTheme.textStyles.caption,
-                    color = SpaTheme.extraColors.onPocketMuted,
-                    modifier = Modifier.weight(1f),
-                )
-                Text(
-                    text = service?.let { stringResource(Res.string.booking_price, state.totalUsd) } ?: "—",
-                    style = SpaTheme.textStyles.displayTitle,
-                    color = SpaTheme.extraColors.onPocket,
-                )
-            }
-            SpaPocketButton(
-                text = stringResource(Res.string.booking_request),
-                onClick = { onEvent(BookingEvent.Submit) },
-                enabled = state.canRequest,
-                modifier = Modifier.padding(top = 8.dp),
+            SpaSummaryRow(
+                label = stringResource(Res.string.booking_total_label),
+                value = service?.let { stringResource(Res.string.booking_price, state.totalUsd) } ?: "—",
+                total = true,
             )
         }
+
+        SpaPrimaryButton(
+            text = stringResource(Res.string.booking_request),
+            onClick = { onEvent(BookingEvent.Submit) },
+            enabled = state.canRequest,
+            loading = state.sending,
+            modifier = Modifier.padding(top = 12.dp),
+        )
 
         Row(
             modifier = Modifier.padding(top = 12.dp),
@@ -160,35 +143,6 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-    }
-}
-
-@Composable
-private fun SummaryRow(label: String, value: String?, fallback: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(label, style = SpaTheme.textStyles.body, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(
-            text = value ?: fallback,
-            style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
-            color = if (value == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun PocketRow(label: String, value: String, color: Color, icon: SpaIcon? = null) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        icon?.let {
-            SpaIconImage(it, size = 15.dp, tint = color)
-            Box(Modifier.size(6.dp))
-        }
-        Text(label, style = SpaTheme.textStyles.body, color = color, modifier = Modifier.weight(1f))
-        Text(value, style = SpaTheme.textStyles.body, color = color)
     }
 }
 

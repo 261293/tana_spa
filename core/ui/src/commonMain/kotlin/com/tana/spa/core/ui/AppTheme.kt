@@ -10,74 +10,87 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.resources.Res
-import com.tana.spa.core.ui.resources.poppins_bold
-import com.tana.spa.core.ui.resources.poppins_medium
-import com.tana.spa.core.ui.resources.poppins_regular
-import com.tana.spa.core.ui.resources.poppins_semibold
+import com.tana.spa.core.ui.resources.fraunces_italic
+import com.tana.spa.core.ui.resources.fraunces_medium
+import com.tana.spa.core.ui.resources.fraunces_regular
+import com.tana.spa.core.ui.resources.instrument_sans_bold
+import com.tana.spa.core.ui.resources.instrument_sans_medium
+import com.tana.spa.core.ui.resources.instrument_sans_regular
+import com.tana.spa.core.ui.resources.instrument_sans_semibold
 import org.jetbrains.compose.resources.Font
 
-/** Poppins, bundled as a compose resource so it renders identically on web, Android and iOS. */
+/** Instrument Sans, bundled so body copy renders identically on web, Android, iOS and desktop. */
 @Composable
-fun poppinsFontFamily(): FontFamily = FontFamily(
-    Font(Res.font.poppins_regular, FontWeight.Normal),
-    Font(Res.font.poppins_medium, FontWeight.Medium),
-    Font(Res.font.poppins_semibold, FontWeight.SemiBold),
-    Font(Res.font.poppins_bold, FontWeight.Bold),
-)
-
-internal val SpaColorScheme = lightColorScheme(
-    primary = SpaColors.Primary,
-    onPrimary = SpaColors.OnPrimary,
-    primaryContainer = SpaColors.Celadon,
-    onPrimaryContainer = SpaColors.Primary,
-    secondary = SpaColors.Promo,
-    onSecondary = SpaColors.OnPrimary,
-    secondaryContainer = SpaColors.PromoContainer,
-    onSecondaryContainer = SpaColors.Promo,
-    tertiary = SpaColors.Warning,
-    onTertiary = SpaColors.OnPrimary,
-    tertiaryContainer = SpaColors.WarningContainer,
-    onTertiaryContainer = SpaColors.Warning,
-    background = SpaColors.Background,
-    onBackground = SpaColors.TextPrimary,
-    surface = SpaColors.Surface,
-    onSurface = SpaColors.TextPrimary,
-    surfaceVariant = SpaColors.Tone1,
-    onSurfaceVariant = SpaColors.TextSecondary,
-    surfaceContainerLowest = SpaColors.Background,
-    surfaceContainerLow = SpaColors.Surface,
-    surfaceContainer = SpaColors.Tone1,
-    surfaceContainerHigh = SpaColors.Tone2,
-    surfaceContainerHighest = SpaColors.Celadon,
-    outline = SpaColors.FieldBorder,
-    outlineVariant = SpaColors.ButtonBorder,
-    error = SpaColors.Error,
-    errorContainer = SpaColors.ErrorContainer,
-    onErrorContainer = SpaColors.OnErrorContainer,
+fun instrumentSansFontFamily(): FontFamily = FontFamily(
+    Font(Res.font.instrument_sans_regular, FontWeight.Normal),
+    Font(Res.font.instrument_sans_medium, FontWeight.Medium),
+    Font(Res.font.instrument_sans_semibold, FontWeight.SemiBold),
+    Font(Res.font.instrument_sans_bold, FontWeight.Bold),
 )
 
 /**
- * Softly squared, not pills: chips and fields 6dp, buttons 10dp, cards 14dp, the action pocket
- * 16dp. [SpaPebbleShape] is the asymmetric "pebble" the design uses for its photo moments.
+ * Fraunces, the display serif. Both files are static instances cut at `opsz=30, SOFT=0, WONK=0`:
+ * the variable font defaults to `wght=900, opsz=9, WONK=1`, which is not the face the design uses.
  */
-internal val SpaShapes = Shapes(
-    extraSmall = RoundedCornerShape(6.dp),
-    small = RoundedCornerShape(10.dp),
-    medium = RoundedCornerShape(14.dp),
-    large = RoundedCornerShape(16.dp),
-    extraLarge = RoundedCornerShape(20.dp),
+@Composable
+fun frauncesFontFamily(): FontFamily = FontFamily(
+    Font(Res.font.fraunces_regular, FontWeight.Normal),
+    Font(Res.font.fraunces_medium, FontWeight.Medium),
+    Font(Res.font.fraunces_italic, FontWeight.Normal, FontStyle.Italic),
 )
 
-val SpaPebbleShape = RoundedCornerShape(topStart = 28.dp, topEnd = 14.dp, bottomEnd = 14.dp, bottomStart = 28.dp)
+internal val SpaColorScheme = lightColorScheme(
+    primary = SpaColors.Forest,
+    onPrimary = SpaColors.OnForest,
+    primaryContainer = SpaColors.SageTint,
+    onPrimaryContainer = SpaColors.Forest,
+    secondary = SpaColors.Forest600,
+    onSecondary = SpaColors.OnForest,
+    secondaryContainer = SpaColors.SageSoft,
+    onSecondaryContainer = SpaColors.Forest600,
+    tertiary = SpaColors.Clay,
+    onTertiary = SpaColors.OnForest,
+    tertiaryContainer = SpaColors.ClaySoft,
+    onTertiaryContainer = SpaColors.Danger,
+    background = SpaColors.Ground,
+    onBackground = SpaColors.Ink,
+    surface = SpaColors.Surface,
+    onSurface = SpaColors.Ink,
+    surfaceVariant = SpaColors.SurfaceAlt,
+    onSurfaceVariant = SpaColors.Muted,
+    surfaceContainerLowest = SpaColors.Surface,
+    surfaceContainerLow = SpaColors.Ground,
+    surfaceContainer = SpaColors.SurfaceAlt,
+    surfaceContainerHigh = SpaColors.SageSoft,
+    surfaceContainerHighest = SpaColors.SageTint,
+    outline = SpaColors.LineStrong,
+    outlineVariant = SpaColors.Line,
+    error = SpaColors.Danger,
+    errorContainer = SpaColors.ClaySoft,
+    onErrorContainer = SpaColors.DangerDeep,
+)
+
+/** The design's radius scale: 10 on fields and chips, 16 on panels, 18 on cards, 22 on sheets. */
+internal val SpaShapes = Shapes(
+    extraSmall = RoundedCornerShape(10.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(18.dp),
+    extraLarge = RoundedCornerShape(22.dp),
+)
+
+val SpaPebbleShape = RoundedCornerShape(topStart = 28.dp, topEnd = 18.dp, bottomEnd = 18.dp, bottomStart = 28.dp)
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-    val fontFamily = poppinsFontFamily()
-    val typography = remember(fontFamily) { Typography().withFontFamily(fontFamily) }
-    val textStyles = remember(typography) { spaTextStyles(typography) }
+    val bodyFamily = instrumentSansFontFamily()
+    val displayFamily = frauncesFontFamily()
+    val typography = remember(bodyFamily, displayFamily) { Typography().withFamilies(bodyFamily, displayFamily) }
+    val textStyles = remember(typography, displayFamily) { spaTextStyles(typography, displayFamily) }
     val motion = if (platformPrefersReducedMotion()) NoMotion else FullMotion
     CompositionLocalProvider(
         LocalSpaExtraColors provides LightExtraColors,
@@ -88,13 +101,14 @@ fun AppTheme(content: @Composable () -> Unit) {
     }
 }
 
-private fun Typography.withFontFamily(family: FontFamily): Typography {
-    fun TextStyle.f() = copy(fontFamily = family)
+private fun Typography.withFamilies(body: FontFamily, display: FontFamily): Typography {
+    fun TextStyle.b() = copy(fontFamily = body)
+    fun TextStyle.d() = copy(fontFamily = display, fontWeight = FontWeight.Normal)
     return copy(
-        displayLarge = displayLarge.f(), displayMedium = displayMedium.f(), displaySmall = displaySmall.f(),
-        headlineLarge = headlineLarge.f(), headlineMedium = headlineMedium.f(), headlineSmall = headlineSmall.f(),
-        titleLarge = titleLarge.f(), titleMedium = titleMedium.f(), titleSmall = titleSmall.f(),
-        bodyLarge = bodyLarge.f(), bodyMedium = bodyMedium.f(), bodySmall = bodySmall.f(),
-        labelLarge = labelLarge.f(), labelMedium = labelMedium.f(), labelSmall = labelSmall.f(),
+        displayLarge = displayLarge.d(), displayMedium = displayMedium.d(), displaySmall = displaySmall.d(),
+        headlineLarge = headlineLarge.d(), headlineMedium = headlineMedium.d(), headlineSmall = headlineSmall.d(),
+        titleLarge = titleLarge.d(), titleMedium = titleMedium.b(), titleSmall = titleSmall.b(),
+        bodyLarge = bodyLarge.b(), bodyMedium = bodyMedium.b(), bodySmall = bodySmall.b(),
+        labelLarge = labelLarge.b(), labelMedium = labelMedium.b(), labelSmall = labelSmall.b(),
     )
 }

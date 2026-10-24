@@ -20,4 +20,5 @@
     <string name="promotions_check">Kiểm tra</string>
     <string name="promotions_check_ok">%1$s: %2$s. %3$s</string>
     <string name="promotions_check_failed">Mã này không còn hiệu lực. Kiểm tra lại chính tả hoặc hạn dùng.</string>
+    <string name="promotions_eyebrow">Ưu đãi</string>
 </resources>

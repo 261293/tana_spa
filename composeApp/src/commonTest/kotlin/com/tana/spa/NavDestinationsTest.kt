@@ -8,8 +8,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
+private const val MAX_BAR_DESTINATIONS = 5
+
 class NavDestinationsTest {
-    private val labels = NavLabels("Book", "Alerts", "Offers", "Desk", "Settings")
+    private val labels = NavLabels("Treatments", "Book", "Alerts", "Offers", "Desk", "Settings")
 
     private fun routes(desk: Boolean) = navDestinations(desk, notificationsEnabled = true, unread = 0, labels = labels).map { it.route }
 
@@ -38,5 +40,25 @@ class NavDestinationsTest {
         assertEquals(0, off.first { it.route == Routes.NOTIFICATIONS }.badgeCount)
         val on = navDestinations(desk = false, notificationsEnabled = true, unread = 3, labels = labels)
         assertEquals(3, on.first { it.route == Routes.NOTIFICATIONS }.badgeCount)
+    }
+
+    @Test
+    fun the_treatment_menu_leads_a_guest_s_destinations() {
+        assertEquals(Routes.TREATMENTS, routes(desk = false).first())
+    }
+
+    /** Whoever works the desk books from the console, and the bar has no room for both. */
+    @Test
+    fun the_treatment_menu_stands_down_for_whoever_works_the_desk() {
+        assertFalse(Routes.TREATMENTS in routes(desk = true))
+        assertEquals(Routes.ADMIN_REQUESTS, routes(desk = true).single { it == Routes.ADMIN_REQUESTS })
+    }
+
+    /** Material's bottom bar is specified for three to five destinations, whoever is signed in. */
+    @Test
+    fun no_one_sees_more_destinations_than_the_bar_holds() {
+        for (desk in listOf(false, true)) {
+            assertTrue(routes(desk).size <= MAX_BAR_DESTINATIONS, routes(desk).toString())
+        }
     }
 }

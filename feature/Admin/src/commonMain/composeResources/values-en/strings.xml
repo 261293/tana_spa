@@ -167,4 +167,7 @@
     <string name="admin_menu_person_name_error">A name is needed</string>
     <string name="admin_menu_person_email_error">That email does not look right</string>
     <string name="admin_menu_person_password_error">At least 8 characters</string>
+    <string name="admin_codes_eyebrow">Codes</string>
+    <string name="admin_menu_eyebrow">Studio</string>
+    <string name="admin_requests_eyebrow">Diary</string>
 </resources>

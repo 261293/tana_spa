@@ -8,6 +8,7 @@ import com.tana.spa.feature.booking.presentation.BookingViewModel
 import com.tana.spa.feature.booking.presentation.BookingsViewModel
 import com.tana.spa.feature.booking.presentation.CurrentVisit
 import com.tana.spa.feature.booking.presentation.ServiceDetailViewModel
+import com.tana.spa.feature.booking.presentation.TreatmentsViewModel
 import com.tana.spa.shared.Constants
 import com.tana.spa.shared.Platform
 import org.koin.core.module.Module
@@ -23,4 +24,5 @@ val bookingModule: Module = module {
     viewModelOf(::BookingViewModel)
     viewModelOf(::BookingsViewModel)
     viewModelOf(::ServiceDetailViewModel)
+    viewModelOf(::TreatmentsViewModel)
 }

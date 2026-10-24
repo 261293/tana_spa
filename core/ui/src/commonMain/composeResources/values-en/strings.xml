@@ -2,6 +2,7 @@
     <string name="brand_name">Jade Bathhouse</string>
 
     <!-- The app's destinations, in the bottom bar, the rail and the app bar. -->
+    <string name="nav_treatments">Treatments</string>
     <string name="nav_book">Book</string>
     <string name="nav_alerts">Alerts</string>
     <string name="nav_offers">Offers</string>

@@ -63,6 +63,7 @@ import com.tana.spa.feature.promotions.resources.promotions_code_label
 import com.tana.spa.feature.promotions.resources.promotions_code_placeholder
 import com.tana.spa.feature.promotions.resources.promotions_copied
 import com.tana.spa.feature.promotions.resources.promotions_copy
+import com.tana.spa.feature.promotions.resources.promotions_eyebrow
 import com.tana.spa.feature.promotions.resources.promotions_have_code_body
 import com.tana.spa.feature.promotions.resources.promotions_have_code_title
 import com.tana.spa.feature.promotions.resources.promotions_more
@@ -110,6 +111,7 @@ fun PromotionsScreen(
             maxWidth = SpaPageWidth.Wide,
         ) {
             SpaScreenHeader(
+                eyebrow = stringResource(Res.string.promotions_eyebrow),
                 title = stringResource(Res.string.promotions_title),
                 accent = stringResource(Res.string.promotions_title_accent),
                 subtitle = stringResource(Res.string.promotions_subtitle),

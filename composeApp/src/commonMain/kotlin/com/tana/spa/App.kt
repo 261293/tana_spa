@@ -53,6 +53,7 @@ import com.tana.spa.core.ui.resources.nav_book
 import com.tana.spa.core.ui.resources.nav_desk
 import com.tana.spa.core.ui.resources.nav_offers
 import com.tana.spa.core.ui.resources.nav_settings
+import com.tana.spa.core.ui.resources.nav_treatments
 import com.tana.spa.core.ui.resources.nav_visits
 import com.tana.spa.core.ui.scafold.AppScaffold
 import com.tana.spa.feature.appupdate.AppUpdateGate
@@ -190,6 +191,7 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
             notificationsEnabled = notificationsEnabled,
             unread = unread,
             labels = NavLabels(
+                treatments = stringResource(Res.string.nav_treatments),
                 book = stringResource(Res.string.nav_book),
                 alerts = stringResource(Res.string.nav_alerts),
                 offers = stringResource(Res.string.nav_offers),
@@ -258,13 +260,24 @@ private fun routeTransition(forward: Boolean, motion: SpaMotion): ContentTransfo
 }
 
 /** The words on the destinations, read from resources so they follow the chosen language. */
-data class NavLabels(val book: String, val alerts: String, val offers: String, val desk: String, val settings: String)
+data class NavLabels(
+    val treatments: String,
+    val book: String,
+    val alerts: String,
+    val offers: String,
+    val desk: String,
+    val settings: String,
+)
 
 /**
  * The destinations the signed-in account sees. Desk is the spa's own console: the server refuses
  * its calls for every other role, so leaving it out only keeps it out of a guest's way.
+ *
+ * Whoever works the desk books through that console rather than the guest menu, and Material's bar
+ * holds five destinations: the menu stands down so the desk can take its place.
  */
 internal fun navDestinations(desk: Boolean, notificationsEnabled: Boolean, unread: Int, labels: NavLabels): List<NavConfig> = buildList {
+    if (!desk) add(NavConfig(Routes.TREATMENTS, labels.treatments, SpaIcon.Lotus))
     add(NavConfig(Routes.BOOKING, labels.book, SpaIcon.CalendarPlus))
     add(NavConfig(Routes.NOTIFICATIONS, labels.alerts, SpaIcon.Bell, badgeCount = if (notificationsEnabled) unread else 0))
     add(NavConfig(Routes.PROMOTIONS, labels.offers, SpaIcon.Tag))

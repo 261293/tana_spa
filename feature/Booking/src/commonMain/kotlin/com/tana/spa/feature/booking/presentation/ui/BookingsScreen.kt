@@ -1,5 +1,6 @@
 package com.tana.spa.feature.booking.presentation.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -25,15 +27,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaTheme
-import com.tana.spa.core.ui.components.SpaCard
+import com.tana.spa.core.ui.components.SpaDateBlock
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaPage
+import com.tana.spa.core.ui.components.SpaPanel
 import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
 import com.tana.spa.core.ui.components.SpaStatusPill
 import com.tana.spa.core.ui.components.SpaStepper
 import com.tana.spa.core.ui.formatDayAndTime
+import com.tana.spa.core.ui.monthShort
+import com.tana.spa.core.ui.weekdayShort
 import com.tana.spa.feature.booking.domain.GuestBooking
 import com.tana.spa.feature.booking.domain.visitStep
 import com.tana.spa.feature.booking.presentation.BookingsEffect
@@ -50,6 +55,7 @@ import com.tana.spa.feature.booking.resources.bookings_decline_overlap
 import com.tana.spa.feature.booking.resources.bookings_decline_room
 import com.tana.spa.feature.booking.resources.bookings_decline_therapist
 import com.tana.spa.feature.booking.resources.bookings_empty
+import com.tana.spa.feature.booking.resources.bookings_eyebrow
 import com.tana.spa.feature.booking.resources.bookings_failed
 import com.tana.spa.feature.booking.resources.bookings_instead
 import com.tana.spa.feature.booking.resources.bookings_meta
@@ -68,6 +74,7 @@ import com.tana.spa.feature.booking.resources.visit_in_progress
 import com.tana.spa.feature.booking.resources.visit_progress_description
 import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.spa.SpaDate
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -94,6 +101,7 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             SpaScreenHeader(
+                eyebrow = stringResource(Res.string.bookings_eyebrow),
                 title = stringResource(Res.string.bookings_title),
                 accent = stringResource(Res.string.bookings_title_accent),
                 subtitle = stringResource(Res.string.bookings_subtitle),
@@ -128,34 +136,35 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
 
 @Composable
 private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boolean, opened: Boolean, onEvent: (BookingsEvent) -> Unit) {
-    SpaCard(
-        Modifier.fillMaxWidth(),
-        padding = PaddingValues(16.dp),
-        selected = opened,
-        onClick = { onEvent(BookingsEvent.RowToggled(booking.id)) },
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = booking.serviceName,
-                    style = SpaTheme.textStyles.cardTitle,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f),
-                )
-                StatusPill(booking.status)
+    val date = SpaDate.fromEpochDay(booking.startDayEpochDay)
+    SpaPanel(modifier = Modifier.fillMaxWidth().clickable { onEvent(BookingsEvent.RowToggled(booking.id)) }) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                SpaDateBlock(date.weekdayShort(), date.day.toString(), date.monthShort())
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = booking.serviceName,
+                            style = SpaTheme.textStyles.cardTitle,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
+                        )
+                        StatusPill(booking.status)
+                    }
+                    Text(
+                        text = stringResource(
+                            Res.string.bookings_meta,
+                            formatDayAndTime(booking.startDayEpochDay, booking.startHour),
+                            booking.therapistName,
+                            stringResource(Res.string.booking_price, booking.total),
+                        ),
+                        style = SpaTheme.textStyles.label,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             if (opened) VisitProgress(booking, nowEpochMillis)
-            Text(
-                text = stringResource(
-                    Res.string.bookings_meta,
-                    formatDayAndTime(booking.startDayEpochDay, booking.startHour),
-                    booking.therapistName,
-                    stringResource(Res.string.booking_price, booking.total),
-                ),
-                style = SpaTheme.textStyles.body,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
 
             booking.declineReason?.let { reason ->
                 Text(
@@ -173,17 +182,26 @@ private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boo
             }
 
             when {
-                booking.cancellable(nowEpochMillis) -> SpaSecondaryButton(
-                    text = stringResource(Res.string.bookings_cancel),
-                    enabled = enabled,
-                    onClick = { onEvent(BookingsEvent.CancelStarted(booking.id)) },
-                    contentColor = MaterialTheme.colorScheme.error,
-                )
+                booking.cancellable(nowEpochMillis) -> {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(
+                            onClick = { onEvent(BookingsEvent.CancelStarted(booking.id)) },
+                            enabled = enabled,
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.bookings_cancel),
+                                style = SpaTheme.textStyles.caption,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    }
+                }
 
                 // Still ahead, but inside the window the spa keeps the hour for: say so plainly.
                 booking.cancelTooLate(nowEpochMillis) -> Text(
                     text = stringResource(Res.string.bookings_too_late),
-                    style = SpaTheme.textStyles.caption,
+                    style = SpaTheme.textStyles.label,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

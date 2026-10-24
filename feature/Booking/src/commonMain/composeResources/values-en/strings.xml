@@ -64,7 +64,9 @@
     <string name="service_minutes">%1$d minutes</string>
     <string name="service_price">Price</string>
     <string name="service_includes">What’s included</string>
-    <string name="service_book">Book this treatment</string>
+    <string name="service_eyebrow">%1$s · %2$s</string>
+    <string name="service_note">%1$d min · choose a time that suits you</string>
+    <string name="service_book">Reserve this ritual · %1$s</string>
     <string name="service_missing_title">This treatment isn’t on the menu</string>
     <string name="service_missing_body">It may have been renamed or taken off. Go back and choose another.</string>
     <string name="service_failed_title">We couldn’t load this treatment.</string>
@@ -101,4 +103,22 @@
     <string name="booking_sent_another">Book another treatment</string>
     <string name="visit_in_progress">This visit is under way</string>
     <string name="visit_progress_description">Step %1$d of %2$d: %3$s</string>
+    <string name="booking_eyebrow">Reserve</string>
+    <string name="booking_today">Today</string>
+    <string name="booking_change">Change</string>
+    <string name="booking_subtotal">Treatment</string>
+    <string name="booking_slots_morning">Morning</string>
+    <string name="booking_slots_afternoon">Afternoon</string>
+    <string name="booking_slots_evening">Evening</string>
+    <string name="bookings_eyebrow">Your visits</string>
+    <string name="treatments_eyebrow">Treatments</string>
+    <string name="treatments_title">Find your ritual</string>
+    <string name="treatments_note">Every treatment includes time to settle in.</string>
+    <string name="treatments_search_label">Search treatments</string>
+    <string name="treatments_search_placeholder">Massage, facial, aromatherapy…</string>
+    <string name="treatments_filter_all">All</string>
+    <string name="treatments_count">%1$d treatments</string>
+    <string name="treatments_empty_title">No treatments match that search</string>
+    <string name="treatments_empty_body">Try a different word, or browse every ritual.</string>
+    <string name="treatments_empty_action">Show all treatments</string>
 </resources>

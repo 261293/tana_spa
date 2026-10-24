@@ -47,6 +47,7 @@ import com.tana.spa.feature.admin.resources.admin_menu_error_empty
 import com.tana.spa.feature.admin.resources.admin_menu_error_long
 import com.tana.spa.feature.admin.resources.admin_menu_error_price_large
 import com.tana.spa.feature.admin.resources.admin_menu_error_price_negative
+import com.tana.spa.feature.admin.resources.admin_menu_eyebrow
 import com.tana.spa.feature.admin.resources.admin_menu_focus
 import com.tana.spa.feature.admin.resources.admin_menu_focus_hint
 import com.tana.spa.feature.admin.resources.admin_menu_minutes
@@ -134,6 +135,7 @@ fun AdminMenuScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 SpaScreenHeader(
+                    eyebrow = stringResource(Res.string.admin_menu_eyebrow),
                     title = stringResource(Res.string.admin_menu_title),
                     accent = stringResource(Res.string.admin_menu_title_accent),
                     subtitle = stringResource(Res.string.admin_menu_subtitle),

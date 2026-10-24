@@ -1,19 +1,20 @@
 package com.tana.spa.core.ui.components
 
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 
-private const val DISABLED_ALPHA = 0.5f
+private const val DISABLED_ALPHA = 0.55f
 
 /**
- * Material's filter chip in this design's tones: a selected chip is a celadon container with moss
- * text, and no chip is outlined — the palette separates by tone, not by line. Material keeps the
- * 48dp touch target, so the chips stay tappable at their 32dp visual height.
+ * Material's filter chip in this design's tones: a hairline pill that fills with forest once it is
+ * chosen. Material keeps the 48dp touch target, so the chips stay tappable at their visual height.
  *
  * Used for every "pick one of these" row: days, times, code states, eligible treatments.
  */
@@ -36,20 +37,27 @@ fun SpaFilterChip(
                 SpaIconImage(
                     icon = it,
                     size = FilterChipDefaults.IconSize,
-                    tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
-        shape = MaterialTheme.shapes.extraSmall,
-        border = null,
+        shape = CircleShape,
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = enabled,
+            selected = selected,
+            borderColor = MaterialTheme.colorScheme.outline,
+            selectedBorderColor = MaterialTheme.colorScheme.primary,
+            borderWidth = 1.dp,
+            selectedBorderWidth = 1.dp,
+        ),
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.surface,
             labelColor = MaterialTheme.colorScheme.onSurface,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surface,
             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DISABLED_ALPHA),
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.primary,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
         ),
         modifier = modifier,
     )

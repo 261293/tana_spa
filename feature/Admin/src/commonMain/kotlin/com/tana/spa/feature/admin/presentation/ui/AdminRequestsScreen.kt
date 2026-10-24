@@ -95,6 +95,7 @@ import com.tana.spa.feature.admin.resources.admin_price_code
 import com.tana.spa.feature.admin.resources.admin_queue_empty
 import com.tana.spa.feature.admin.resources.admin_refused
 import com.tana.spa.feature.admin.resources.admin_refused_overlap
+import com.tana.spa.feature.admin.resources.admin_requests_eyebrow
 import com.tana.spa.feature.admin.resources.admin_requests_subtitle
 import com.tana.spa.feature.admin.resources.admin_requests_title
 import com.tana.spa.feature.admin.resources.admin_requests_title_accent
@@ -204,6 +205,7 @@ fun AdminRequestsScreen(
 @Composable
 private fun Header(state: AdminRequestsState) {
     SpaScreenHeader(
+        eyebrow = stringResource(Res.string.admin_requests_eyebrow),
         title = stringResource(Res.string.admin_requests_title),
         accent = stringResource(Res.string.admin_requests_title_accent),
         subtitle = stringResource(

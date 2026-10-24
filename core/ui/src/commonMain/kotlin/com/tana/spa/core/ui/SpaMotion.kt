@@ -14,7 +14,7 @@ data class SpaMotion(val short: Int, val medium: Int, val long: Int, val reduced
     }
 }
 
-internal val FullMotion = SpaMotion(short = 150, medium = 250, long = 400, reduced = false)
+internal val FullMotion = SpaMotion(short = 160, medium = 220, long = 320, reduced = false)
 
 internal val NoMotion = SpaMotion(short = 0, medium = 0, long = 0, reduced = true)
 

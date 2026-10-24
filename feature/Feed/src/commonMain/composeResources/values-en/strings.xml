@@ -3,6 +3,18 @@
     <string name="home_greeting_named">Hello, %1$s</string>
     <string name="home_subtitle">How would you like to unwind today?</string>
 
+    <string name="home_hero_title">Space to</string>
+    <string name="home_hero_title_accent">exhale.</string>
+    <string name="home_hero_book">Book a treatment</string>
+    <string name="home_hero_explore">Explore rituals</string>
+
+    <string name="home_fact_services">Rituals</string>
+    <string name="home_fact_categories">Categories</string>
+    <string name="home_fact_appointments">Visits</string>
+
+    <string name="home_next_visit">Your next visit</string>
+    <string name="home_manage_booking">Manage booking</string>
+
     <string name="home_assistant_overline">Tana assistant</string>
     <string name="home_assistant_title">Services that suit your skin</string>
     <string name="home_assistant_action">Start</string>
@@ -13,6 +25,14 @@
     <string name="home_section_services">Featured services</string>
     <string name="home_section_products">Recommended products</string>
 
+    <string name="home_treatments_eyebrow">Treatments</string>
+    <string name="home_treatments_note">Every treatment includes time to settle in.</string>
+    <string name="home_products_eyebrow">Home care</string>
+
+    <string name="home_cta_eyebrow">Not sure where to start?</string>
+    <string name="home_cta_title">Tell us how you feel. We’ll match the treatment to the day.</string>
+    <string name="home_cta_action">Book a treatment</string>
+
     <string name="home_appointment_upcoming">Upcoming</string>
     <string name="home_combo">Combo</string>
     <string name="home_duration">%1$d min</string>
@@ -20,4 +40,5 @@
     <string name="home_load_failed">Couldn’t load this</string>
     <string name="home_retry">Try again</string>
     <string name="home_coming_soon">Coming soon, check back later</string>
+    <string name="home_see_all">See all</string>
 </resources>

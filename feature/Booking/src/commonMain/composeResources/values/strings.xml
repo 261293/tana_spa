@@ -64,7 +64,9 @@
     <string name="service_minutes">%1$d phút</string>
     <string name="service_price">Giá</string>
     <string name="service_includes">Gồm những gì</string>
-    <string name="service_book">Đặt dịch vụ này</string>
+    <string name="service_eyebrow">%1$s · %2$s</string>
+    <string name="service_note">%1$d phút · chọn giờ phù hợp với bạn</string>
+    <string name="service_book">Đặt dịch vụ này · %1$s</string>
     <string name="service_missing_title">Dịch vụ này không còn trong danh sách</string>
     <string name="service_missing_body">Dịch vụ có thể đã đổi tên hoặc ngừng phục vụ. Quay lại và chọn dịch vụ khác nhé.</string>
     <string name="service_failed_title">Không tải được dịch vụ này.</string>
@@ -101,4 +103,22 @@
     <string name="booking_sent_another">Đặt thêm dịch vụ khác</string>
     <string name="visit_in_progress">Buổi trị liệu đang diễn ra</string>
     <string name="visit_progress_description">Bước %1$d trên %2$d: %3$s</string>
+    <string name="booking_eyebrow">Đặt lịch</string>
+    <string name="booking_today">Hôm nay</string>
+    <string name="booking_change">Đổi</string>
+    <string name="booking_subtotal">Dịch vụ</string>
+    <string name="booking_slots_morning">Buổi sáng</string>
+    <string name="booking_slots_afternoon">Buổi chiều</string>
+    <string name="booking_slots_evening">Buổi tối</string>
+    <string name="bookings_eyebrow">Lần hẹn của bạn</string>
+    <string name="treatments_eyebrow">Liệu trình</string>
+    <string name="treatments_title">Tìm liệu trình của bạn</string>
+    <string name="treatments_note">Mỗi liệu trình đều có thời gian để bạn lắng lại.</string>
+    <string name="treatments_search_label">Tìm liệu trình</string>
+    <string name="treatments_search_placeholder">Massage, chăm sóc da, xông thảo mộc…</string>
+    <string name="treatments_filter_all">Tất cả</string>
+    <string name="treatments_count">%1$d liệu trình</string>
+    <string name="treatments_empty_title">Không có liệu trình nào khớp</string>
+    <string name="treatments_empty_body">Thử từ khoá khác, hoặc xem lại toàn bộ liệu trình.</string>
+    <string name="treatments_empty_action">Xem tất cả liệu trình</string>
 </resources>

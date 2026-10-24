@@ -167,4 +167,7 @@
     <string name="admin_menu_person_name_error">Hãy nhập tên</string>
     <string name="admin_menu_person_email_error">Email không hợp lệ</string>
     <string name="admin_menu_person_password_error">Mật khẩu cần ít nhất 8 ký tự</string>
+    <string name="admin_codes_eyebrow">Mã giảm giá</string>
+    <string name="admin_menu_eyebrow">Quản lý spa</string>
+    <string name="admin_requests_eyebrow">Sổ hẹn</string>
 </resources>

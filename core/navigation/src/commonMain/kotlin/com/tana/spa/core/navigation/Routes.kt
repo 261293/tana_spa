@@ -16,6 +16,9 @@ object Routes {
     const val NOTIFICATIONS = "notifications"
     const val BOOKING = "booking"
 
+    /** The whole treatment menu, searchable and filtered by category. */
+    const val TREATMENTS = "treatments"
+
     /** One treatment from the booking menu, named by [ARG_SERVICE]. */
     const val SERVICE_DETAIL = "serviceDetail"
 
