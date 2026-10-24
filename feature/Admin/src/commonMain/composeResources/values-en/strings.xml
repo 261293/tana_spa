@@ -151,4 +151,23 @@
     <string name="admin_eligible_massages">Massages</string>
     <string name="admin_eligible_facials">Facials</string>
     <string name="admin_eligible_body">Body treatments</string>
+    <string name="admin_menu_person_title">Take somebody on</string>
+    <string name="admin_menu_person_name_hint">Linh Nguyen</string>
+    <string name="admin_menu_person_email">Sign-in email</string>
+    <string name="admin_menu_person_email_hint">linh@tana.local</string>
+    <string name="admin_menu_person_password">Temporary password</string>
+    <string name="admin_menu_person_password_hint">At least 8 characters</string>
+    <string name="admin_menu_person_role">Role</string>
+    <string name="admin_menu_add_person">Create the account</string>
+    <string name="admin_menu_person_added">%1$s now has an account</string>
+    <string name="admin_menu_role_admin">System administrator</string>
+    <string name="admin_menu_role_owner">Spa owner</string>
+    <string name="admin_menu_role_staff">Staff</string>
+    <string name="admin_menu_role_customer">Customer</string>
+    <string name="admin_menu_person_name_error">A name is needed</string>
+    <string name="admin_menu_person_email_error">That email does not look right</string>
+    <string name="admin_menu_person_password_error">At least 8 characters</string>
+    <string name="admin_codes_eyebrow">Codes</string>
+    <string name="admin_menu_eyebrow">Studio</string>
+    <string name="admin_requests_eyebrow">Diary</string>
 </resources>

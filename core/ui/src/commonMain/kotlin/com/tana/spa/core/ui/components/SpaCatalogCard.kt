@@ -1,6 +1,7 @@
 package com.tana.spa.core.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,7 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 
-private val CardShape = RoundedCornerShape(16.dp)
+private val CardShape = RoundedCornerShape(18.dp)
 private const val NAME_LINES = 2
 
 /**
@@ -41,15 +43,16 @@ fun SpaCatalogCard(
 ) {
     Column(
         modifier = modifier
-            .spaShadow(4.dp, CardShape)
+            .clip(CardShape)
             .background(MaterialTheme.colorScheme.surface, CardShape)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CardShape)
             .clickable(role = Role.Button, onClick = onClick),
     ) {
         Box(
             Modifier
                 .fillMaxWidth()
                 .height(imageHeight)
-                .background(Brush.linearGradient(SpaTheme.extraColors.cardGradient), CardShape),
+                .background(Brush.linearGradient(SpaTheme.extraColors.cardGradient)),
         ) {
             if (badge != null) {
                 Text(
@@ -64,12 +67,12 @@ fun SpaCatalogCard(
             }
         }
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = title,
-                style = SpaTheme.textStyles.body,
+                style = SpaTheme.textStyles.cardTitle,
                 color = MaterialTheme.colorScheme.onSurface,
                 minLines = NAME_LINES,
                 maxLines = NAME_LINES,
@@ -77,8 +80,8 @@ fun SpaCatalogCard(
             )
             Text(
                 text = priceLabel,
-                style = SpaTheme.textStyles.buttonLabel,
-                color = MaterialTheme.colorScheme.primary,
+                style = SpaTheme.textStyles.cardTitle,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             if (detail != null) {
                 Text(

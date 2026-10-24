@@ -9,6 +9,8 @@ import com.tana.spa.feature.admin.presentation.AdminRequestsEffect
 import com.tana.spa.feature.admin.presentation.AdminRequestsEvent
 import com.tana.spa.feature.admin.presentation.AdminRequestsViewModel
 import com.tana.spa.feature.admin.presentation.AlternativeOffer
+import com.tana.spa.shared.auth.CreateAccountRequest
+import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.booking.BookingErrorCodes
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
@@ -98,6 +100,9 @@ class AdminRequestsViewModelTest {
 
         override suspend fun createTherapist(request: CreateTherapistRequest): TherapistDto =
             error("the queue screen never adds to the menu")
+
+        override suspend fun createAccount(request: CreateAccountRequest): CreatedAccountDto =
+            error("the queue screen never takes anybody on")
 
         private fun decided(id: String, status: DeskStatus): DeskRequest =
             (queue.pending + queue.scheduled).first { it.id == id }.copy(status = status)

@@ -87,6 +87,17 @@ class PostgresUserRepository(private val dataSource: DataSource, private val new
         return findByEmail(email)
     }
 
+    override fun setRole(id: String, role: UserRole): Boolean {
+        val uuid = runCatching { UUID.fromString(id) }.getOrNull() ?: return false
+        return dataSource.connection.use { c ->
+            c.prepareStatement("UPDATE users SET role = ? WHERE id = ? AND $ACTIVE").use { ps ->
+                ps.setString(1, role.sql)
+                ps.setObject(2, uuid)
+                ps.executeUpdate() == 1
+            }
+        }
+    }
+
     override fun activeIds(limit: Int): List<String> = dataSource.connection.use { c ->
         c.prepareStatement("SELECT id FROM users WHERE $ACTIVE ORDER BY created_at LIMIT ?").use { ps ->
             ps.setInt(1, limit)

@@ -57,6 +57,7 @@ import java.time.ZoneId
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -74,6 +75,7 @@ class OwnerRoutesTest {
 
     private val owner = SeedAccount("owner-routes@tana.local", "Jade Bathhouse", "owner-password", UserRole.OWNER)
     private val admin = SeedAccount("admin-routes@tana.local", "Ops", "admin-password", UserRole.ADMIN)
+    private val staff = SeedAccount("staff-routes@tana.local", "Linh", "staff-password", UserRole.STAFF)
 
     /** Its own day per test: the embedded database is shared, so the diary would be too. */
     private val day: LocalDate = LocalDate.now(zone).plusDays(DAYS_AHEAD.getAndIncrement().toLong())
@@ -87,7 +89,7 @@ class OwnerRoutesTest {
             users = users,
             hasher = hasher,
             notificationRepository = PostgresNotificationRepository(dataSource),
-        ).also { seedAccounts(users, hasher, listOf(owner, admin)) }
+        ).also { seedAccounts(users, hasher, listOf(owner, admin, staff)) }
     }
 
     private fun spa(): SpaServices {
@@ -127,8 +129,7 @@ class OwnerRoutesTest {
         setBody(CreateBookingRequest("warm-stone-massage", therapist, at.toEpochMilli()))
     }
 
-    /** Every owner route, each paired with its path so a failure names the one that let the call through. */
-    private suspend fun HttpClient.callOwnerRoutes(token: String, bookingId: String): List<Pair<String, HttpResponse>> = listOf(
+    private suspend fun HttpClient.callQueueRoutes(token: String, bookingId: String): List<Pair<String, HttpResponse>> = listOf(
         "queue" to get(BookingApi.OWNER_BOOKINGS) { bearerAuth(token) },
         "confirm" to post(BookingApi.confirm(bookingId)) { bearerAuth(token) },
         "decline" to post(BookingApi.decline(bookingId)) {
@@ -138,6 +139,9 @@ class OwnerRoutesTest {
         },
         "complete" to post(BookingApi.complete(bookingId)) { bearerAuth(token) },
         "no-show" to post(BookingApi.noShow(bookingId)) { bearerAuth(token) },
+    )
+
+    private suspend fun HttpClient.callMenuRoutes(token: String): List<Pair<String, HttpResponse>> = listOf(
         "create service" to post(BookingApi.OWNER_SERVICES) {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
@@ -150,20 +154,50 @@ class OwnerRoutesTest {
         },
     )
 
+    private suspend fun HttpClient.callOwnerRoutes(token: String, bookingId: String): List<Pair<String, HttpResponse>> =
+        callQueueRoutes(token, bookingId) + callMenuRoutes(token)
+
     @Test
-    fun every_owner_route_refuses_a_customer_and_an_administrator() = testApplication {
+    fun every_owner_route_refuses_a_customer() = testApplication {
         application { module(auth, spa()) }
         val client = jsonClient()
         val guest = client.signUpGuest()
         val booking = client.book(guest, slot(9)).body<BookingDto>()
 
-        for (token in listOf(guest, client.signIn(admin).accessToken)) {
-            for ((route, response) in client.callOwnerRoutes(token, booking.id)) {
-                assertEquals(HttpStatusCode.Forbidden, response.status, route)
-            }
+        for ((route, response) in client.callOwnerRoutes(guest, booking.id)) {
+            assertEquals(HttpStatusCode.Forbidden, response.status, route)
         }
         // ... and the booking is untouched by all that refusing.
         assertEquals(BookingStatusDto.PENDING, client.booking(guest, booking.id).status)
+    }
+
+    @Test
+    fun an_administrator_is_turned_away_from_nothing_the_owner_can_do() = testApplication {
+        application { module(auth, spa()) }
+        val client = jsonClient()
+        val guest = client.signUpGuest()
+        val booking = client.book(guest, slot(9)).body<BookingDto>()
+        val token = client.signIn(admin).accessToken
+
+        for ((route, response) in client.callOwnerRoutes(token, booking.id)) {
+            assertNotEquals(HttpStatusCode.Forbidden, response.status, route)
+        }
+    }
+
+    @Test
+    fun staff_work_the_queue_but_cannot_touch_the_menu_or_the_roster() = testApplication {
+        application { module(auth, spa()) }
+        val client = jsonClient()
+        val guest = client.signUpGuest()
+        val booking = client.book(guest, slot(9)).body<BookingDto>()
+        val token = client.signIn(staff).accessToken
+
+        for ((route, response) in client.callQueueRoutes(token, booking.id)) {
+            assertNotEquals(HttpStatusCode.Forbidden, response.status, route)
+        }
+        for ((route, response) in client.callMenuRoutes(token)) {
+            assertEquals(HttpStatusCode.Forbidden, response.status, route)
+        }
     }
 
     @Test

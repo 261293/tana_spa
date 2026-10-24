@@ -1,5 +1,6 @@
 package com.tana.spa
 
+import com.tana.spa.admin.accountsModule
 import com.tana.spa.admin.adminModule
 import com.tana.spa.appupdate.AppUpdateRepository
 import com.tana.spa.appupdate.InMemoryAppUpdateRepository
@@ -158,6 +159,7 @@ fun Application.module(authServices: AuthServices = AuthServices.create(AuthConf
     notificationModule(authServices.notifications, authServices.featureFlags, authServices.authService)
     spa?.let { bookingModule(it.booking, authServices.authService, it.promotions) }
     adminModule(authServices.authService)
+    accountsModule(authServices.authService)
     demoRoutes()
     routing {
         get("/") {

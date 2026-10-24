@@ -39,7 +39,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tana.spa.core.ui.SpaColors
 import com.tana.spa.core.ui.SpaTheme
 
 private val GroupShape = RoundedCornerShape(10.dp)
@@ -85,6 +84,10 @@ fun SpaOtpField(
     val textStyle = SpaTheme.textStyles.otpDigit.copy(color = MaterialTheme.colorScheme.onSurface)
     val activeIndex = value.length.coerceAtMost(length - 1)
     val groups = (0 until length).chunked(groupSize)
+    val separatorColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val cellBorder = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline
+    val activeBorder = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+    val dividerColor = MaterialTheme.colorScheme.outlineVariant
 
     BasicTextField(
         value = value,
@@ -108,21 +111,21 @@ fun SpaOtpField(
                 ) {
                     groups.forEachIndexed { groupIndex, indices ->
                         if (groupIndex > 0) {
-                            Text("–", style = textStyle.copy(color = SpaColors.TextSecondary), modifier = Modifier.width(24.dp))
+                            Text("–", style = textStyle.copy(color = separatorColor), modifier = Modifier.width(24.dp))
                         }
                         Row(
                             modifier = Modifier
                                 .height(CellHeight)
-                                .background(SpaColors.Surface, GroupShape)
+                                .background(MaterialTheme.colorScheme.surface, GroupShape)
                                 .border(
-                                    BorderStroke(1.dp, if (isError) SpaColors.Error else SpaColors.FieldBorder),
+                                    BorderStroke(1.dp, cellBorder),
                                     GroupShape,
                                 ),
                         ) {
                             indices.forEachIndexed { position, index ->
                                 if (position > 0) {
                                     // thin divider between cells of one group
-                                    Box(Modifier.width(1.dp).fillMaxHeight().background(SpaColors.ButtonBorder))
+                                    Box(Modifier.width(1.dp).fillMaxHeight().background(dividerColor))
                                 }
                                 val active = focused && enabled && index == activeIndex
                                 Box(
@@ -132,7 +135,7 @@ fun SpaOtpField(
                                         .then(
                                             if (active) {
                                                 Modifier.border(
-                                                    BorderStroke(2.dp, if (isError) SpaColors.Error else SpaColors.Primary),
+                                                    BorderStroke(2.dp, activeBorder),
                                                     ActiveShape,
                                                 )
                                             } else {

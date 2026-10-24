@@ -28,4 +28,5 @@
     <string name="notifications_time_hours">%1$d h ago</string>
     <string name="notifications_time_days">%1$d d ago</string>
     <string name="notifications_time_weeks">%1$d w ago</string>
+    <string name="notifications_eyebrow">Inbox</string>
 </resources>

@@ -58,8 +58,6 @@ private const val DISABLED_ALPHA = 0.6f
  * instead; swap it back when the two artifacts line up again. See `docs/material-design.md`.
  *
  * @param helper supporting text shown under the field; [error] replaces it and turns it red.
- * @param onFocusLost called when focus leaves a field that had it, which is where a form checks
- *   what was typed: validating on every keystroke accuses the guest mid-word.
  */
 @Composable
 fun SpaTextField(
@@ -156,8 +154,6 @@ fun SpaTextField(
                 style = SpaTheme.textStyles.fieldError.copy(
                     color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
-                // An error raised as focus leaves is announced where it appears. The field carries
-                // the same text as error() semantics, which only reaches a reader already on it.
                 modifier = if (error != null) Modifier.semantics { liveRegion = LiveRegionMode.Polite } else Modifier,
             )
         }

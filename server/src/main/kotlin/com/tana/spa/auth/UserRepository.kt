@@ -79,6 +79,8 @@ interface UserRepository {
 
     /** Marks [id]'s phone verified, but only if it still equals [phone]. First verifier wins. */
     fun markPhoneVerified(id: String, phone: String): PhoneVerifiedResult
+
+    fun setRole(id: String, role: UserRole): Boolean
 }
 
 /**
@@ -146,6 +148,13 @@ class InMemoryUserRepository : UserRepository {
         if (owner != null && owner != id) return PhoneVerifiedResult.CLAIMED_BY_ANOTHER
         byId[id] = user.copy(phoneVerified = true)
         return PhoneVerifiedResult.VERIFIED
+    }
+
+    @Synchronized
+    override fun setRole(id: String, role: UserRole): Boolean {
+        val user = byId[id] ?: return false
+        byId[id] = user.copy(role = role)
+        return true
     }
 
     private fun verifiedOwner(phone: String): String? = byId.values.firstOrNull { it.phone == phone && it.phoneVerified }?.id

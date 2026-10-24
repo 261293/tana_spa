@@ -23,6 +23,8 @@ object FeedEntry : FeatureEntry {
             onEvent = viewModel::onEvent,
             // The welcome screen opens the assistant flow; going straight to the chat would skip consent.
             onOpenAssistant = { navigator.navigate(Routes.WELCOME) },
+            onBook = { navigator.navigate(Routes.BOOKING) },
+            onExploreTreatments = { navigator.navigate(Routes.TREATMENTS) },
         )
     }
 }

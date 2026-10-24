@@ -18,7 +18,6 @@ interface Navigator {
     /** The route being shown, including any argument (see `withArg`). */
     val current: String
 
-    /** Entries on the back stack including the one being shown, so the root is 1. */
     val depth: Int
 
     fun navigate(route: String)

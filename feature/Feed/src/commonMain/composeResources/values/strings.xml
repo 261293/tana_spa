@@ -3,6 +3,18 @@
     <string name="home_greeting_named">Xin chào, %1$s</string>
     <string name="home_subtitle">Hôm nay bạn muốn thư giãn thế nào?</string>
 
+    <string name="home_hero_title">Không gian để</string>
+    <string name="home_hero_title_accent">thở.</string>
+    <string name="home_hero_book">Đặt liệu trình</string>
+    <string name="home_hero_explore">Xem liệu trình</string>
+
+    <string name="home_fact_services">Liệu trình</string>
+    <string name="home_fact_categories">Danh mục</string>
+    <string name="home_fact_appointments">Lịch hẹn</string>
+
+    <string name="home_next_visit">Lần hẹn tới của bạn</string>
+    <string name="home_manage_booking">Quản lý lịch hẹn</string>
+
     <string name="home_assistant_overline">Trợ lý Tana</string>
     <string name="home_assistant_title">Gợi ý dịch vụ hợp với làn da của bạn</string>
     <string name="home_assistant_action">Bắt đầu</string>
@@ -13,6 +25,14 @@
     <string name="home_section_services">Dịch vụ nổi bật</string>
     <string name="home_section_products">Sản phẩm gợi ý</string>
 
+    <string name="home_treatments_eyebrow">Liệu trình</string>
+    <string name="home_treatments_note">Mỗi liệu trình đều có thời gian để bạn lắng lại.</string>
+    <string name="home_products_eyebrow">Chăm sóc tại nhà</string>
+
+    <string name="home_cta_eyebrow">Chưa biết bắt đầu từ đâu?</string>
+    <string name="home_cta_title">Hãy nói bạn đang thấy thế nào. Chúng tôi sẽ chọn liệu trình hợp với hôm nay.</string>
+    <string name="home_cta_action">Đặt liệu trình</string>
+
     <string name="home_appointment_upcoming">Sắp tới</string>
     <string name="home_combo">Combo</string>
     <string name="home_duration">%1$d phút</string>
@@ -20,4 +40,5 @@
     <string name="home_load_failed">Không tải được nội dung này</string>
     <string name="home_retry">Thử lại</string>
     <string name="home_coming_soon">Tính năng sắp ra mắt, bạn quay lại sau nhé</string>
+    <string name="home_see_all">Xem tất cả</string>
 </resources>

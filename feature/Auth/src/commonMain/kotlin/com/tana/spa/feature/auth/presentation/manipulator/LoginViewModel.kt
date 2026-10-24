@@ -30,7 +30,6 @@ class LoginViewModel(private val login: LoginUseCase, getCurrentSession: GetCurr
             is LoginEvent.PasswordChanged ->
                 setState { copy(password = event.value, passwordError = null, failure = null) }
 
-            // Leaving a field is where what was typed gets checked; see errorOnceTyped.
             LoginEvent.EmailBlurred -> setState { copy(emailError = errorOnceTyped(email, AuthValidation::validateEmail)) }
 
             LoginEvent.PasswordBlurred ->

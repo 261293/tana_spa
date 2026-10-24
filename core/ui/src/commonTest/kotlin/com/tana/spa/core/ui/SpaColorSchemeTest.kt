@@ -12,67 +12,65 @@ import kotlin.test.assertTrue
 class SpaColorSchemeTest {
     @Test
     fun scheme_roles_match_design_tokens() {
-        assertEquals(SpaColors.Primary, SpaColorScheme.primary)
-        assertEquals(SpaColors.OnPrimary, SpaColorScheme.onPrimary)
-        assertEquals(SpaColors.Celadon, SpaColorScheme.primaryContainer)
-        assertEquals(SpaColors.Primary, SpaColorScheme.onPrimaryContainer)
-        assertEquals(SpaColors.Promo, SpaColorScheme.secondary)
-        assertEquals(SpaColors.PromoContainer, SpaColorScheme.secondaryContainer)
-        assertEquals(SpaColors.Warning, SpaColorScheme.tertiary)
-        assertEquals(SpaColors.WarningContainer, SpaColorScheme.tertiaryContainer)
-        assertEquals(SpaColors.Background, SpaColorScheme.background)
-        assertEquals(SpaColors.TextPrimary, SpaColorScheme.onBackground)
+        assertEquals(SpaColors.Forest, SpaColorScheme.primary)
+        assertEquals(SpaColors.OnForest, SpaColorScheme.onPrimary)
+        assertEquals(SpaColors.SageTint, SpaColorScheme.primaryContainer)
+        assertEquals(SpaColors.Forest, SpaColorScheme.onPrimaryContainer)
+        assertEquals(SpaColors.Forest600, SpaColorScheme.secondary)
+        assertEquals(SpaColors.SageSoft, SpaColorScheme.secondaryContainer)
+        assertEquals(SpaColors.Clay, SpaColorScheme.tertiary)
+        assertEquals(SpaColors.ClaySoft, SpaColorScheme.tertiaryContainer)
+        assertEquals(SpaColors.Ground, SpaColorScheme.background)
+        assertEquals(SpaColors.Ink, SpaColorScheme.onBackground)
         assertEquals(SpaColors.Surface, SpaColorScheme.surface)
-        assertEquals(SpaColors.TextPrimary, SpaColorScheme.onSurface)
-        assertEquals(SpaColors.Tone1, SpaColorScheme.surfaceVariant)
-        assertEquals(SpaColors.TextSecondary, SpaColorScheme.onSurfaceVariant)
-        assertEquals(SpaColors.Background, SpaColorScheme.surfaceContainerLowest)
-        assertEquals(SpaColors.Surface, SpaColorScheme.surfaceContainerLow)
-        assertEquals(SpaColors.Tone1, SpaColorScheme.surfaceContainer)
-        assertEquals(SpaColors.Tone2, SpaColorScheme.surfaceContainerHigh)
-        assertEquals(SpaColors.Celadon, SpaColorScheme.surfaceContainerHighest)
-        assertEquals(SpaColors.FieldBorder, SpaColorScheme.outline)
-        assertEquals(SpaColors.ButtonBorder, SpaColorScheme.outlineVariant)
-        assertEquals(SpaColors.Error, SpaColorScheme.error)
-        assertEquals(SpaColors.ErrorContainer, SpaColorScheme.errorContainer)
+        assertEquals(SpaColors.Ink, SpaColorScheme.onSurface)
+        assertEquals(SpaColors.SurfaceAlt, SpaColorScheme.surfaceVariant)
+        assertEquals(SpaColors.Muted, SpaColorScheme.onSurfaceVariant)
+        assertEquals(SpaColors.Surface, SpaColorScheme.surfaceContainerLowest)
+        assertEquals(SpaColors.Ground, SpaColorScheme.surfaceContainerLow)
+        assertEquals(SpaColors.SurfaceAlt, SpaColorScheme.surfaceContainer)
+        assertEquals(SpaColors.SageSoft, SpaColorScheme.surfaceContainerHigh)
+        assertEquals(SpaColors.SageTint, SpaColorScheme.surfaceContainerHighest)
+        assertEquals(SpaColors.LineStrong, SpaColorScheme.outline)
+        assertEquals(SpaColors.Line, SpaColorScheme.outlineVariant)
+        assertEquals(SpaColors.Danger, SpaColorScheme.error)
+        assertEquals(SpaColors.ClaySoft, SpaColorScheme.errorContainer)
     }
 
     @Test
     fun extra_colors_match_design_tokens() {
-        assertEquals(SpaColors.Primary, LightExtraColors.link)
-        assertEquals(SpaColors.Success, LightExtraColors.success)
-        assertEquals(SpaColors.Warning, LightExtraColors.warning)
-        assertEquals(SpaColors.WarningContainer, LightExtraColors.warningContainer)
-        assertEquals(SpaColors.Pocket, LightExtraColors.pocket)
-        assertEquals(SpaColors.OnPocket, LightExtraColors.onPocket)
-        assertEquals(SpaColors.OnPocketMuted, LightExtraColors.onPocketMuted)
-        assertEquals(SpaColors.PrimaryLight, LightExtraColors.pocketAction)
-        assertEquals(SpaColors.OnPrimaryLight, LightExtraColors.onPocketAction)
-        assertEquals(SpaColors.Linen, LightExtraColors.felt)
+        assertEquals(SpaColors.Forest600, LightExtraColors.link)
+        assertEquals(SpaColors.Forest600, LightExtraColors.success)
+        assertEquals(SpaColors.Clay, LightExtraColors.warning)
+        assertEquals(SpaColors.ClaySoft, LightExtraColors.warningContainer)
+        assertEquals(SpaColors.ForestDeep, LightExtraColors.pocket)
+        assertEquals(SpaColors.OnForest, LightExtraColors.onPocket)
+        assertEquals(SpaColors.OnForestMuted, LightExtraColors.onPocketMuted)
+        assertEquals(SpaColors.OnForest, LightExtraColors.pocketAction)
+        assertEquals(SpaColors.ForestDeep, LightExtraColors.onPocketAction)
+        assertEquals(SpaColors.SurfaceAlt, LightExtraColors.felt)
         assertEquals(SpaColors.Shadow, LightExtraColors.shadow)
-        assertEquals(
-            listOf(SpaColors.Primary, SpaColors.HeroGradientMid, SpaColors.Surface),
-            LightExtraColors.heroGradient,
-        )
-        assertEquals(listOf(SpaColors.Background, SpaColors.CardGradientEnd), LightExtraColors.cardGradient)
+        assertEquals(SpaColors.Moss, LightExtraColors.eyebrow)
+        assertEquals(listOf(SpaColors.Forest, SpaColors.ForestDeep), LightExtraColors.heroGradient)
+        assertEquals(listOf(SpaColors.Surface, SpaColors.SurfaceAlt), LightExtraColors.cardGradient)
     }
 
-    /**
-     * WCAG 2.2 1.4.3 for every pairing the screens actually use. The design file also offers a
-     * paler "muted" lavender for captions; it lands near 3:1 on the page, so captions use
-     * [SpaColors.TextSecondary] instead and that colour is pinned here.
-     */
+    /** WCAG 2.2 1.4.3 for every pairing the screens actually use. */
     @Test
     fun text_pairs_are_readable() {
-        assertTrue(contrastRatio(SpaColors.OnPrimary, SpaColors.Primary) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.TextPrimary, SpaColors.Background) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.TextPrimary, SpaColors.Surface) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.TextSecondary, SpaColors.Background) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.TextSecondary, SpaColors.Surface) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Primary, SpaColors.Background) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Primary, SpaColors.Celadon) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.OnPocket, SpaColors.Pocket) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.OnPocketMuted, SpaColors.Pocket) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.OnPrimaryLight, SpaColors.PrimaryLight) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.OnForest, SpaColors.Forest) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Ink, SpaColors.Ground) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Ink, SpaColors.Surface) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Muted, SpaColors.Ground) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Muted, SpaColors.Surface) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Forest, SpaColors.Ground) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Forest, SpaColors.SageTint) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Moss, SpaColors.Ground) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Forest600, SpaColors.Surface) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.OnForest, SpaColors.ForestDeep) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.OnForestMuted, SpaColors.ForestDeep) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.ForestDeep, SpaColors.OnForest) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.DangerDeep, SpaColors.ClaySoft) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Danger, SpaColors.Surface) >= 4.5)
     }
 }

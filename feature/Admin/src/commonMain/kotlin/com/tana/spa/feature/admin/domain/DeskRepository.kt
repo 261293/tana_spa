@@ -1,5 +1,7 @@
 package com.tana.spa.feature.admin.domain
 
+import com.tana.spa.shared.auth.CreateAccountRequest
+import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
@@ -25,6 +27,8 @@ interface DeskRepository {
     suspend fun createService(request: CreateServiceRequest): ServiceDto
 
     suspend fun createTherapist(request: CreateTherapistRequest): TherapistDto
+
+    suspend fun createAccount(request: CreateAccountRequest): CreatedAccountDto
 }
 
 /** [code] is one of `BookingErrorCodes`, or null when the server sent no machine-readable code. */

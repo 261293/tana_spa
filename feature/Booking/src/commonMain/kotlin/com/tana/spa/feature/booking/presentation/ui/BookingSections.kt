@@ -1,12 +1,7 @@
 package com.tana.spa.feature.booking.presentation.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +10,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -24,8 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
@@ -37,24 +30,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.tana.spa.core.ui.SpaPebbleShape
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaAvatar
 import com.tana.spa.core.ui.components.SpaCard
-import com.tana.spa.core.ui.components.SpaFilterChip
+import com.tana.spa.core.ui.components.SpaChoiceRow
+import com.tana.spa.core.ui.components.SpaDateCell
+import com.tana.spa.core.ui.components.SpaEyebrow
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
-import com.tana.spa.core.ui.formatDayChip
+import com.tana.spa.core.ui.components.SpaSlotButton
 import com.tana.spa.core.ui.formatHour
 import com.tana.spa.core.ui.formatRelativeDayAndTime
+import com.tana.spa.core.ui.monthShort
 import com.tana.spa.core.ui.weekdayShort
+import com.tana.spa.feature.booking.domain.Slot
 import com.tana.spa.feature.booking.presentation.ANY_THERAPIST
 import com.tana.spa.feature.booking.presentation.BookingState
 import com.tana.spa.feature.booking.resources.Res
@@ -67,8 +63,11 @@ import com.tana.spa.feature.booking.resources.booking_no_times
 import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.booking_service_meta
 import com.tana.spa.feature.booking.resources.booking_slot_taken
-import com.tana.spa.feature.booking.resources.booking_step_done
+import com.tana.spa.feature.booking.resources.booking_slots_afternoon
+import com.tana.spa.feature.booking.resources.booking_slots_evening
+import com.tana.spa.feature.booking.resources.booking_slots_morning
 import com.tana.spa.feature.booking.resources.booking_therapist_next
+import com.tana.spa.feature.booking.resources.booking_today
 import com.tana.spa.shared.spa.Service
 import com.tana.spa.shared.spa.SpaCatalog
 import com.tana.spa.shared.spa.SpaDate
@@ -76,63 +75,32 @@ import com.tana.spa.shared.spa.Therapist
 import com.tana.spa.shared.spa.initialsOf
 import org.jetbrains.compose.resources.stringResource
 
-private val ServiceTileShape = RoundedCornerShape(topStart = 22.dp, topEnd = 10.dp, bottomEnd = 10.dp, bottomStart = 22.dp)
-private val SERVICE_ROW_HEIGHT = 88.dp
-private val THERAPIST_CARD_HEIGHT = 108.dp
-private val SLOT_ROW_HEIGHT = 40.dp
+private val PickThumbShape = RoundedCornerShape(10.dp)
+private val PICK_THUMB_SIZE = 56.dp
+private val SERVICE_ROW_HEIGHT = 80.dp
+private val THERAPIST_ROW_HEIGHT = 72.dp
+private val SLOT_ROW_HEIGHT = 46.dp
 private const val SERVICE_PLACEHOLDERS = 4
 private const val THERAPIST_PLACEHOLDER_ROWS = 2
 private const val SLOT_PLACEHOLDER_ROWS = 3
 private const val DAYS_ON_RAIL = 14
 private const val BOOKING_HORIZON_DAYS = 60
 private const val MILLIS_PER_DAY = 86_400_000L
-
-@Composable
-internal fun StepHeader(number: Int, title: String, done: Boolean, modifier: Modifier = Modifier) {
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(26.dp)
-                .background(
-                    if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
-                    CircleShape,
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (done) {
-                SpaIconImage(
-                    SpaIcon.Check,
-                    size = 15.dp,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    contentDescription = stringResource(Res.string.booking_step_done),
-                )
-            } else {
-                Text(
-                    text = number.toString(),
-                    style = SpaTheme.textStyles.label.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        }
-        Text(
-            text = title,
-            style = SpaTheme.textStyles.cardTitle,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.semantics { heading() },
-        )
-    }
-}
+private const val SLOT_COLUMNS = 3
+private const val NOON = 12.0
+private const val EVENING = 17.0
 
 @Composable
 internal fun ServiceList(state: BookingState, onSelect: (String) -> Unit, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(modifier) {
         when {
             state.catalogLoading -> repeat(SERVICE_PLACEHOLDERS) { SpaSkeleton(SERVICE_ROW_HEIGHT) }
 
             state.catalogFailed -> MenuUnavailable(onRetry)
 
-            else -> state.services.forEach { service ->
-                ServiceRow(service, service.id == state.serviceId) { onSelect(service.id) }
+            else -> state.services.forEachIndexed { index, service ->
+                if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                PickRow(service, service.id == state.serviceId) { onSelect(service.id) }
             }
         }
     }
@@ -140,63 +108,52 @@ internal fun ServiceList(state: BookingState, onSelect: (String) -> Unit, onRetr
 
 @Composable
 private fun MenuUnavailable(onRetry: () -> Unit) {
-    SpaCard(modifier = Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                text = stringResource(Res.string.booking_menu_failed),
-                style = SpaTheme.textStyles.body,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            SpaSecondaryButton(text = stringResource(Res.string.booking_menu_retry), onClick = onRetry)
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = stringResource(Res.string.booking_menu_failed),
+            style = SpaTheme.textStyles.body,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SpaSecondaryButton(text = stringResource(Res.string.booking_menu_retry), onClick = onRetry)
     }
 }
 
+/** The design's pick row: a square thumb, the treatment and its length, then the price. */
 @Composable
-private fun ServiceRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
-    SpaCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = SpaPebbleShape,
-        color = Color.Transparent,
-        padding = PaddingValues(0.dp),
-        onClick = onSelect,
-        selected = selected,
+private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
+    val shape = MaterialTheme.shapes.extraSmall
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(if (selected) MaterialTheme.colorScheme.surfaceContainerLow else Color.Transparent, shape)
+            .clickable(role = Role.RadioButton, onClick = onSelect)
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column {
-            ListItem(
-                headlineContent = {
-                    Text(service.name, style = SpaTheme.textStyles.cardTitle, color = MaterialTheme.colorScheme.onBackground)
-                },
-                supportingContent = {
-                    Text(
-                        text = stringResource(Res.string.booking_service_meta, service.minutes, service.category.label),
-                        style = SpaTheme.textStyles.body,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                },
-                leadingContent = { SpaImageTile(Modifier.size(64.dp), shape = ServiceTileShape) },
-                trailingContent = {
-                    Text(
-                        text = stringResource(Res.string.booking_price, service.priceUsd),
-                        style = SpaTheme.textStyles.cardTitle,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                },
-                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        SpaImageTile(Modifier.size(PICK_THUMB_SIZE), shape = PickThumbShape)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = service.name,
+                style = SpaTheme.textStyles.body,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-            AnimatedVisibility(
-                visible = selected,
-                enter = fadeIn(tween(SpaTheme.motion.short)) + expandVertically(tween(SpaTheme.motion.short)),
-                exit = fadeOut(tween(SpaTheme.motion.exit)) + shrinkVertically(tween(SpaTheme.motion.exit)),
-            ) {
-                Row(
-                    modifier = Modifier.padding(start = 80.dp, end = 16.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    SpaIconImage(SpaIcon.Leaf, size = 16.dp, tint = MaterialTheme.colorScheme.primary)
-                    Text(service.includes, style = SpaTheme.textStyles.body, color = MaterialTheme.colorScheme.onSurface)
-                }
-            }
+            Text(
+                text = stringResource(Res.string.booking_service_meta, service.minutes, service.category.label),
+                style = SpaTheme.textStyles.label,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(
+            text = stringResource(Res.string.booking_price, service.priceUsd),
+            style = SpaTheme.textStyles.cardTitle,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        if (selected) {
+            SpaIconImage(SpaIcon.Check, size = 16.dp, tint = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -209,27 +166,42 @@ private fun ServiceRow(service: Service, selected: Boolean, onSelect: () -> Unit
  * the treatments.
  */
 @Composable
-internal fun TherapistPicker(state: BookingState, onSelect: (String) -> Unit, columns: Int, modifier: Modifier = Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+internal fun TherapistPicker(state: BookingState, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (state.catalogLoading) {
-            repeat(THERAPIST_PLACEHOLDER_ROWS) { SpaSkeleton(THERAPIST_CARD_HEIGHT) }
+            repeat(THERAPIST_PLACEHOLDER_ROWS) { SpaSkeleton(THERAPIST_ROW_HEIGHT) }
             return@Column
         }
-        val choices = listOf(anyTherapist()) + state.therapists
-        choices.chunked(columns).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { therapist ->
-                    TherapistCard(
-                        therapist = therapist,
-                        today = state.today,
-                        selected = therapist.id == state.therapistId,
-                        onSelect = { onSelect(therapist.id) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
-            }
+        (listOf(anyTherapist()) + state.therapists).forEach { therapist ->
+            SpaChoiceRow(
+                title = therapist.name,
+                subtitle = therapistSubtitle(therapist, state.today),
+                selected = therapist.id == state.therapistId,
+                onClick = { onSelect(therapist.id) },
+                leading = { TherapistBadge(therapist) },
+            )
         }
+    }
+}
+
+@Composable
+private fun therapistSubtitle(therapist: Therapist, today: SpaDate): String {
+    val next = therapist.nextSlot ?: return therapist.focus
+    val nextAt = formatRelativeDayAndTime(next.dayEpochDay, next.hour, today)
+    return "${therapist.focus} · ${stringResource(Res.string.booking_therapist_next, nextAt)}"
+}
+
+@Composable
+private fun TherapistBadge(therapist: Therapist) {
+    if (therapist.anyAvailable) {
+        Box(
+            modifier = Modifier.size(44.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            SpaIconImage(SpaIcon.Clock, size = 20.dp, tint = MaterialTheme.colorScheme.primary)
+        }
+    } else {
+        SpaAvatar(initialsOf(therapist.name), size = 44.dp, container = MaterialTheme.colorScheme.secondaryContainer)
     }
 }
 
@@ -242,53 +214,26 @@ private fun anyTherapist() = Therapist(
     anyAvailable = true,
 )
 
-@Composable
-private fun TherapistCard(therapist: Therapist, today: SpaDate, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier) {
-    SpaCard(modifier = modifier, padding = PaddingValues(12.dp), onClick = onSelect, selected = selected) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            if (therapist.anyAvailable) {
-                Box(
-                    modifier = Modifier.size(36.dp).background(MaterialTheme.colorScheme.background, CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    SpaIconImage(SpaIcon.Clock, size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else {
-                SpaAvatar(initialsOf(therapist.name), container = MaterialTheme.colorScheme.background)
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(therapist.name, style = SpaTheme.textStyles.cardTitle, color = MaterialTheme.colorScheme.onBackground)
-            Text(therapist.focus, style = SpaTheme.textStyles.caption, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            therapist.nextSlot?.let { next ->
-                Text(
-                    text = stringResource(
-                        Res.string.booking_therapist_next,
-                        formatRelativeDayAndTime(next.dayEpochDay, next.hour, today),
-                    ),
-                    style = SpaTheme.textStyles.caption.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-    }
-}
-
-/** Two weeks of days as filter chips; a day the spa is full is a disabled chip. */
+/** Two weeks of days as the design's date cells; a day the spa is full cannot be chosen. */
 @Composable
 internal fun DateRail(selected: SpaDate, today: SpaDate, onSelect: (SpaDate) -> Unit, modifier: Modifier = Modifier) {
+    val todayLabel = stringResource(Res.string.booking_today)
     Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
+        modifier = modifier.horizontalScroll(rememberScrollState()).padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         repeat(DAYS_ON_RAIL) { index ->
             val date = today.plusDays(index)
             val full = SpaCatalog.isDayFull(date)
-            val label = date.formatDayChip(today)
-            SpaFilterChip(
-                label = if (full) stringResource(Res.string.booking_day_full, label) else label,
+            val label = "${date.weekdayShort()} ${date.day} ${date.monthShort()}"
+            SpaDateCell(
+                weekday = if (date == today) todayLabel else date.weekdayShort(),
+                day = date.day.toString(),
+                month = date.monthShort(),
                 selected = date == selected,
                 enabled = !full,
                 onClick = { onSelect(date) },
+                contentDescription = if (full) stringResource(Res.string.booking_day_full, label) else null,
             )
         }
     }
@@ -343,12 +288,12 @@ internal fun MonthCalendar(selected: SpaDate, today: SpaDate, onSelect: (SpaDate
 }
 
 /**
- * The day's open times, as the spa's diary has them: a time it did not offer cannot be chosen,
- * and a taken one is a disabled chip.
+ * The day's open times, grouped the way the design reads them, as the spa's diary has them: a
+ * time it did not offer cannot be chosen, and a taken one is a disabled slot.
  */
 @Composable
-internal fun SlotGrid(state: BookingState, onSelect: (Long) -> Unit, columns: Int, modifier: Modifier = Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+internal fun SlotGrid(state: BookingState, onSelect: (Long) -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
         when {
             state.slotsLoading && state.slots.isEmpty() -> repeat(SLOT_PLACEHOLDER_ROWS) { SpaSkeleton(SLOT_ROW_HEIGHT) }
 
@@ -358,23 +303,49 @@ internal fun SlotGrid(state: BookingState, onSelect: (Long) -> Unit, columns: In
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            else -> state.slots.chunked(columns).forEach { row ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    row.forEach { slot ->
-                        val isSelected = slot.startAtEpochMillis == state.slotAtEpochMillis
-                        val time = formatHour(slot.startHour)
-                        SpaFilterChip(
-                            label = if (slot.available) time else stringResource(Res.string.booking_slot_taken, time),
-                            selected = isSelected,
-                            enabled = slot.available,
-                            onClick = { onSelect(slot.startAtEpochMillis) },
-                            leadingIcon = if (isSelected) SpaIcon.Check else null,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
-                }
+            else -> slotGroups(state.slots).forEach { (label, slots) ->
+                SlotGroup(label, slots, state.slotAtEpochMillis, onSelect)
             }
         }
     }
+}
+
+@Composable
+private fun SlotGroup(label: String, slots: List<Slot>, chosen: Long?, onSelect: (Long) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SpaEyebrow(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        slots.chunked(SLOT_COLUMNS).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { slot ->
+                    val time = formatHour(slot.startHour)
+                    SpaSlotButton(
+                        label = if (slot.available) time else stringResource(Res.string.booking_slot_taken, time),
+                        selected = slot.startAtEpochMillis == chosen,
+                        enabled = slot.available,
+                        onClick = { onSelect(slot.startAtEpochMillis) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                repeat(SLOT_COLUMNS - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun slotGroups(slots: List<Slot>): List<Pair<String, List<Slot>>> {
+    val morning = stringResource(Res.string.booking_slots_morning)
+    val afternoon = stringResource(Res.string.booking_slots_afternoon)
+    val evening = stringResource(Res.string.booking_slots_evening)
+    return listOf(
+        morning to slots.filter { it.startHour < NOON },
+        afternoon to slots.filter { it.startHour >= NOON && it.startHour < EVENING },
+        evening to slots.filter { it.startHour >= EVENING },
+    ).filter { it.second.isNotEmpty() }
+}
+
+/** The retry card the wide layout still shows beside the menu. */
+@Composable
+internal fun CatalogRetryCard(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    SpaCard(modifier = modifier.fillMaxWidth(), padding = PaddingValues(16.dp)) { MenuUnavailable(onRetry) }
 }

@@ -3,8 +3,12 @@ package com.tana.spa.feature.admin.presentation
 import androidx.lifecycle.viewModelScope
 import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
+import com.tana.spa.core.network.CallerRole
 import com.tana.spa.feature.admin.domain.DeskRefused
 import com.tana.spa.feature.admin.domain.DeskRepository
+import com.tana.spa.shared.auth.AuthValidation
+import com.tana.spa.shared.auth.CreateAccountRequest
+import com.tana.spa.shared.auth.SpaRoles
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.SpaValidation
@@ -16,8 +20,20 @@ import kotlinx.coroutines.launch
  * so a form that passes here is not refused there for a reason the guest-facing wording cannot
  * explain.
  */
-class AdminMenuViewModel(private val desk: DeskRepository) :
+class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRole) :
     MviViewModel<AdminMenuState, AdminMenuEvent, AdminMenuEffect>(AdminMenuState()) {
+
+    init {
+        val role = callerRole.role()
+        val creatable = SpaRoles.creatableBy(role)
+        setState {
+            copy(
+                permissions = SpaRoles.permissionsOf(role),
+                creatableRoles = ROLE_ORDER.filter { it in creatable },
+                person = person.copy(role = ROLE_ORDER.firstOrNull { it in creatable } ?: SpaRoles.CUSTOMER),
+            )
+        }
+    }
 
     override fun handleEvent(event: AdminMenuEvent) {
         when (event) {
@@ -44,6 +60,18 @@ class AdminMenuViewModel(private val desk: DeskRepository) :
                 setState { copy(therapist = therapist.copy(focus = event.value, focusError = null)) }
 
             AdminMenuEvent.SaveTherapist -> saveTherapist()
+
+            is AdminMenuEvent.PersonNameChanged -> setState { copy(person = person.copy(name = event.value, nameError = null)) }
+
+            is AdminMenuEvent.PersonEmailChanged ->
+                setState { copy(person = person.copy(email = event.value, emailError = null)) }
+
+            is AdminMenuEvent.PersonPasswordChanged ->
+                setState { copy(person = person.copy(password = event.value, passwordError = null)) }
+
+            is AdminMenuEvent.PersonRoleChanged -> setState { copy(person = person.copy(role = event.role)) }
+
+            AdminMenuEvent.SavePerson -> savePerson()
         }
     }
 
@@ -110,6 +138,42 @@ class AdminMenuViewModel(private val desk: DeskRepository) :
         }
     }
 
+    private fun savePerson() {
+        val form = state.value.person
+        if (state.value.savingPerson) return
+        if (form.role !in state.value.creatableRoles) {
+            AppLog.w(logTag) { "refusing to ask for a ${form.role} account, which this one may not create" }
+            return
+        }
+        val request = CreateAccountRequest(
+            displayName = form.name.trim(),
+            email = form.email.trim(),
+            password = form.password,
+            role = form.role,
+        )
+        val checked = form.copy(
+            nameError = AuthValidation.validateName(request.displayName),
+            emailError = AuthValidation.validateEmail(request.email),
+            passwordError = AuthValidation.validatePassword(request.password),
+        )
+        setState { copy(person = checked) }
+        if (checked.nameError != null || checked.emailError != null || checked.passwordError != null) return
+
+        setState { copy(savingPerson = true) }
+        viewModelScope.launch {
+            runCatchingCancellable { desk.createAccount(request) }
+                .onSuccess { added ->
+                    AppLog.i(logTag) { "took on a ${added.role}" }
+                    setState { copy(person = PersonForm(role = form.role), savingPerson = false) }
+                    sendEffect(AdminMenuEffect.ShowPersonAdded(added.displayName))
+                }
+                .onFailure { failure ->
+                    setState { copy(savingPerson = false) }
+                    sendEffect(AdminMenuEffect.ShowRefused((failure as? DeskRefused)?.code))
+                }
+        }
+    }
+
     /** Durations and prices are whole numbers; anything else cannot be typed into them. */
     private fun String.digits(): String = filter { it.isDigit() }.take(MAX_DIGITS)
 
@@ -125,5 +189,7 @@ class AdminMenuViewModel(private val desk: DeskRepository) :
 
     private companion object {
         const val MAX_DIGITS = 6
+
+        val ROLE_ORDER = listOf(SpaRoles.ADMIN, SpaRoles.OWNER, SpaRoles.STAFF, SpaRoles.CUSTOMER)
     }
 }

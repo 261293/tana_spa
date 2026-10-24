@@ -1,5 +1,6 @@
 package com.tana.spa.core.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,12 +9,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,12 +25,12 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 
-private val ButtonShape = RoundedCornerShape(10.dp)
-private val ButtonHeight = 52.dp
-private const val DISABLED_ALPHA = 0.5f
+private val ButtonShape = CircleShape
+private val ButtonHeight = 48.dp
+private const val DISABLED_ALPHA = 0.55f
 private const val POCKET_DISABLED_ALPHA = 0.25f
 
-/** Full-width moss call-to-action. While [loading] it shows a spinner and ignores taps. */
+/** Full-width forest call-to-action. While [loading] it shows a spinner and ignores taps. */
 @Composable
 fun SpaPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, loading: Boolean = false) {
     Button(
@@ -38,8 +40,8 @@ fun SpaPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = DISABLED_ALPHA),
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = DISABLED_ALPHA),
         ),
         modifier = modifier.fillMaxWidth().height(ButtonHeight),
     ) {
@@ -56,7 +58,7 @@ fun SpaPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
 }
 
 /**
- * The action inside a dark [spaPocket]: light moss on deep moss, with the trailing arrow the
+ * The action inside a dark [spaPocket]: near-white on deep forest, with the trailing arrow the
  * design puts on the booking request.
  */
 @Composable
@@ -77,7 +79,7 @@ fun SpaPocketButton(
             disabledContainerColor = SpaTheme.extraColors.pocketAction.copy(alpha = POCKET_DISABLED_ALPHA),
             disabledContentColor = SpaTheme.extraColors.onPocket.copy(alpha = DISABLED_ALPHA),
         ),
-        contentPadding = PaddingValues(horizontal = 20.dp),
+        contentPadding = PaddingValues(horizontal = 22.dp),
         modifier = modifier.fillMaxWidth().height(ButtonHeight),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -100,7 +102,7 @@ fun SpaSocialButton(text: String, icon: Painter, onClick: () -> Unit, modifier: 
             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DISABLED_ALPHA),
         ),
-        contentPadding = PaddingValues(horizontal = 16.dp),
+        contentPadding = PaddingValues(horizontal = 22.dp),
         modifier = modifier.fillMaxWidth().height(ButtonHeight),
     ) {
         Image(painter = icon, contentDescription = null, modifier = Modifier.size(22.dp))
@@ -110,7 +112,7 @@ fun SpaSocialButton(text: String, icon: Painter, onClick: () -> Unit, modifier: 
 }
 
 /**
- * Full-width low-emphasis action (Material's filled tonal button), for the dismiss half of a
+ * Full-width low-emphasis action: the design's outlined button, for the dismiss half of a
  * two-button choice. [contentColor] carries a destructive action, e.g. signing out.
  */
 @Composable
@@ -121,14 +123,13 @@ fun SpaSecondaryButton(
     enabled: Boolean = true,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
 ) {
-    FilledTonalButton(
+    OutlinedButton(
         onClick = onClick,
         enabled = enabled,
         shape = ButtonShape,
-        colors = ButtonDefaults.filledTonalButtonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        colors = ButtonDefaults.outlinedButtonColors(
             contentColor = contentColor,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DISABLED_ALPHA),
         ),
         modifier = modifier.fillMaxWidth().height(ButtonHeight),
