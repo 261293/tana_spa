@@ -18,7 +18,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.SaveableStateHolder
@@ -84,7 +86,33 @@ private val FULL_SCREEN_ROUTES = setOf(
 )
 
 /** Screens the Book destination owns: reaching one does not leave the booking flow. */
-private val BOOKING_FLOW_ROUTES = setOf(Routes.SERVICE_DETAIL, Routes.MY_BOOKINGS)
+private val BOOKING_FLOW_ROUTES = setOf(
+    Routes.BOOKING_THERAPIST,
+    Routes.BOOKING_WHEN,
+    Routes.BOOKING_CONFIRM,
+    Routes.SERVICE_DETAIL,
+    Routes.MY_BOOKINGS,
+)
+
+/** The console screens and what an account must be allowed to do to be given one; the server checks again. */
+private val CONSOLE_ROUTES = mapOf(
+    Routes.ADMIN_REQUESTS to SpaPermission.MANAGE_BOOKINGS,
+    Routes.ADMIN_MENU to SpaPermission.MANAGE_SERVICES,
+    Routes.ADMIN_CODES to SpaPermission.OPERATE_SYSTEM,
+)
+
+/**
+ * The screen to open on. [urlRoute] is what the web's address bar names and is followed only for
+ * an account that can use it: without a session the only screen is sign-in, and a guest restoring
+ * a console URL would get a screen whose every call the server refuses.
+ */
+internal fun restoredRoute(urlRoute: String, role: String?): String {
+    if (role == null) return Routes.AUTH
+    val name = urlRoute.routeName()
+    val needs = CONSOLE_ROUTES[name]
+    val known = FeaturesRegistry.entries.any { it.route == name }
+    return if (known && (needs == null || SpaRoles.has(role, needs))) urlRoute else Routes.BOOKING
+}
 
 private val NO_VISIT_STRIP_ROUTES = setOf(Routes.BOOKING, Routes.MY_BOOKINGS)
 
@@ -92,10 +120,17 @@ private val NO_VISIT_STRIP_ROUTES = setOf(Routes.BOOKING, Routes.MY_BOOKINGS)
 fun App() {
     AppTheme {
         // The app opens on the login screen; it forwards to the booking screen itself when a
-        // valid session is already stored.
-        val navigator = rememberNavigator(Routes.AUTH)
+        // valid session is already stored. On the web the URL may name a screen to come back to.
+        val sessions: SessionStore = koinInject()
+        val navigator = rememberNavigator(remember { restoredRoute(RouteUrl.current(Routes.BOOKING), sessions.load()?.user?.role?.wire) })
         // `current` is backed by mutableStateOf, so reading it here observes navigation.
         val current = navigator.current
+
+        LaunchedEffect(current) { RouteUrl.push(current) }
+        // shortcut: a browser Back pushes the restored route onto the stack rather than unwinding
+        // it, so in-app Back then retraces the detour. Upgrade when the back stack is mirrored
+        // into history state instead of just the route.
+        LaunchedEffect(Unit) { RouteUrl.observe { navigator.navigate(it) } }
 
         val featureFlags: FeatureFlagStore = koinInject()
         LaunchedEffect(current) { featureFlags.refreshIfStale() }

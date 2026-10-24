@@ -5,8 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,19 +24,23 @@ import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
+import com.tana.spa.core.ui.SpaWindowSize
 import com.tana.spa.core.ui.components.SpaAvatar
-import com.tana.spa.core.ui.components.SpaCard
 import com.tana.spa.core.ui.components.SpaChoiceRow
 import com.tana.spa.core.ui.components.SpaDateCell
 import com.tana.spa.core.ui.components.SpaEyebrow
@@ -87,23 +91,53 @@ private const val DAYS_ON_RAIL = 14
 private const val BOOKING_HORIZON_DAYS = 60
 private const val MILLIS_PER_DAY = 86_400_000L
 private const val SLOT_COLUMNS = 3
+private const val MIN_CALENDAR_SCALE = 0.5f
+
+/** Material's own calendar width (`DatePickerModalTokens.ContainerWidth`): 7 cells of 48.dp plus 12.dp either side. */
+private val CALENDAR_WIDTH = 360.dp
 private const val NOON = 12.0
 private const val EVENING = 17.0
 
 @Composable
-internal fun ServiceList(state: BookingState, onSelect: (String) -> Unit, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier) {
-        when {
-            state.catalogLoading -> repeat(SERVICE_PLACEHOLDERS) { SpaSkeleton(SERVICE_ROW_HEIGHT) }
+internal fun ServiceList(
+    state: BookingState,
+    onSelect: (String) -> Unit,
+    onRetry: () -> Unit,
+    columns: Int = 1,
+    modifier: Modifier = Modifier,
+) {
+    when {
+        state.catalogLoading -> Column(modifier) { repeat(SERVICE_PLACEHOLDERS) { SpaSkeleton(SERVICE_ROW_HEIGHT) } }
 
-            state.catalogFailed -> MenuUnavailable(onRetry)
+        state.catalogFailed -> Column(modifier) { MenuUnavailable(onRetry) }
 
-            else -> state.services.forEachIndexed { index, service ->
-                if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                PickRow(service, service.id == state.serviceId) { onSelect(service.id) }
+        else -> Row(modifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            staggeredColumns(state.services, columns).forEach { column ->
+                Column(Modifier.weight(1f)) {
+                    column.forEachIndexed { index, service ->
+                        if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        PickRow(service, service.id == state.serviceId) { onSelect(service.id) }
+                    }
+                }
             }
         }
     }
+}
+
+/**
+ * Treatments dealt into [columns] columns, each flowing on its own. Round robin, so reading across
+ * the top of the grid still gives the first treatments in the order the spa listed them.
+ */
+internal fun <T> staggeredColumns(items: List<T>, columns: Int): List<List<T>> {
+    val count = columns.coerceAtLeast(1)
+    return List(count) { column -> items.filterIndexed { index, _ -> index % count == column } }
+}
+
+/** One column on a phone and on a tablet in portrait; the grid starts where two fit side by side. */
+internal fun catalogueColumns(size: SpaWindowSize): Int = when (size) {
+    SpaWindowSize.COMPACT, SpaWindowSize.MEDIUM -> 1
+    SpaWindowSize.EXPANDED -> 2
+    SpaWindowSize.LARGE -> 3
 }
 
 @Composable
@@ -271,21 +305,35 @@ internal fun MonthCalendar(selected: SpaDate, today: SpaDate, onSelect: (SpaDate
             ?.takeIf { it != selected }
             ?.let(onSelect)
     }
-    DatePicker(
-        state = state,
-        modifier = modifier,
-        title = null,
-        headline = null,
-        showModeToggle = false,
-        colors = DatePickerDefaults.colors(
-            containerColor = Color.Transparent,
-            selectedDayContainerColor = MaterialTheme.colorScheme.primary,
-            selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
-            todayContentColor = MaterialTheme.colorScheme.primary,
-            todayDateBorderColor = MaterialTheme.colorScheme.primary,
-        ),
-    )
+    BoxWithConstraints(modifier) {
+        val density = LocalDensity.current
+        CompositionLocalProvider(
+            LocalDensity provides Density(density.density * calendarScale(maxWidth), density.fontScale),
+        ) {
+            DatePicker(
+                state = state,
+                modifier = Modifier.fillMaxWidth(),
+                title = null,
+                headline = null,
+                showModeToggle = false,
+                colors = DatePickerDefaults.colors(
+                    containerColor = Color.Transparent,
+                    selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+                    todayContentColor = MaterialTheme.colorScheme.primary,
+                    todayDateBorderColor = MaterialTheme.colorScheme.primary,
+                ),
+            )
+        }
+    }
 }
+
+/**
+ * Material lays the calendar out as seven 48.dp cells plus its own padding and never shrinks below
+ * that, so a card narrower than [CALENDAR_WIDTH] clips the last column - Sunday. Scaling the
+ * density instead shrinks the whole grid, cells, gaps and labels together.
+ */
+internal fun calendarScale(available: Dp): Float = (available / CALENDAR_WIDTH).coerceIn(MIN_CALENDAR_SCALE, 1f)
 
 /**
  * The day's open times, grouped the way the design reads them, as the spa's diary has them: a
@@ -342,10 +390,4 @@ private fun slotGroups(slots: List<Slot>): List<Pair<String, List<Slot>>> {
         afternoon to slots.filter { it.startHour >= NOON && it.startHour < EVENING },
         evening to slots.filter { it.startHour >= EVENING },
     ).filter { it.second.isNotEmpty() }
-}
-
-/** The retry card the wide layout still shows beside the menu. */
-@Composable
-internal fun CatalogRetryCard(onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    SpaCard(modifier = modifier.fillMaxWidth(), padding = PaddingValues(16.dp)) { MenuUnavailable(onRetry) }
 }

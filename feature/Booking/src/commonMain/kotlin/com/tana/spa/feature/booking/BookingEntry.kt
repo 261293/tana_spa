@@ -11,7 +11,7 @@ import com.tana.spa.core.navigation.routeArg
 import com.tana.spa.core.navigation.withArg
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingViewModel
-import com.tana.spa.feature.booking.presentation.ui.BookingScreen
+import com.tana.spa.feature.booking.presentation.ui.BookingTreatmentScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 object BookingEntry : FeatureEntry {
@@ -25,13 +25,14 @@ object BookingEntry : FeatureEntry {
         LaunchedEffect(offeredCode) {
             offeredCode?.let { viewModel.onEvent(BookingEvent.CodeOffered(it)) }
         }
-        BookingScreen(
+        BookingTreatmentScreen(
             state = state,
             effects = viewModel.effects,
             onEvent = viewModel::onEvent,
             onOpenNotifications = { navigator.navigate(Routes.NOTIFICATIONS) },
             onOpenBookings = { navigator.navigate(Routes.MY_BOOKINGS) },
             onOpenService = { navigator.navigate(Routes.SERVICE_DETAIL.withArg(Routes.ARG_SERVICE, it)) },
+            onContinue = { navigator.navigate(Routes.BOOKING_THERAPIST) },
         )
     }
 }

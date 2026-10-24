@@ -150,6 +150,8 @@ fun Application.authModule(services: AuthServices, onAccountCreated: suspend (us
         allowMethod(HttpMethod.Post)
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
+        // The app sends the language it is drawing itself in; the catalogue answers in it.
+        allowHeader(HttpHeaders.AcceptLanguage)
         // Browser clients send these tracing headers (which forces a preflight) and read the id back.
         allowHeader(REQUEST_ID_HEADER)
         allowHeader(SESSION_ID_HEADER)
