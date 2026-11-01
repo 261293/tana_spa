@@ -99,6 +99,15 @@ light-only by decision: `docs/adr/0002-light-only-colour-scheme.md`. Full rules 
 WCAG 2.2 checks, screen templates): `core:ui` plus the `kmp-compose-multiplatform` skill's
 `references/ui-design.md`; library candidates are in its `references/libraries.md`.
 
+**Motion** is one grammar, held in `SpaMotion`/`SpaEasing`: durations from `SpaTheme.motion` and
+easing from `SpaEasing.OutExpo`/`InOut`, never a literal or Compose's default. A page section gets
+`Modifier.revealOnScroll(order)` (fade and lift, once, on reaching the viewport); a scrolling
+screen inside `AppScaffold` uses `rememberSpaScrollState()`/`rememberSpaLazyListState()`, which is
+what lifts the top app bar. Route changes are decided once in `App.kt` — fade-through between bar
+destinations (`TOP_LEVEL_ROUTES`, pinned by `RouteTransitionTest`), shared-axis X everywhere else.
+Reduced motion is handled in `AppTheme`, so anything reading `SpaTheme.motion` inherits it. Rules
+and the numbers: `docs/material-design.md`, `docs/adr/0005-motion-and-scroll-reveal.md`.
+
 ## Gotchas
 
 - Line endings are mixed and have changed between checkouts: `.env.example` is CRLF, while `CLAUDE.md`, `README.md`, `GLOSSARY.md` and `settings.gradle.kts` are LF. Measure before scripting an edit and preserve what is there: count carriage-return bytes in Python, because Git Bash grep reads the usual escape as a literal `r` and reports a meaningless number.

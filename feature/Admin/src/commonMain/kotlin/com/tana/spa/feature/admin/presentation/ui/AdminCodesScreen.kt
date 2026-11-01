@@ -48,6 +48,7 @@ import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaStatusPill
 import com.tana.spa.core.ui.components.spaCork
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.admin.presentation.AdminCodesEffect
 import com.tana.spa.feature.admin.presentation.AdminCodesEvent
 import com.tana.spa.feature.admin.presentation.AdminCodesState
@@ -142,13 +143,14 @@ fun AdminCodesScreen(
                         REDEMPTIONS_THIS_MONTH,
                         DISCOUNTED_THIS_MONTH,
                     ),
+                    modifier = Modifier.revealOnScroll(),
                 )
                 SpaPrimaryButton(
                     text = stringResource(Res.string.admin_codes_create),
                     onClick = { onEvent(AdminCodesEvent.CreateStarted) },
-                    modifier = Modifier.widthIn(max = 260.dp),
+                    modifier = Modifier.widthIn(max = 260.dp).revealOnScroll(order = 1),
                 )
-                Filters(state, onEvent)
+                Filters(state, onEvent, Modifier.revealOnScroll(order = 2))
                 if (state.shown.isEmpty()) {
                     Text(
                         text = stringResource(Res.string.admin_codes_empty),
@@ -157,10 +159,12 @@ fun AdminCodesScreen(
                         modifier = Modifier.padding(24.dp),
                     )
                 } else if (wide) {
-                    CodesTable(state, onEvent)
+                    Box(Modifier.revealOnScroll(order = 3)) { CodesTable(state, onEvent) }
                 } else {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        state.shown.forEach { code -> CodeCard(code, onEvent) }
+                        state.shown.forEachIndexed { index, code ->
+                            Box(Modifier.revealOnScroll(order = index)) { CodeCard(code, onEvent) }
+                        }
                     }
                 }
             }
@@ -173,9 +177,9 @@ fun AdminCodesScreen(
 }
 
 @Composable
-private fun Filters(state: AdminCodesState, onEvent: (AdminCodesEvent) -> Unit) {
+private fun Filters(state: AdminCodesState, onEvent: (AdminCodesEvent) -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        modifier = modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         SpaFilterChip(

@@ -27,6 +27,8 @@ import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.SpaTreatmentCard
+import com.tana.spa.core.ui.rememberSpaScrollState
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.booking.presentation.TreatmentsEffect
 import com.tana.spa.feature.booking.presentation.TreatmentsEvent
 import com.tana.spa.feature.booking.presentation.TreatmentsState
@@ -70,7 +72,7 @@ fun TreatmentsScreen(
     }
 
     SpaPage(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberSpaScrollState()),
         maxWidth = SpaPageWidth.Reading,
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
@@ -78,6 +80,7 @@ fun TreatmentsScreen(
             eyebrow = stringResource(Res.string.treatments_eyebrow),
             title = stringResource(Res.string.treatments_title),
             subtitle = stringResource(Res.string.treatments_note),
+            modifier = Modifier.revealOnScroll(),
         )
 
         SpaTextField(
@@ -85,9 +88,10 @@ fun TreatmentsScreen(
             value = state.query,
             onValueChange = { onEvent(TreatmentsEvent.QueryChanged(it)) },
             placeholder = stringResource(Res.string.treatments_search_placeholder),
+            modifier = Modifier.revealOnScroll(order = 1),
         )
 
-        CategoryRail(state.category) { onEvent(TreatmentsEvent.CategoryChosen(it)) }
+        CategoryRail(state.category, Modifier.revealOnScroll(order = 2)) { onEvent(TreatmentsEvent.CategoryChosen(it)) }
 
         when {
             state.loading && state.services.isEmpty() ->
@@ -101,9 +105,9 @@ fun TreatmentsScreen(
 }
 
 @Composable
-private fun CategoryRail(chosen: ServiceCategory?, onChoose: (ServiceCategory?) -> Unit) {
+private fun CategoryRail(chosen: ServiceCategory?, modifier: Modifier = Modifier, onChoose: (ServiceCategory?) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        modifier = modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         SpaFilterChip(
@@ -128,21 +132,23 @@ private fun Results(state: TreatmentsState, onEvent: (TreatmentsEvent) -> Unit) 
         text = stringResource(Res.string.treatments_count, shown.size),
         style = SpaTheme.textStyles.label,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.revealOnScroll(order = 3),
     )
     if (shown.isEmpty()) {
         NoMatches(cleared = { onEvent(TreatmentsEvent.FiltersCleared) }, filtered = state.filtered)
         return
     }
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        shown.forEach { service ->
-            TreatmentCard(service) { onEvent(TreatmentsEvent.TreatmentChosen(service.id)) }
+        shown.forEachIndexed { index, service ->
+            TreatmentCard(service, Modifier.revealOnScroll(order = index)) { onEvent(TreatmentsEvent.TreatmentChosen(service.id)) }
         }
     }
 }
 
 @Composable
-private fun TreatmentCard(service: Service, onOpen: () -> Unit) {
+private fun TreatmentCard(service: Service, modifier: Modifier = Modifier, onOpen: () -> Unit) {
     SpaTreatmentCard(
+        modifier = modifier,
         title = service.name,
         priceLabel = stringResource(Res.string.booking_price, service.priceUsd),
         detail = stringResource(Res.string.service_minutes, service.minutes),

@@ -46,6 +46,8 @@ import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.spaFelt
+import com.tana.spa.core.ui.rememberSpaScrollState
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.settings.presentation.NotificationPref
 import com.tana.spa.feature.settings.presentation.SettingsEffect
 import com.tana.spa.feature.settings.presentation.SettingsEvent
@@ -92,20 +94,21 @@ fun SettingsScreen(state: SettingsState, effects: Flow<SettingsEffect>, onEvent:
     }
 
     SpaPage(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberSpaScrollState()),
         maxWidth = SpaPageWidth.Reading,
     ) {
         SpaScreenHeader(
             eyebrow = stringResource(Res.string.settings_eyebrow),
             title = stringResource(Res.string.settings_title),
             accent = stringResource(Res.string.settings_title_accent),
+            modifier = Modifier.revealOnScroll(),
         )
 
-        Group(stringResource(Res.string.settings_group_account)) {
+        Group(stringResource(Res.string.settings_group_account), Modifier.revealOnScroll(order = 1)) {
             if (state.editing) ProfileEditor(state, onEvent) else ProfileRow(state, onEvent)
         }
 
-        Group(stringResource(Res.string.settings_group_booking)) {
+        Group(stringResource(Res.string.settings_group_booking), Modifier.revealOnScroll(order = 2)) {
             ToggleRow(
                 label = stringResource(Res.string.settings_confirmations),
                 help = stringResource(Res.string.settings_confirmations_help),
@@ -126,7 +129,7 @@ fun SettingsScreen(state: SettingsState, effects: Flow<SettingsEffect>, onEvent:
             )
         }
 
-        Group(stringResource(Res.string.settings_group_promotions)) {
+        Group(stringResource(Res.string.settings_group_promotions), Modifier.revealOnScroll(order = 3)) {
             ToggleRow(
                 label = stringResource(Res.string.settings_offers),
                 help = stringResource(Res.string.settings_offers_help),
@@ -135,7 +138,7 @@ fun SettingsScreen(state: SettingsState, effects: Flow<SettingsEffect>, onEvent:
             )
         }
 
-        Group(stringResource(Res.string.settings_group_payment)) {
+        Group(stringResource(Res.string.settings_group_payment), Modifier.revealOnScroll(order = 4)) {
             PaymentRow()
             LanguageRow(state.language) { onEvent(SettingsEvent.LanguageChanged(it)) }
         }
@@ -144,13 +147,14 @@ fun SettingsScreen(state: SettingsState, effects: Flow<SettingsEffect>, onEvent:
             text = stringResource(Res.string.settings_sign_out),
             onClick = { onEvent(SettingsEvent.SignOut) },
             contentColor = MaterialTheme.colorScheme.error,
+            modifier = Modifier.revealOnScroll(order = 5),
         )
     }
 }
 
 @Composable
-private fun Group(title: String, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+private fun Group(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SpaGroupLabel(title, Modifier.padding(start = 4.dp))
         // 2dp gaps rather than dividers: this palette separates rows by tone, not by lines.
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) { content() }

@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaSectionTitle
 import com.tana.spa.core.ui.components.SpaSkeleton
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.feed.presentation.manipulator.SectionState
 import com.tana.spa.feature.feed.resources.Res
 import com.tana.spa.feature.feed.resources.home_load_failed
@@ -31,11 +32,12 @@ internal fun <T> HomeSection(
     state: SectionState<T>,
     onRetry: () -> Unit,
     placeholderHeight: Dp,
+    order: Int = 0,
     content: @Composable (List<T>) -> Unit,
 ) {
     if (state.isEmptyReady()) return
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.revealOnScroll(order = order), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (title != null) {
             SpaSectionTitle(text = title, modifier = Modifier.padding(horizontal = ScreenPadding))
         }

@@ -42,6 +42,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
+import com.tana.spa.core.ui.SpaRevealFrom
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaCard
 import com.tana.spa.core.ui.components.SpaIcon
@@ -56,6 +57,7 @@ import com.tana.spa.core.ui.components.spaPocket
 import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.core.ui.formatFull
 import com.tana.spa.core.ui.formatHour
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
 import com.tana.spa.feature.admin.presentation.AdminRequestsEffect
@@ -174,12 +176,19 @@ fun AdminRequestsScreen(
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                         Column(Modifier.width(QUEUE_WIDTH), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Header(state)
-                            Queue(state, onEvent)
+                            Header(state, Modifier.revealOnScroll())
+                            Queue(state, onEvent, Modifier.revealOnScroll(order = 1))
                         }
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                            state.selected?.let { DecisionPanel(it, state.nowEpochMillis, onEvent) }
-                            ScheduleSection(state)
+                            state.selected?.let {
+                                DecisionPanel(
+                                    it,
+                                    state.nowEpochMillis,
+                                    onEvent,
+                                    Modifier.revealOnScroll(order = 1, from = SpaRevealFrom.End),
+                                )
+                            }
+                            ScheduleSection(state, Modifier.revealOnScroll(order = 2, from = SpaRevealFrom.End))
                         }
                     }
                 }
@@ -189,10 +198,10 @@ fun AdminRequestsScreen(
                     maxWidth = SpaPageWidth.Full,
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
-                    Header(state)
-                    Queue(state, onEvent)
-                    state.selected?.let { DecisionPanel(it, state.nowEpochMillis, onEvent) }
-                    ScheduleSection(state)
+                    Header(state, Modifier.revealOnScroll())
+                    Queue(state, onEvent, Modifier.revealOnScroll(order = 1))
+                    state.selected?.let { DecisionPanel(it, state.nowEpochMillis, onEvent, Modifier.revealOnScroll(order = 2)) }
+                    ScheduleSection(state, Modifier.revealOnScroll(order = 3))
                 }
             }
             SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
@@ -203,7 +212,7 @@ fun AdminRequestsScreen(
 }
 
 @Composable
-private fun Header(state: AdminRequestsState) {
+private fun Header(state: AdminRequestsState, modifier: Modifier = Modifier) {
     SpaScreenHeader(
         eyebrow = stringResource(Res.string.admin_requests_eyebrow),
         title = stringResource(Res.string.admin_requests_title),
@@ -213,12 +222,13 @@ private fun Header(state: AdminRequestsState) {
             SpaDate.fromEpochDay(state.dayEpochDay).formatFull(),
             state.pending.size,
         ),
+        modifier = modifier,
     )
 }
 
 @Composable
-private fun Queue(state: AdminRequestsState, onEvent: (AdminRequestsEvent) -> Unit) {
-    SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(6.dp)) {
+private fun Queue(state: AdminRequestsState, onEvent: (AdminRequestsEvent) -> Unit, modifier: Modifier = Modifier) {
+    SpaCard(modifier.fillMaxWidth(), padding = PaddingValues(6.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             when {
                 state.failed -> QueueMessage(
@@ -349,8 +359,13 @@ private fun StatusPill(status: DeskStatus) {
 }
 
 @Composable
-private fun DecisionPanel(request: DeskRequest, nowEpochMillis: Long, onEvent: (AdminRequestsEvent) -> Unit) {
-    SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(20.dp)) {
+private fun DecisionPanel(
+    request: DeskRequest,
+    nowEpochMillis: Long,
+    onEvent: (AdminRequestsEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SpaCard(modifier.fillMaxWidth(), padding = PaddingValues(20.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -487,8 +502,8 @@ private fun NoteBox(icon: SpaIcon, text: String, container: Color, content: Colo
 }
 
 @Composable
-private fun ScheduleSection(state: AdminRequestsState) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+private fun ScheduleSection(state: AdminRequestsState, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = stringResource(Res.string.admin_schedule_title),
             style = SpaTheme.textStyles.cardTitle,
