@@ -93,7 +93,7 @@ erDiagram
 
 ## Decisions worth knowing
 
-**Auth.** `password_hash` is nullable (Google-only accounts). `refresh_tokens` stores only a SHA-256 hash and a `family_id`, enabling rotation with theft detection (a reused, already-revoked token revokes the whole family). The current server issues 1-hour access JWTs and no refresh token yet — this table is the plan for that.
+**Auth.** `password_hash` is nullable (Google-only accounts). `refresh_tokens` stores only a SHA-256 hash and a `family_id`, enabling rotation with theft detection (a reused, already-spent token revokes the whole family). The server issues a 1-hour access JWT alongside a 30-day rotating refresh token and spends the latter at `POST /api/v1/auth/refresh`; a daily sweep drops rows past their expiry. See `docs/adr/0006-refresh-tokens.md`.
 
 **Email/phone uniqueness.** Emails are stored lowercase (`CHECK email = lower(email)`, matching `AuthValidation.normalizeEmail`) and unique among *non-deleted* users only. Phone is stored as E.164 and is unique only among *verified* users (see V5 below): an unverified claim must not lock the real owner out.
 

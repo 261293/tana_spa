@@ -8,9 +8,13 @@ import com.tana.spa.appupdate.PostgresAppUpdateRepository
 import com.tana.spa.appupdate.appUpdateModule
 import com.tana.spa.auth.AuthConfig
 import com.tana.spa.auth.AuthServices
+import com.tana.spa.auth.InMemoryRefreshTokenRepository
 import com.tana.spa.auth.InMemoryUserRepository
 import com.tana.spa.auth.Pbkdf2PasswordHasher
+import com.tana.spa.auth.PostgresRefreshTokenRepository
 import com.tana.spa.auth.PostgresUserRepository
+import com.tana.spa.auth.RefreshTokenRepository
+import com.tana.spa.auth.RefreshTokenService
 import com.tana.spa.auth.SeedAccounts
 import com.tana.spa.auth.UserRepository
 import com.tana.spa.auth.authModule
@@ -67,6 +71,8 @@ fun main() {
         log.warn("DATABASE_URL is not set: using the in-memory user store. Accounts are lost on restart.")
         InMemoryUserRepository()
     }
+    val refreshTokens: RefreshTokenRepository =
+        dataSource?.let { PostgresRefreshTokenRepository(it) } ?: InMemoryRefreshTokenRepository()
     val verifications: PhoneVerificationRepository =
         dataSource?.let { PostgresPhoneVerificationRepository(it) } ?: InMemoryPhoneVerificationRepository()
     val otpConfig = OtpConfig.fromEnvironment()
@@ -82,6 +88,7 @@ fun main() {
     val auth = AuthServices.create(
         config = AuthConfig.fromEnvironment(),
         users = users,
+        refreshTokenRepository = refreshTokens,
         hasher = hasher,
         verifications = verifications,
         otpProvider = PhoneVerificationProvider.fromEnvironment(),
@@ -116,6 +123,7 @@ fun main() {
         closeOnStop(dataSource)
         module(auth, spa)
         spa?.let { remindAhead(it.booking) }
+        sweepSpentTokens(auth.refreshTokens)
     }.start(wait = true)
 }
 
@@ -136,6 +144,25 @@ private fun Application.remindAhead(booking: BookingService) {
 }
 
 private val REMINDER_SWEEP = 1.hours
+
+/**
+ * Refresh tokens are kept until they expire so a replay can still be recognised, which means the
+ * table only ever grows without this. A row past its expiry can no longer authorise or incriminate
+ * anything, so dropping it loses nothing.
+ */
+private fun Application.sweepSpentTokens(refreshTokens: RefreshTokenService) {
+    val sweeps = launch {
+        while (isActive) {
+            delay(TOKEN_SWEEP)
+            runCatching { refreshTokens.deleteExpired() }
+                .onSuccess { if (it > 0) log.info("removed {} expired refresh tokens", it) }
+                .onFailure { if (it is CancellationException) throw it else log.warn("refresh token sweep failed", it) }
+        }
+    }
+    monitor.subscribe(ApplicationStopped) { sweeps.cancel() }
+}
+
+private val TOKEN_SWEEP = 24.hours
 
 private fun Application.closeOnStop(dataSource: DataSource?) {
     val pool = dataSource as? AutoCloseable ?: return

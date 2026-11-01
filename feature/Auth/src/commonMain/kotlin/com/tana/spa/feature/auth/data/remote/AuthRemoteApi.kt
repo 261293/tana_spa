@@ -10,6 +10,12 @@ interface AuthRemoteApi {
 
     suspend fun register(displayName: String, email: String, phone: String, password: String): AuthResponse
 
+    /** Spends [refreshToken]; the answer carries its replacement. */
+    suspend fun refresh(refreshToken: String): AuthResponse
+
+    /** Revokes [refreshToken] and every token descended from the same sign-in. */
+    suspend fun logout(refreshToken: String)
+
     /** Asks the server to text a code to the phone number already on the account. */
     suspend fun sendPhoneOtp(accessToken: String): PhoneOtpSendResponse
 

@@ -15,11 +15,12 @@ expect fun platformHttpClient(): HttpClient
  * Behaviour every engine gets: JSON bodies and a request timeout.
  * Only the request timeout is set because the browser (JS) engine supports no other kind.
  */
-fun HttpClient.withDefaults(): HttpClient = config {
+fun HttpClient.withDefaults(refresher: () -> SessionRefresher = { SessionRefresher.none }): HttpClient = config {
     install(ContentNegotiation) {
         json(Json { ignoreUnknownKeys = true })
     }
     install(RequestTracing)
+    install(TokenRefresh) { this.refresher = refresher }
     // Read per request, not once at install: the guest can change language without restarting.
     install(DefaultRequest) {
         headers[HttpHeaders.AcceptLanguage] = RequestLanguage.tag

@@ -56,6 +56,8 @@ class SessionStoreImpl(private val cache: KeyValueCache) : SessionStore {
 private data class StoredSession(
     val accessToken: String,
     val expiresAtMillis: Long,
+    val refreshToken: String = "",
+    val refreshExpiresAtMillis: Long = 0,
     val userId: String,
     val email: String,
     val displayName: String,
@@ -67,6 +69,8 @@ private data class StoredSession(
 private fun Session.toStored() = StoredSession(
     accessToken = accessToken,
     expiresAtMillis = expiresAtMillis,
+    refreshToken = refreshToken,
+    refreshExpiresAtMillis = refreshExpiresAtMillis,
     userId = user.id,
     email = user.email,
     displayName = user.displayName,
@@ -79,4 +83,6 @@ private fun StoredSession.toDomain() = Session(
     accessToken = accessToken,
     expiresAtMillis = expiresAtMillis,
     user = AuthUser(userId, email, displayName, phone, phoneVerified, UserRoleName.fromWire(role)),
+    refreshToken = refreshToken,
+    refreshExpiresAtMillis = refreshExpiresAtMillis,
 )

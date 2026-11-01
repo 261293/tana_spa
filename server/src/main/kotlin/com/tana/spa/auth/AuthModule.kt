@@ -24,8 +24,10 @@ import com.tana.spa.shared.auth.AuthErrorCodes
 import com.tana.spa.shared.auth.AuthResponse
 import com.tana.spa.shared.auth.ErrorResponse
 import com.tana.spa.shared.auth.LoginRequest
+import com.tana.spa.shared.auth.LogoutRequest
 import com.tana.spa.shared.auth.PhoneOtpSendResponse
 import com.tana.spa.shared.auth.PhoneOtpVerifyRequest
+import com.tana.spa.shared.auth.RefreshRequest
 import com.tana.spa.shared.auth.RegisterRequest
 import com.tana.spa.shared.auth.UserDto
 import com.tana.spa.shared.featureflags.FeatureFlag
@@ -75,6 +77,7 @@ class AuthServices(
     val config: AuthConfig,
     val authService: AuthService,
     val tokens: TokenService,
+    val refreshTokens: RefreshTokenService,
     val phoneVerification: PhoneVerificationService,
     val featureFlags: FeatureFlagService,
     val appUpdate: AppUpdateService,
@@ -84,6 +87,7 @@ class AuthServices(
         fun create(
             config: AuthConfig,
             users: UserRepository = InMemoryUserRepository(),
+            refreshTokenRepository: RefreshTokenRepository = InMemoryRefreshTokenRepository(),
             hasher: PasswordHasher = Pbkdf2PasswordHasher(),
             verifications: PhoneVerificationRepository = InMemoryPhoneVerificationRepository(),
             otpProvider: PhoneVerificationProvider = DevPhoneVerificationProvider(),
@@ -100,6 +104,11 @@ class AuthServices(
                 config = config,
                 authService = AuthService(users, hasher, defaultPhoneRegion = otpConfig.defaultPhoneRegion),
                 tokens = TokenService(config),
+                refreshTokens = RefreshTokenService(
+                    tokens = refreshTokenRepository,
+                    users = users,
+                    ttlMillis = config.refreshTtlDays * MILLIS_PER_DAY,
+                ),
                 phoneVerification = PhoneVerificationService(users, verifications, otpProvider, otpConfig),
                 featureFlags = featureFlags,
                 appUpdate = AppUpdateService(appUpdateRepository),
@@ -112,7 +121,10 @@ class AuthServices(
 internal const val JWT_AUTH = "auth-jwt"
 private val LOGIN_LIMIT = RateLimitName("login")
 private val OTP_LIMIT = RateLimitName("otp")
+private val REFRESH_LIMIT = RateLimitName("refresh")
 private const val OTP_REQUESTS_PER_MINUTE = 10
+private const val REFRESH_REQUESTS_PER_MINUTE = 30
+private const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
 private val log = LoggerFactory.getLogger("com.tana.spa.auth")
 
 /** Sent by the apps on every request (core:network `RequestTracing`); echoed back and put in every log line. */
@@ -171,6 +183,12 @@ fun Application.authModule(services: AuthServices, onAccountCreated: suspend (us
         // Cheap first line of defence in front of the database-backed OTP limits.
         register(OTP_LIMIT) {
             rateLimiter(limit = OTP_REQUESTS_PER_MINUTE, refillPeriod = 1.minutes)
+            requestKey { call -> call.request.origin.remoteHost }
+        }
+        // Higher than login: a device legitimately refreshes whenever its hour is up, and several
+        // tabs of the web app share one address.
+        register(REFRESH_LIMIT) {
+            rateLimiter(limit = REFRESH_REQUESTS_PER_MINUTE, refillPeriod = 1.minutes)
             requestKey { call -> call.request.origin.remoteHost }
         }
     }
@@ -238,7 +256,7 @@ fun Application.authModule(services: AuthServices, onAccountCreated: suspend (us
                         } catch (e: Exception) {
                             log.warn("welcome code for user {} failed: {}", result.user.id, e.message)
                         }
-                        call.respond(HttpStatusCode.Created, services.authResponse(result.user))
+                        call.respond(HttpStatusCode.Created, services.signedIn(result.user))
                     }
 
                     AuthResult.EmailTaken -> call.respondError(
@@ -273,7 +291,7 @@ fun Application.authModule(services: AuthServices, onAccountCreated: suspend (us
                         } ?: "",
                     )
                     when (result) {
-                        is AuthResult.Success -> call.respond(services.authResponse(result.user))
+                        is AuthResult.Success -> call.respond(services.signedIn(result.user))
 
                         // One generic answer for unknown email and wrong password alike.
                         else -> call.respondError(
@@ -283,6 +301,38 @@ fun Application.authModule(services: AuthServices, onAccountCreated: suspend (us
                         )
                     }
                 }
+            }
+
+            rateLimit(REFRESH_LIMIT) {
+                post("/refresh") {
+                    val body = call.receive<RefreshRequest>()
+                    when (val outcome = services.refreshTokens.rotate(body.refreshToken)) {
+                        is RotateOutcome.Rotated -> {
+                            log.info("refresh -> Rotated user={}", outcome.user.id)
+                            call.respond(services.authResponse(outcome.user, outcome.refresh))
+                        }
+
+                        // A replayed token and an unknown one get the same answer: which it was is
+                        // the server's business, and the client's move is the same either way.
+                        RotateOutcome.Reused, RotateOutcome.Rejected -> {
+                            log.info("refresh -> {}", outcome::class.simpleName)
+                            call.respondError(
+                                HttpStatusCode.Unauthorized,
+                                AuthErrorCodes.INVALID_REFRESH_TOKEN,
+                                "Please sign in again",
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Unauthenticated on purpose: the access token may already have expired, and the
+            // refresh token being presented is itself the proof. An unknown token answers the
+            // same way, so this cannot be used to probe which tokens exist.
+            post("/logout") {
+                val body = call.receive<LogoutRequest>()
+                services.refreshTokens.revoke(body.refreshToken)
+                call.respond(HttpStatusCode.NoContent)
             }
 
             authenticate(JWT_AUTH) {
@@ -436,11 +486,17 @@ private fun User.toDto() = UserDto(
     role = role.sql,
 )
 
-private fun AuthServices.authResponse(user: User) = AuthResponse(
+private fun AuthServices.signedIn(user: User) = authResponse(user, refreshTokens.issue(user.id))
+
+private fun AuthServices.authResponse(user: User, refresh: IssuedRefreshToken) = AuthResponse(
     accessToken = tokens.issue(user),
     expiresInSeconds = config.tokenTtlSeconds,
     user = user.toDto(),
+    refreshToken = refresh.token,
+    refreshExpiresInSeconds = (refresh.expiresAtMillis - System.currentTimeMillis()) / MILLIS_PER_SECOND,
 )
+
+private const val MILLIS_PER_SECOND = 1000
 
 /**
  * @return true when the handler must stop. Inside the route rather than around it, so the path

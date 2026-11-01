@@ -7,8 +7,10 @@ import com.tana.spa.shared.auth.AuthApi
 import com.tana.spa.shared.auth.AuthResponse
 import com.tana.spa.shared.auth.ErrorResponse
 import com.tana.spa.shared.auth.LoginRequest
+import com.tana.spa.shared.auth.LogoutRequest
 import com.tana.spa.shared.auth.PhoneOtpSendResponse
 import com.tana.spa.shared.auth.PhoneOtpVerifyRequest
+import com.tana.spa.shared.auth.RefreshRequest
 import com.tana.spa.shared.auth.RegisterRequest
 import com.tana.spa.shared.auth.UserDto
 import io.ktor.client.call.body
@@ -28,6 +30,12 @@ class AuthRemoteApiImpl(private val networkClient: NetworkClient, private val ba
 
     override suspend fun register(displayName: String, email: String, phone: String, password: String): AuthResponse =
         call(AuthApi.REGISTER) { json(RegisterRequest(displayName, email, phone, password)) }.body()
+
+    override suspend fun refresh(refreshToken: String): AuthResponse = call(AuthApi.REFRESH) { json(RefreshRequest(refreshToken)) }.body()
+
+    override suspend fun logout(refreshToken: String) {
+        call(AuthApi.LOGOUT) { json(LogoutRequest(refreshToken)) }
+    }
 
     override suspend fun sendPhoneOtp(accessToken: String): PhoneOtpSendResponse =
         call(AuthApi.PHONE_OTP_SEND) { bearerAuth(accessToken) }.body()

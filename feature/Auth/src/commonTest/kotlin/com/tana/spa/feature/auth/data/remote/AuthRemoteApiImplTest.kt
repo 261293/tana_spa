@@ -41,7 +41,9 @@ class AuthRemoteApiImplTest {
             method = request.method
             url = request.url.toString()
             body = request.body.toByteArray().decodeToString()
-            val payload = """{"accessToken":"t","expiresInSeconds":60,"user":{"id":"1","email":"a@b.co","displayName":"A"},"extra":1}"""
+            val account = """{"id":"1","email":"a@b.co","displayName":"A"}"""
+            val payload =
+                """{"accessToken":"t","expiresInSeconds":60,"user":$account,"refreshToken":"r","refreshExpiresInSeconds":60,"extra":1}"""
             return@api { respond(payload, HttpStatusCode.OK, json) }
         }
 
@@ -81,7 +83,7 @@ class AuthRemoteApiImplTest {
             url = request.url.toString()
             body = request.body.toByteArray().decodeToString()
             val user = """{"id":"1","email":"a@b.co","displayName":"Phương Anh","phone":"+84333433969","phoneVerified":false}"""
-            val payload = """{"accessToken":"t","expiresInSeconds":60,"user":$user}"""
+            val payload = """{"accessToken":"t","expiresInSeconds":60,"user":$user,"refreshToken":"r","refreshExpiresInSeconds":60}"""
             return@api { respond(payload, HttpStatusCode.Created, json) }
         }
 
