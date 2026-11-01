@@ -36,6 +36,7 @@ import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaStepTrail
 import com.tana.spa.core.ui.components.spaPocket
 import com.tana.spa.core.ui.formatHour
+import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.formatRelative
 import com.tana.spa.feature.booking.presentation.BookingEffect
 import com.tana.spa.feature.booking.presentation.BookingEvent
@@ -45,7 +46,6 @@ import com.tana.spa.feature.booking.resources.booking_back
 import com.tana.spa.feature.booking.resources.booking_continue
 import com.tana.spa.feature.booking.resources.booking_eyebrow
 import com.tana.spa.feature.booking.resources.booking_open_times
-import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.booking_service_details
 import com.tana.spa.feature.booking.resources.booking_step_review
 import com.tana.spa.feature.booking.resources.booking_step_therapist
@@ -245,6 +245,15 @@ private fun BookingHeader(modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun stripSummary(state: BookingState): String {
+    val day = state.day.formatRelative(state.today)
+    val time = state.slot?.let { formatHour(it.startHour) } ?: stringResource(Res.string.booking_strip_pick_time)
+    return listOf(day, time, formatPrice(state.totalUsd)).joinToString(STRIP_SEPARATOR)
+}
+
+private const val STRIP_SEPARATOR = " · "
+
+@Composable
 private fun stepLabels(): List<String> = listOf(
     stringResource(Res.string.booking_step_treatment),
     stringResource(Res.string.booking_step_therapist),
@@ -276,11 +285,7 @@ private fun StepFooter(state: BookingState, canContinue: Boolean, onBack: (() ->
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text =
-                "${state.day.formatRelative(state.today)} · ${state.slot?.let {
-                    formatHour(it.startHour)
-                } ?: stringResource(Res.string.booking_strip_pick_time)} · " +
-                    stringResource(Res.string.booking_price, state.totalUsd),
+                text = stripSummary(state),
                 style = SpaTheme.textStyles.caption,
                 color = SpaTheme.extraColors.onPocketMuted,
                 maxLines = 1,

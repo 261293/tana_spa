@@ -13,7 +13,6 @@
     <string name="booking_service_details">Xem chi tiết</string>
 
     <string name="booking_service_meta">%1$d phút · %2$s</string>
-    <string name="booking_price">%1$d$</string>
     <string name="booking_therapist_next">Trống: %1$s</string>
 
     <string name="booking_open_times">Giờ trống ngày %1$s</string>

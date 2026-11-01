@@ -28,11 +28,11 @@ import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.SpaIncludeRow
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.feature.booking.presentation.ServiceDetailEffect
 import com.tana.spa.feature.booking.presentation.ServiceDetailEvent
 import com.tana.spa.feature.booking.presentation.ServiceDetailState
 import com.tana.spa.feature.booking.resources.Res
-import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.service_back
 import com.tana.spa.feature.booking.resources.service_book
 import com.tana.spa.feature.booking.resources.service_eyebrow
@@ -103,7 +103,7 @@ private fun Treatment(service: Service, onBook: () -> Unit) {
             modifier = Modifier.semantics { heading() },
         )
         Text(
-            text = stringResource(Res.string.booking_price, service.priceUsd),
+            text = formatPrice(service.priceUsd),
             style = SpaTheme.textStyles.screenTitle,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -121,7 +121,7 @@ private fun Treatment(service: Service, onBook: () -> Unit) {
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SpaPrimaryButton(
-            text = stringResource(Res.string.service_book, stringResource(Res.string.booking_price, service.priceUsd)),
+            text = stringResource(Res.string.service_book, formatPrice(service.priceUsd)),
             onClick = onBook,
         )
         Text(

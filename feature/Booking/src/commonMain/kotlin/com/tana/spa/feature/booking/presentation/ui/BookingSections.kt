@@ -51,6 +51,7 @@ import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
 import com.tana.spa.core.ui.components.SpaSlotButton
 import com.tana.spa.core.ui.formatHour
+import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.formatRelativeDayAndTime
 import com.tana.spa.core.ui.monthShort
 import com.tana.spa.core.ui.weekdayShort
@@ -64,7 +65,6 @@ import com.tana.spa.feature.booking.resources.booking_day_full
 import com.tana.spa.feature.booking.resources.booking_menu_failed
 import com.tana.spa.feature.booking.resources.booking_menu_retry
 import com.tana.spa.feature.booking.resources.booking_no_times
-import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.booking_service_meta
 import com.tana.spa.feature.booking.resources.booking_slot_taken
 import com.tana.spa.feature.booking.resources.booking_slots_afternoon
@@ -182,7 +182,7 @@ private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
             )
         }
         Text(
-            text = stringResource(Res.string.booking_price, service.priceUsd),
+            text = formatPrice(service.priceUsd),
             style = SpaTheme.textStyles.cardTitle,
             color = MaterialTheme.colorScheme.onSurface,
         )

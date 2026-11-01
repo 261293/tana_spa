@@ -29,6 +29,7 @@ import com.tana.spa.core.ui.components.SpaSummaryRow
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.core.ui.formatHour
+import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.formatRelative
 import com.tana.spa.feature.booking.domain.GuestBooking
 import com.tana.spa.feature.booking.presentation.BookingEvent
@@ -45,7 +46,6 @@ import com.tana.spa.feature.booking.resources.booking_code_placeholder
 import com.tana.spa.feature.booking.resources.booking_code_unknown
 import com.tana.spa.feature.booking.resources.booking_code_wrong_category
 import com.tana.spa.feature.booking.resources.booking_disclaimer
-import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.booking_request
 import com.tana.spa.feature.booking.resources.booking_review_any_therapist
 import com.tana.spa.feature.booking.resources.booking_review_not_chosen
@@ -109,17 +109,17 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
         Column(Modifier.padding(top = 20.dp)) {
             SpaSummaryRow(
                 label = stringResource(Res.string.booking_subtotal),
-                value = service?.let { stringResource(Res.string.booking_price, it.priceUsd) } ?: "—",
+                value = service?.let { formatPrice(it.priceUsd) } ?: "—",
             )
             applied?.let {
                 SpaSummaryRow(
                     label = it.promo.code,
-                    value = "−${stringResource(Res.string.booking_price, it.discountUsd)}",
+                    value = "−${formatPrice(it.discountUsd)}",
                 )
             }
             SpaSummaryRow(
                 label = stringResource(Res.string.booking_total_label),
-                value = service?.let { stringResource(Res.string.booking_price, state.totalUsd) } ?: "—",
+                value = service?.let { formatPrice(state.totalUsd) } ?: "—",
                 total = true,
             )
         }
