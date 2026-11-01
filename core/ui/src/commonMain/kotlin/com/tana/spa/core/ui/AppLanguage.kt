@@ -27,3 +27,5 @@ enum class AppLanguage(val tag: String, val label: String) {
 object SelectedLanguage {
     var value: AppLanguage by mutableStateOf(AppLanguage.VIETNAMESE)
 }
+
+internal val vietnamese: Boolean get() = SelectedLanguage.value == AppLanguage.VIETNAMESE

@@ -19,8 +19,6 @@ private val monthsEn = listOf(
     "July", "August", "September", "October", "November", "December",
 )
 
-private val vietnamese: Boolean get() = SelectedLanguage.value == AppLanguage.VIETNAMESE
-
 fun SpaDate.weekdayShort(): String = (if (vietnamese) weekdayShortVi else weekdayShortEn)[weekdayIndex]
 
 fun SpaDate.weekdayLong(): String = (if (vietnamese) weekdayLongVi else weekdayLongEn)[weekdayIndex]

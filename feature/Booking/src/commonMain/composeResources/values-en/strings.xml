@@ -13,7 +13,6 @@
     <string name="booking_service_details">View details</string>
 
     <string name="booking_service_meta">%1$d min · %2$s</string>
-    <string name="booking_price">$%1$d</string>
     <string name="booking_therapist_next">Next: %1$s</string>
 
     <string name="booking_open_times">Open times on %1$s</string>

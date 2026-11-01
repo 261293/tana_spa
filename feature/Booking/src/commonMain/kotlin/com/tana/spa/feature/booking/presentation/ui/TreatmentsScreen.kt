@@ -27,6 +27,7 @@ import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.SpaTreatmentCard
+import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.rememberSpaScrollState
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.booking.presentation.TreatmentsEffect
@@ -35,7 +36,6 @@ import com.tana.spa.feature.booking.presentation.TreatmentsState
 import com.tana.spa.feature.booking.resources.Res
 import com.tana.spa.feature.booking.resources.booking_menu_failed
 import com.tana.spa.feature.booking.resources.booking_menu_retry
-import com.tana.spa.feature.booking.resources.booking_price
 import com.tana.spa.feature.booking.resources.service_minutes
 import com.tana.spa.feature.booking.resources.treatments_count
 import com.tana.spa.feature.booking.resources.treatments_empty_action
@@ -150,7 +150,7 @@ private fun TreatmentCard(service: Service, modifier: Modifier = Modifier, onOpe
     SpaTreatmentCard(
         modifier = modifier,
         title = service.name,
-        priceLabel = stringResource(Res.string.booking_price, service.priceUsd),
+        priceLabel = formatPrice(service.priceUsd),
         detail = stringResource(Res.string.service_minutes, service.minutes),
         onClick = onOpen,
         category = service.category.label,
