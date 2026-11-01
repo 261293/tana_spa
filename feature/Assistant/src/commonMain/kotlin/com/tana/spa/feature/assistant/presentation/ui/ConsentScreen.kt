@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.assistant.resources.Res
 import com.tana.spa.feature.assistant.resources.back
 import com.tana.spa.feature.assistant.resources.consent_agree
@@ -55,13 +56,13 @@ fun ConsentScreen(agreed: Boolean, onAgreedChange: (Boolean) -> Unit, onBack: ()
                     text = stringResource(Res.string.consent_title),
                     style = SpaTheme.textStyles.screenTitle,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.semantics { heading() },
+                    modifier = Modifier.revealOnScroll().semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.consent_body),
                     style = SpaTheme.textStyles.bodyLoose,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.revealOnScroll(order = 1).padding(top = 16.dp),
                 )
             }
 

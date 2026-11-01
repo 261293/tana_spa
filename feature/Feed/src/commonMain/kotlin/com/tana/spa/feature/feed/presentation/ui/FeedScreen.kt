@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -38,6 +37,8 @@ import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSectionHead
+import com.tana.spa.core.ui.rememberSpaLazyListState
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.feed.presentation.manipulator.FeedEffect
 import com.tana.spa.feature.feed.presentation.manipulator.FeedEvent
 import com.tana.spa.feature.feed.presentation.manipulator.FeedState
@@ -111,7 +112,7 @@ fun FeedScreen(
 private fun HomeBody(state: FeedState, onEvent: (FeedEvent) -> Unit, onBook: () -> Unit, onExplore: () -> Unit) {
     val onRetry = { onEvent(FeedEvent.Refresh) }
     val onItem = { onEvent(FeedEvent.ItemClicked) }
-    val listState = rememberLazyListState()
+    val listState = rememberSpaLazyListState()
     val scope = rememberCoroutineScope()
     val rowPadding = PaddingValues(horizontal = ScreenPadding)
     val sidePadding = Modifier.padding(horizontal = ScreenPadding)
@@ -128,13 +129,13 @@ private fun HomeBody(state: FeedState, onEvent: (FeedEvent) -> Unit, onBook: () 
                 facts = state.facts(),
                 onBook = onBook,
                 onExplore = onExplore,
-                modifier = sidePadding,
+                modifier = sidePadding.revealOnScroll(),
             )
         }
 
         if (!state.appointments.isEmptyReady()) {
             item {
-                HomeSection(null, state.appointments, onRetry, 96.dp) { appointments ->
+                HomeSection(null, state.appointments, onRetry, 96.dp, order = 1) { appointments ->
                     appointments.firstOrNull()?.let { NextVisitCard(it, onClick = onItem, modifier = sidePadding) }
                 }
             }
@@ -145,7 +146,7 @@ private fun HomeBody(state: FeedState, onEvent: (FeedEvent) -> Unit, onBook: () 
                 eyebrow = stringResource(Res.string.home_treatments_eyebrow),
                 title = stringResource(Res.string.home_section_services),
                 note = stringResource(Res.string.home_treatments_note),
-                modifier = sidePadding,
+                modifier = sidePadding.revealOnScroll(order = 2),
                 action = {
                     TextButton(onClick = onExplore) {
                         Text(stringResource(Res.string.home_see_all), style = SpaTheme.textStyles.caption)
@@ -156,7 +157,7 @@ private fun HomeBody(state: FeedState, onEvent: (FeedEvent) -> Unit, onBook: () 
 
         if (!state.categories.isEmptyReady()) {
             item {
-                HomeSection(null, state.categories, onRetry, 48.dp) { categories ->
+                HomeSection(null, state.categories, onRetry, 48.dp, order = 3) { categories ->
                     LazyRow(contentPadding = rowPadding, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(categories, key = { it.id }) { category ->
                             SpaFilterChip(label = category.name, selected = false, onClick = onItem)
@@ -199,7 +200,7 @@ private fun HomeBody(state: FeedState, onEvent: (FeedEvent) -> Unit, onBook: () 
                 title = state.bannerTitle() ?: stringResource(Res.string.home_cta_title),
                 actionLabel = stringResource(Res.string.home_cta_action),
                 onAction = onBook,
-                modifier = sidePadding,
+                modifier = sidePadding.revealOnScroll(),
             )
         }
     }

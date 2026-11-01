@@ -30,6 +30,7 @@ import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaTextField
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.admin.presentation.AdminMenuEffect
 import com.tana.spa.feature.admin.presentation.AdminMenuEvent
 import com.tana.spa.feature.admin.presentation.AdminMenuState
@@ -139,19 +140,22 @@ fun AdminMenuScreen(
                     title = stringResource(Res.string.admin_menu_title),
                     accent = stringResource(Res.string.admin_menu_title_accent),
                     subtitle = stringResource(Res.string.admin_menu_subtitle),
+                    modifier = Modifier.revealOnScroll(),
                 )
                 val menu = SpaPermission.MANAGE_SERVICES in state.permissions
                 val roster = SpaPermission.MANAGE_THERAPISTS in state.permissions
                 if (wide) {
                     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        if (menu) Box(Modifier.weight(1f)) { ServiceForm(state, onEvent) }
-                        if (roster) Box(Modifier.weight(1f)) { TherapistForm(state, onEvent) }
+                        if (menu) Box(Modifier.weight(1f).revealOnScroll(order = 1)) { ServiceForm(state, onEvent) }
+                        if (roster) Box(Modifier.weight(1f).revealOnScroll(order = 2)) { TherapistForm(state, onEvent) }
                     }
                 } else {
-                    if (menu) ServiceForm(state, onEvent)
-                    if (roster) TherapistForm(state, onEvent)
+                    if (menu) Box(Modifier.revealOnScroll(order = 1)) { ServiceForm(state, onEvent) }
+                    if (roster) Box(Modifier.revealOnScroll(order = 2)) { TherapistForm(state, onEvent) }
                 }
-                if (SpaPermission.MANAGE_ACCOUNTS in state.permissions) PersonForm(state, onEvent)
+                if (SpaPermission.MANAGE_ACCOUNTS in state.permissions) {
+                    Box(Modifier.revealOnScroll(order = 3)) { PersonForm(state, onEvent) }
+                }
             }
             SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
         }

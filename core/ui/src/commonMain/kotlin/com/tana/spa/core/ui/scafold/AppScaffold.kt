@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.tana.spa.core.ui.LocalSpaScrollLift
+import com.tana.spa.core.ui.SpaScrollLift
 import com.tana.spa.core.ui.SpaWindow
 import com.tana.spa.core.ui.SpaWindowSize
 import com.tana.spa.core.ui.components.AppTopBar
@@ -35,6 +39,21 @@ fun AppScaffold(
     content: @Composable () -> Unit,
 ) {
     val size = SpaWindow.size
+    CompositionLocalProvider(LocalSpaScrollLift provides remember { SpaScrollLift() }) {
+        GuestFrame(size, navItems, selectedRoute, onSelect, topBarActions, bottomStrip, content)
+    }
+}
+
+@Composable
+private fun GuestFrame(
+    size: SpaWindowSize,
+    navItems: List<NavConfig>,
+    selectedRoute: String,
+    onSelect: (String) -> Unit,
+    topBarActions: @Composable RowScope.() -> Unit,
+    bottomStrip: @Composable () -> Unit,
+    content: @Composable () -> Unit,
+) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {

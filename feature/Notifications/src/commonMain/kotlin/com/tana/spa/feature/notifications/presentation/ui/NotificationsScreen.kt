@@ -47,6 +47,8 @@ import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
+import com.tana.spa.core.ui.rememberSpaLazyListState
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.notifications.domain.NotificationItem
 import com.tana.spa.feature.notifications.presentation.NotificationsEffect
 import com.tana.spa.feature.notifications.presentation.NotificationsEvent
@@ -130,13 +132,19 @@ private fun NotificationList(state: NotificationsState, onEvent: (NotificationsE
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().widthIn(max = SpaPageWidth.Reading),
+        state = rememberSpaLazyListState(),
         contentPadding = PaddingValues(start = ScreenPadding, end = ScreenPadding, top = 16.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { Header(state, onEvent) }
+        item { Header(state, onEvent, Modifier.revealOnScroll()) }
 
         if (state.canEnablePush) {
-            item { EnablePushCard(onEnable = { onEvent(NotificationsEvent.EnablePushClicked) }) }
+            item {
+                EnablePushCard(
+                    onEnable = { onEvent(NotificationsEvent.EnablePushClicked) },
+                    modifier = Modifier.revealOnScroll(order = 1),
+                )
+            }
         }
 
         if (state.items.isEmpty()) {
@@ -145,12 +153,13 @@ private fun NotificationList(state: NotificationsState, onEvent: (NotificationsE
 
         // Grouped, but in the order the server sent them: the newest group leads.
         state.items.groupBy { it.type }.forEach { (type, grouped) ->
-            item(key = "group-" + type?.name) { GroupLabel(type) }
+            item(key = "group-" + type?.name) { GroupLabel(type, Modifier.revealOnScroll()) }
             items(grouped, key = { it.id }) { item ->
                 NotificationRow(
                     item = item,
                     nowEpochMillis = now,
                     onClick = { onEvent(NotificationsEvent.ItemClicked(item.id)) },
+                    modifier = Modifier.revealOnScroll(),
                 )
             }
         }
@@ -171,9 +180,9 @@ private fun NotificationList(state: NotificationsState, onEvent: (NotificationsE
 }
 
 @Composable
-private fun Header(state: NotificationsState, onEvent: (NotificationsEvent) -> Unit) {
+private fun Header(state: NotificationsState, onEvent: (NotificationsEvent) -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Bottom,
     ) {
@@ -210,14 +219,14 @@ private fun Header(state: NotificationsState, onEvent: (NotificationsEvent) -> U
 
 /** The design groups the centre the way the guest thinks about it: bookings first, then offers. */
 @Composable
-private fun GroupLabel(type: NotificationType?) {
+private fun GroupLabel(type: NotificationType?, modifier: Modifier = Modifier) {
     SpaGroupLabel(
         text = when (type) {
             NotificationType.BOOKING -> stringResource(Res.string.notifications_group_bookings)
             NotificationType.PROMOTION -> stringResource(Res.string.notifications_group_offers)
             else -> stringResource(Res.string.notifications_group_other)
         },
-        modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+        modifier = modifier.padding(start = 4.dp, top = 8.dp),
     )
 }
 
@@ -241,7 +250,7 @@ private fun NotificationIcon(type: NotificationType?, read: Boolean) {
 }
 
 @Composable
-private fun NotificationRow(item: NotificationItem, nowEpochMillis: Long, onClick: () -> Unit) {
+private fun NotificationRow(item: NotificationItem, nowEpochMillis: Long, onClick: () -> Unit, modifier: Modifier = Modifier) {
     // Colour and a dot must not be the only way to tell an unread row (WCAG 1.4.1), so the state
     // is announced as well.
     val unread = stringResource(Res.string.notifications_unread)
@@ -276,7 +285,7 @@ private fun NotificationRow(item: NotificationItem, nowEpochMillis: Long, onClic
             headlineColor = MaterialTheme.colorScheme.onSurface,
             supportingColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
@@ -295,8 +304,8 @@ private fun ageLabel(createdAtEpochMillis: Long, nowEpochMillis: Long): String =
     }
 
 @Composable
-private fun EnablePushCard(onEnable: () -> Unit) {
-    Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.fillMaxWidth()) {
+private fun EnablePushCard(onEnable: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant, modifier = modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = stringResource(Res.string.notifications_enable_title),

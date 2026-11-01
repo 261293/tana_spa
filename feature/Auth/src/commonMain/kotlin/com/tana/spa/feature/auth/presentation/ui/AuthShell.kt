@@ -32,6 +32,7 @@ import com.tana.spa.core.ui.components.SpaBrand
 import com.tana.spa.core.ui.components.SpaDisplayTitle
 import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.spaTopo
+import com.tana.spa.core.ui.revealOnScroll
 
 private val PANEL_HEIGHT = 220.dp
 private val FORM_MAX_WIDTH = 420.dp
@@ -101,7 +102,7 @@ private fun Form(title: String, accent: String, intro: String, content: @Composa
             .padding(horizontal = 20.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.revealOnScroll(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             SpaDisplayTitle(title, accent)
             Text(intro, style = SpaTheme.textStyles.bodyRelaxed, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

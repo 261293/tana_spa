@@ -8,9 +8,9 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -42,6 +42,7 @@ import com.tana.spa.core.notifications.NotificationBadge
 import com.tana.spa.core.notifications.PushRegistrar
 import com.tana.spa.core.ui.AppTheme
 import com.tana.spa.core.ui.ProvideSpaWindowSize
+import com.tana.spa.core.ui.SpaEasing
 import com.tana.spa.core.ui.SpaMotion
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaAvatar
@@ -116,6 +117,15 @@ internal fun restoredRoute(urlRoute: String, role: String?): String {
 
 private val NO_VISIT_STRIP_ROUTES = setOf(Routes.BOOKING, Routes.MY_BOOKINGS)
 
+internal val TOP_LEVEL_ROUTES = setOf(
+    Routes.TREATMENTS,
+    Routes.BOOKING,
+    Routes.NOTIFICATIONS,
+    Routes.PROMOTIONS,
+    Routes.ADMIN_REQUESTS,
+    Routes.SETTINGS,
+)
+
 @Composable
 fun App() {
     AppTheme {
@@ -166,7 +176,11 @@ private fun Splash() {
         delay(SPLASH_HOLD_MS)
         visible = false
     }
-    AnimatedVisibility(visible, enter = EnterTransition.None, exit = fadeOut(tween(SpaTheme.motion.medium))) { SpaSplash() }
+    AnimatedVisibility(
+        visible,
+        enter = EnterTransition.None,
+        exit = fadeOut(tween(SpaTheme.motion.long, easing = SpaEasing.InOut)),
+    ) { SpaSplash() }
 }
 
 /**
@@ -274,7 +288,9 @@ private fun RouteContent(navigator: Navigator, route: String, screenState: Savea
     AnimatedContent(
         targetState = route to navigator.depth,
         contentKey = { (shown, _) -> shown },
-        transitionSpec = { routeTransition(targetState.second >= initialState.second, motion) },
+        transitionSpec = {
+            routeTransition(initialState.first, targetState.first, targetState.second >= initialState.second, motion)
+        },
         label = "route",
     ) { (shown, _) ->
         val entry = FeaturesRegistry.entries.firstOrNull { it.route == shown }
@@ -282,16 +298,29 @@ private fun RouteContent(navigator: Navigator, route: String, screenState: Savea
     }
 }
 
-private const val SLIDE_FRACTION = 6
+private const val SLIDE_FRACTION = 10
+private const val FADE_THROUGH_SCALE = 0.94f
 
-private fun routeTransition(forward: Boolean, motion: SpaMotion): ContentTransform {
-    if (motion.reduced) return EnterTransition.None togetherWith ExitTransition.None
+private fun routeTransition(from: String, to: String, forward: Boolean, motion: SpaMotion): ContentTransform {
+    if (motion.reduced) return pageTransform(EnterTransition.None, ExitTransition.None)
+    return if (from in TOP_LEVEL_ROUTES && to in TOP_LEVEL_ROUTES) fadeThrough(motion) else sharedAxisX(forward, motion)
+}
+
+private fun pageTransform(arriving: EnterTransition, leaving: ExitTransition) = ContentTransform(arriving, leaving, sizeTransform = null)
+
+private fun fadeThrough(motion: SpaMotion): ContentTransform {
+    val arriving = fadeIn(tween(motion.medium, motion.short, SpaEasing.OutExpo)) +
+        scaleIn(tween(motion.medium, motion.short, SpaEasing.OutExpo), initialScale = FADE_THROUGH_SCALE)
+    return pageTransform(arriving, fadeOut(tween(motion.short, easing = SpaEasing.InOut)))
+}
+
+private fun sharedAxisX(forward: Boolean, motion: SpaMotion): ContentTransform {
     val edge = if (forward) 1 else -1
-    val arriving = slideInHorizontally(tween(motion.medium)) { width -> edge * width / SLIDE_FRACTION } +
-        fadeIn(tween(motion.medium))
-    val leaving = slideOutHorizontally(tween(motion.exit)) { width -> -edge * width / SLIDE_FRACTION } +
-        fadeOut(tween(motion.exit))
-    return arriving togetherWith leaving
+    val arriving = slideInHorizontally(tween(motion.long, easing = SpaEasing.OutExpo)) { width -> edge * width / SLIDE_FRACTION } +
+        fadeIn(tween(motion.medium, easing = SpaEasing.OutExpo))
+    val leaving = slideOutHorizontally(tween(motion.long, easing = SpaEasing.OutExpo)) { width -> -edge * width / SLIDE_FRACTION } +
+        fadeOut(tween(motion.exit, easing = SpaEasing.InOut))
+    return pageTransform(arriving, leaving)
 }
 
 /** The words on the destinations, read from resources so they follow the chosen language. */

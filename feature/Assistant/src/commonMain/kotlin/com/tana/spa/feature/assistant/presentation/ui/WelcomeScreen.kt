@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.assistant.resources.Res
 import com.tana.spa.feature.assistant.resources.chat_close
 import com.tana.spa.feature.assistant.resources.ic_close
@@ -94,19 +95,20 @@ fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onCont
                     text = stringResource(Res.string.welcome_greeting),
                     style = SpaTheme.textStyles.sectionLead,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.semantics { heading() },
+                    modifier = Modifier.revealOnScroll().semantics { heading() },
                 )
                 Text(
                     text = stringResource(Res.string.welcome_brand),
                     style = SpaTheme.textStyles.brandTitle,
                     color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.revealOnScroll(order = 1),
                 )
                 Text(
                     text = stringResource(Res.string.welcome_body),
                     style = SpaTheme.textStyles.sectionLead,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.revealOnScroll(order = 2).padding(top = 8.dp),
                 )
             }
 

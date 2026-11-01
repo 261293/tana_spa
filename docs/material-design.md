@@ -133,6 +133,42 @@ Compose attaches.
    — that is where this version's API is still moving; the interactive `ListItem(selected = …)`
    overloads are an example, which is why rows use a plain `ListItem` plus a `selectable` modifier.
 
+## Motion
+
+One grammar, taken from the spa's web identity and kept on the app's duration scale. The decision
+and the numbers it came from: `docs/adr/0005-motion-and-scroll-reveal.md`.
+
+**Easing.** `SpaEasing.OutExpo` (`cubic-bezier(0.16, 1, 0.3, 1)`) for anything arriving,
+`SpaEasing.InOut` (`cubic-bezier(0.65, 0, 0.35, 1)`) for anything symmetric or leaving. Never
+Compose's default easing.
+
+**Durations** come from `SpaTheme.motion`, never a literal: `short` 160, `medium` 220, `long` 320,
+`exit` (medium × ⅔), `reveal` 520, `stagger` 60 ms. `SpaMotionTest` pins their ordering.
+
+**Reveal on scroll.** Hang `Modifier.revealOnScroll(order = n)` on each section of a page: it
+fades the element in and lifts it 24–40 dp (by window size) the first time it reaches the
+viewport, once. `order` cascades the first screenful and stops at the fourth slot.
+`SpaRevealFrom.Start` / `.End` slide sideways instead, for a side-by-side pane.
+
+Reveal page sections, cards and list rows. Do **not** reveal a form field, a loading skeleton, an
+error message or a chat message — a control the guest is reaching for must be there when the page
+is.
+
+**Scroll state.** Inside `AppScaffold`, a scrolling screen uses `rememberSpaScrollState()` or
+`rememberSpaLazyListState()` instead of Compose's; that is what lifts the top app bar onto
+`surfaceContainer` with a divider once the page moves. Screens with their own frame (the staff
+console, the sign-in shell) have no bar to lift and use the plain Compose state.
+
+**Page transitions** are chosen in `App.kt`, not per screen. A route listed in `TOP_LEVEL_ROUTES`
+fades through to another one; anything else slides along the shared X axis by stack depth. Adding
+a destination to the navigation bar means adding its route to that set — `RouteTransitionTest`
+fails otherwise.
+
+**Reduced motion** is handled centrally: `AppTheme` swaps in `NoMotion` when the platform asks for
+it, `revealOnScroll` then returns the modifier untouched, and route changes become instant. A new
+animation must read `SpaTheme.motion` so it inherits this; `motion.reduced` is there for the cases
+where a zero duration is not enough.
+
 ## Checklist for a new screen
 
 1. Sketch the screen as a list of Material components from the table above. Anything left over is
@@ -144,4 +180,5 @@ Compose attaches.
    the staff console), never a per-platform branch.
 5. One-shot outputs (snackbar, navigation) go through effects, not state.
 6. Strings in `composeResources/values` (+ `values-en`), colours and shapes from the theme.
-7. Run `./gradlew ktlintCheck jvmTest` and compile the web target before pushing.
+7. Scroll with `rememberSpaScrollState()`, and give each section a `Modifier.revealOnScroll(order)`.
+8. Run `./gradlew ktlintCheck jvmTest` and compile the web target before pushing.
