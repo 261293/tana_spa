@@ -29,4 +29,28 @@ class SpaMotionTest {
         assertTrue(FullMotion.exit > 0)
         assertTrue(FullMotion.exit < FullMotion.medium)
     }
+
+    @Test
+    fun aRevealOutlastsTheOtherTransitionsWithoutDragging() {
+        assertTrue(FullMotion.reveal > FullMotion.long)
+        assertTrue(FullMotion.reveal <= LONGEST_ACCEPTABLE_REVEAL_MS)
+    }
+
+    @Test
+    fun theStaggerBuildsThenStopsSoALongListsTailIsNotLeftWaiting() {
+        assertEquals(0, FullMotion.staggerFor(0))
+        assertEquals(FullMotion.stagger, FullMotion.staggerFor(1))
+        assertEquals(FullMotion.staggerFor(3), FullMotion.staggerFor(50))
+        assertTrue(FullMotion.staggerFor(50) < FullMotion.reveal)
+    }
+
+    @Test
+    fun reducedMotionStaggersNothingEither() {
+        assertEquals(0, NoMotion.reveal)
+        assertEquals(0, NoMotion.staggerFor(3))
+    }
+
+    private companion object {
+        const val LONGEST_ACCEPTABLE_REVEAL_MS = 600
+    }
 }

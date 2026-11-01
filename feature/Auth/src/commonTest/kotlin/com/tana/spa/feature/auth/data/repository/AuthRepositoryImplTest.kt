@@ -59,8 +59,21 @@ class AuthRepositoryImplTest {
     }
 
     @Test
-    fun expiredSessionIsDiscardedAndCleared() {
-        store.stored = TestFixtures.session.copy(expiresAtMillis = now)
+    fun anExpiredAccessTokenIsStillASessionWhileItCanBeRefreshed() {
+        store.stored = TestFixtures.session.copy(expiresAtMillis = now, refreshExpiresAtMillis = now + 1)
+        assertEquals(store.stored, repository.currentSession())
+    }
+
+    @Test
+    fun aSessionPastItsRefreshWindowIsDiscardedAndCleared() {
+        store.stored = TestFixtures.session.copy(expiresAtMillis = now, refreshExpiresAtMillis = now)
+        assertNull(repository.currentSession())
+        assertNull(store.stored)
+    }
+
+    @Test
+    fun aSessionStoredBeforeRefreshTokensExistedStillExpiresWithItsAccessToken() {
+        store.stored = TestFixtures.session.copy(expiresAtMillis = now, refreshToken = "", refreshExpiresAtMillis = 0)
         assertNull(repository.currentSession())
         assertNull(store.stored)
     }
@@ -69,6 +82,60 @@ class AuthRepositoryImplTest {
     fun validSessionIsReturned() {
         store.stored = TestFixtures.session.copy(expiresAtMillis = now + 1)
         assertEquals(store.stored, repository.currentSession())
+    }
+
+    // ---- refresh ----
+
+    @Test
+    fun refreshSpendsTheStoredTokenAndSavesThePairItGetsBack() = runTest {
+        store.stored = TestFixtures.session.copy(expiresAtMillis = now, refreshExpiresAtMillis = now + 1)
+        remote.refreshResponse = TestFixtures.response.copy(accessToken = "fresh", refreshToken = "rotated")
+
+        val session = repository.refreshSession()
+
+        assertEquals(listOf("refresh"), remote.refreshedWith)
+        assertEquals("fresh", session?.accessToken)
+        assertEquals("rotated", store.stored?.refreshToken)
+    }
+
+    @Test
+    fun aRejectedRefreshSignsTheGuestOut() = runTest {
+        store.stored = TestFixtures.session.copy(refreshExpiresAtMillis = now + 1)
+        remote.refreshError = AuthApiException(401, AuthErrorCodes.INVALID_REFRESH_TOKEN)
+
+        assertNull(repository.refreshSession())
+        assertNull(store.stored)
+    }
+
+    @Test
+    fun beingOfflineDoesNotSignTheGuestOut() = runTest {
+        val stored = TestFixtures.session.copy(refreshExpiresAtMillis = now + 1)
+        store.stored = stored
+        remote.refreshError = RuntimeException("no route to host")
+
+        assertNull(repository.refreshSession())
+        assertEquals(stored, store.stored)
+    }
+
+    @Test
+    fun refreshingWithNothingToSpendClearsTheSession() = runTest {
+        store.stored = TestFixtures.session.copy(refreshToken = "", refreshExpiresAtMillis = 0)
+
+        assertNull(repository.refreshSession())
+        assertNull(store.stored)
+        assertEquals(emptyList(), remote.refreshedWith)
+    }
+
+    @Test
+    fun revokingTellsTheServerWhichTokenToKill() = runTest {
+        repository.revokeRefreshToken("refresh")
+        assertEquals(listOf("refresh"), remote.loggedOutWith)
+    }
+
+    @Test
+    fun revokingNothingCallsNobody() = runTest {
+        repository.revokeRefreshToken("")
+        assertEquals(emptyList(), remote.loggedOutWith)
     }
 
     // ---- register ----

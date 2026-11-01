@@ -13,8 +13,21 @@ interface AuthRepository {
     /** Creates the account and, on success, persists the session (the user is signed in). */
     suspend fun register(displayName: String, email: String, phone: String, password: String): AuthOutcome
 
-    /** The stored session, or null when there is none or it has expired. */
+    /**
+     * The stored session, or null when there is none or it can no longer be refreshed. The access
+     * token inside may already have expired: the next call that is refused refreshes it.
+     */
     fun currentSession(): Session?
+
+    /** Spends the stored refresh token for a fresh pair. Null when the guest has to sign in again. */
+    suspend fun refreshSession(): Session?
+
+    /**
+     * Asks the server to revoke [refreshToken] and every token descended from the same sign-in,
+     * so it cannot outlive the sign-out by its thirty days. Best effort: clearing the session
+     * locally is the caller's job and must not wait on this.
+     */
+    suspend fun revokeRefreshToken(refreshToken: String)
 
     /** Texts a code to the signed-in user's own phone number. */
     suspend fun sendPhoneOtp(): OtpSendResult

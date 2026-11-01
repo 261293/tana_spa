@@ -15,11 +15,19 @@ import kotlinx.coroutines.CompletableDeferred
 
 object TestFixtures {
     val user = AuthUser(id = "u1", email = "lan@example.com", displayName = "Lan", phone = "+84333433969")
-    val session = Session(accessToken = "token", expiresAtMillis = 10_000_000L, user = user)
+    val session = Session(
+        accessToken = "token",
+        expiresAtMillis = 10_000_000L,
+        user = user,
+        refreshToken = "refresh",
+        refreshExpiresAtMillis = 100_000_000L,
+    )
     val response = AuthResponse(
         accessToken = "token",
         expiresInSeconds = 3600,
         user = UserDto("u1", "lan@example.com", "Lan", "+84333433969"),
+        refreshToken = "refresh",
+        refreshExpiresInSeconds = 30 * 24 * 60 * 60,
     )
     val otpSent = PhoneOtpSendResponse(resendAfterSeconds = 60, expiresInSeconds = 600, maskedPhone = "+84••••••969")
     val verifiedUser = UserDto("u1", "lan@example.com", "Lan", "+84333433969", phoneVerified = true)
@@ -57,6 +65,11 @@ class FakeRemote(
     var verifyToken: String? = null
     var verifyCode: String? = null
 
+    var refreshResponse: AuthResponse? = null
+    var refreshError: Exception? = null
+    var refreshedWith = mutableListOf<String>()
+    var loggedOutWith = mutableListOf<String>()
+
     override suspend fun login(email: String, password: String): AuthResponse {
         calls++
         lastEmail = email
@@ -70,6 +83,16 @@ class FakeRemote(
         lastRegister = listOf(displayName, email, phone, password)
         error?.let { throw it }
         return response
+    }
+
+    override suspend fun refresh(refreshToken: String): AuthResponse {
+        refreshedWith += refreshToken
+        refreshError?.let { throw it }
+        return refreshResponse ?: response
+    }
+
+    override suspend fun logout(refreshToken: String) {
+        loggedOutWith += refreshToken
     }
 
     override suspend fun sendPhoneOtp(accessToken: String): PhoneOtpSendResponse {
@@ -108,6 +131,18 @@ class FakeAuthRepository(var session: Session? = TestFixtures.session) : AuthRep
     }
 
     override fun currentSession(): Session? = session
+
+    var refreshedSessions = 0
+    var revokedTokens = mutableListOf<String>()
+
+    override suspend fun refreshSession(): Session? {
+        refreshedSessions++
+        return session
+    }
+
+    override suspend fun revokeRefreshToken(refreshToken: String) {
+        revokedTokens += refreshToken
+    }
 
     override suspend fun sendPhoneOtp(): OtpSendResult {
         sendCalls++

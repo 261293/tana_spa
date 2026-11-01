@@ -50,6 +50,8 @@ import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.spaFelt
 import com.tana.spa.core.ui.components.spaTopo
+import com.tana.spa.core.ui.rememberSpaScrollState
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.promotions.presentation.PromotionsEffect
 import com.tana.spa.feature.promotions.presentation.PromotionsEvent
 import com.tana.spa.feature.promotions.presentation.PromotionsState
@@ -107,7 +109,7 @@ fun PromotionsScreen(
     val wide = SpaWindow.size.isWide
     Box(Modifier.fillMaxSize()) {
         SpaPage(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberSpaScrollState()),
             maxWidth = SpaPageWidth.Wide,
         ) {
             SpaScreenHeader(
@@ -115,27 +117,31 @@ fun PromotionsScreen(
                 title = stringResource(Res.string.promotions_title),
                 accent = stringResource(Res.string.promotions_title_accent),
                 subtitle = stringResource(Res.string.promotions_subtitle),
+                modifier = Modifier.revealOnScroll(),
             )
 
-            FeaturedOffer(state.featured, wide, onEvent)
+            FeaturedOffer(state.featured, wide, onEvent, Modifier.revealOnScroll(order = 1))
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     text = stringResource(Res.string.promotions_more),
                     style = SpaTheme.textStyles.cardTitle,
                     color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.revealOnScroll(order = 2),
                 )
-                state.others.forEach { promo -> PromoRow(promo, onEvent) }
+                state.others.forEachIndexed { index, promo ->
+                    PromoRow(promo, onEvent, Modifier.revealOnScroll(order = index))
+                }
             }
 
-            CodeChecker(state, onEvent, Modifier.widthIn(max = 560.dp))
+            CodeChecker(state, onEvent, Modifier.widthIn(max = 560.dp).revealOnScroll())
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
     }
 }
 
 @Composable
-private fun FeaturedOffer(promo: Promo, wide: Boolean, onEvent: (PromotionsEvent) -> Unit) {
+private fun FeaturedOffer(promo: Promo, wide: Boolean, onEvent: (PromotionsEvent) -> Unit, modifier: Modifier = Modifier) {
     val body: @Composable () -> Unit = {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -168,7 +174,7 @@ private fun FeaturedOffer(promo: Promo, wide: Boolean, onEvent: (PromotionsEvent
     }
 
     Box(
-        Modifier
+        modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primaryContainer, SpaPebbleShape)
             .spaTopo(Alignment.TopEnd),
@@ -206,8 +212,8 @@ private fun CopyableCode(code: String, onEvent: (PromotionsEvent) -> Unit) {
 }
 
 @Composable
-private fun PromoRow(promo: Promo, onEvent: (PromotionsEvent) -> Unit) {
-    SpaCard(Modifier.fillMaxWidth().spaTopo(Alignment.CenterEnd), padding = PaddingValues(0.dp)) {
+private fun PromoRow(promo: Promo, onEvent: (PromotionsEvent) -> Unit, modifier: Modifier = Modifier) {
+    SpaCard(modifier.fillMaxWidth().spaTopo(Alignment.CenterEnd), padding = PaddingValues(0.dp)) {
         ListItem(
             overlineContent = {
                 Row(verticalAlignment = Alignment.CenterVertically) {

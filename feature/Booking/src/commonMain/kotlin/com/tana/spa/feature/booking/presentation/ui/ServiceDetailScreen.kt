@@ -29,6 +29,8 @@ import com.tana.spa.core.ui.components.SpaIncludeRow
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.formatPrice
+import com.tana.spa.core.ui.rememberSpaScrollState
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.booking.presentation.ServiceDetailEffect
 import com.tana.spa.feature.booking.presentation.ServiceDetailEvent
 import com.tana.spa.feature.booking.presentation.ServiceDetailState
@@ -67,11 +69,11 @@ fun ServiceDetailScreen(
 
     // Reading width: one column at every window size, centred and guttered by SpaPage.
     SpaPage(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberSpaScrollState()),
         maxWidth = SpaPageWidth.Reading,
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        SpaBackLink(stringResource(Res.string.service_back), onBack)
+        SpaBackLink(stringResource(Res.string.service_back), onBack, Modifier.revealOnScroll())
         when {
             state.loading -> Loading()
             state.service != null -> Treatment(state.service, onBook = { onEvent(ServiceDetailEvent.Book) })
@@ -84,11 +86,11 @@ fun ServiceDetailScreen(
 @Composable
 private fun Treatment(service: Service, onBook: () -> Unit) {
     SpaImageTile(
-        modifier = Modifier.fillMaxWidth().aspectRatio(HERO_RATIO),
+        modifier = Modifier.fillMaxWidth().aspectRatio(HERO_RATIO).revealOnScroll(order = 1),
         shape = MaterialTheme.shapes.extraLarge,
     )
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(Modifier.revealOnScroll(order = 2), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SpaEyebrow(
             stringResource(
                 Res.string.service_eyebrow,
@@ -109,7 +111,7 @@ private fun Treatment(service: Service, onBook: () -> Unit) {
         )
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    Column(Modifier.revealOnScroll(order = 3), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Text(
             text = stringResource(Res.string.service_includes),
             style = SpaTheme.textStyles.screenTitle,
@@ -119,7 +121,7 @@ private fun Treatment(service: Service, onBook: () -> Unit) {
         Column { service.includes.split(SEPARATOR).map { it.trim() }.filter { it.isNotEmpty() }.forEach { SpaIncludeRow(it) } }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.revealOnScroll(order = 4), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SpaPrimaryButton(
             text = stringResource(Res.string.service_book, formatPrice(service.priceUsd)),
             onClick = onBook,

@@ -33,7 +33,15 @@ data class Session(
     /** Absolute expiry as epoch milliseconds, so it stays meaningful after an app restart. */
     val expiresAtMillis: Long,
     val user: AuthUser,
-)
+    /** Spent at `AuthApi.REFRESH` for the next pair; empty only for a session stored before refresh tokens existed. */
+    val refreshToken: String = "",
+    /** When the guest must sign in again, however often the app refreshes in the meantime. */
+    val refreshExpiresAtMillis: Long = 0,
+) {
+    fun accessTokenExpired(nowMillis: Long): Boolean = expiresAtMillis <= nowMillis
+
+    fun canRefresh(nowMillis: Long): Boolean = refreshToken.isNotEmpty() && refreshExpiresAtMillis > nowMillis
+}
 
 /** Why a login or sign-up attempt failed; the UI maps each case to a localised message. */
 enum class AuthFailure {

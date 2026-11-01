@@ -53,10 +53,18 @@ object SpaPageWidth {
 
 val LocalSpaWindowSize = staticCompositionLocalOf { SpaWindowSize.COMPACT }
 
+internal val LocalSpaViewportHeight = staticCompositionLocalOf { UNMEASURED_VIEWPORT }
+
+internal const val UNMEASURED_VIEWPORT = 0
+
 object SpaWindow {
     val size: SpaWindowSize
         @Composable @ReadOnlyComposable
         get() = LocalSpaWindowSize.current
+
+    internal val viewportHeight: Int
+        @Composable @ReadOnlyComposable
+        get() = LocalSpaViewportHeight.current
 }
 
 fun spaWindowSizeOf(width: Dp): SpaWindowSize = when {
@@ -74,7 +82,10 @@ fun spaWindowSizeOf(width: Dp): SpaWindowSize = when {
 @Composable
 fun ProvideSpaWindowSize(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     BoxWithConstraints(modifier) {
-        CompositionLocalProvider(LocalSpaWindowSize provides spaWindowSizeOf(maxWidth)) {
+        CompositionLocalProvider(
+            LocalSpaWindowSize provides spaWindowSizeOf(maxWidth),
+            LocalSpaViewportHeight provides constraints.maxHeight,
+        ) {
             content()
         }
     }

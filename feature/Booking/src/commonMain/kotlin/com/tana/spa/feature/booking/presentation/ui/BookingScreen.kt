@@ -38,6 +38,8 @@ import com.tana.spa.core.ui.components.spaPocket
 import com.tana.spa.core.ui.formatHour
 import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.formatRelative
+import com.tana.spa.core.ui.rememberSpaScrollState
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.booking.presentation.BookingEffect
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingState
@@ -80,7 +82,7 @@ fun BookingTreatmentScreen(
         effects = effects,
         onOpenNotifications = onOpenNotifications,
         onOpenBookings = onOpenBookings,
-        header = { BookingHeader() },
+        header = { BookingHeader(Modifier.revealOnScroll()) },
         footer = { StepFooter(state, canContinue = state.service != null, onBack = null, onContinue = onContinue) },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -213,13 +215,13 @@ private fun BookingStepPage(
     val labels = stepLabels()
     Box(Modifier.fillMaxSize()) {
         SpaPage(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberSpaScrollState()),
             maxWidth = if (SpaWindow.size.isCompact) SpaPageWidth.Reading else SpaPageWidth.Full,
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             header()
-            SpaStepTrail(labels, current = step - 1)
-            SpaPanel(title = labels[step - 1], content = content)
+            SpaStepTrail(labels, current = step - 1, modifier = Modifier.revealOnScroll(order = 1))
+            SpaPanel(title = labels[step - 1], modifier = Modifier.revealOnScroll(order = 2), content = content)
             // Nothing of the step hides under the pocket at the end of the scroll.
             Spacer(Modifier.height(FOOTER_CLEARANCE))
         }

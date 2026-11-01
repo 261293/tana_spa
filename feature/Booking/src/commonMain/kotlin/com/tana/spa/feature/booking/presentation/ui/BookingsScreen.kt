@@ -39,6 +39,8 @@ import com.tana.spa.core.ui.components.SpaStepper
 import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.monthShort
+import com.tana.spa.core.ui.rememberSpaScrollState
+import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.core.ui.weekdayShort
 import com.tana.spa.feature.booking.domain.GuestBooking
 import com.tana.spa.feature.booking.domain.visitStep
@@ -96,7 +98,7 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
 
     Box(Modifier.fillMaxSize()) {
         SpaPage(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberSpaScrollState()),
             maxWidth = SpaPageWidth.Reading,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -105,6 +107,7 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
                 title = stringResource(Res.string.bookings_title),
                 accent = stringResource(Res.string.bookings_title_accent),
                 subtitle = stringResource(Res.string.bookings_subtitle),
+                modifier = Modifier.revealOnScroll(),
             )
             when {
                 state.loading && state.bookings.isEmpty() -> repeat(SKELETONS) { SpaSkeleton(ROW_HEIGHT) }
@@ -117,13 +120,14 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
 
                 state.bookings.isEmpty() -> Message(text = stringResource(Res.string.bookings_empty))
 
-                else -> state.bookings.forEach { booking ->
+                else -> state.bookings.forEachIndexed { index, booking ->
                     BookingRow(
                         booking = booking,
                         nowEpochMillis = state.nowEpochMillis,
                         enabled = !state.working,
                         opened = booking.id == state.openedId,
                         onEvent = onEvent,
+                        modifier = Modifier.revealOnScroll(order = index),
                     )
                 }
             }
@@ -135,9 +139,16 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
 }
 
 @Composable
-private fun BookingRow(booking: GuestBooking, nowEpochMillis: Long, enabled: Boolean, opened: Boolean, onEvent: (BookingsEvent) -> Unit) {
+private fun BookingRow(
+    booking: GuestBooking,
+    nowEpochMillis: Long,
+    enabled: Boolean,
+    opened: Boolean,
+    onEvent: (BookingsEvent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val date = SpaDate.fromEpochDay(booking.startDayEpochDay)
-    SpaPanel(modifier = Modifier.fillMaxWidth().clickable { onEvent(BookingsEvent.RowToggled(booking.id)) }) {
+    SpaPanel(modifier = modifier.fillMaxWidth().clickable { onEvent(BookingsEvent.RowToggled(booking.id)) }) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 SpaDateBlock(date.weekdayShort(), date.day.toString(), date.monthShort())
