@@ -1,5 +1,6 @@
 package com.tana.spa.feature.auth.di
 
+import com.tana.spa.feature.auth.data.SessionRefreshCoordinator
 import com.tana.spa.feature.auth.data.local.SessionStore
 import com.tana.spa.feature.auth.data.local.SessionStoreImpl
 import com.tana.spa.feature.auth.data.remote.AuthRemoteApi
@@ -24,6 +25,7 @@ val authModule: Module = module {
     single<AuthRemoteApi> { AuthRemoteApiImpl(get(), Constants.apiBaseUrl(get<Platform>().type)) }
     single<SessionStore> { SessionStoreImpl(get()) }
     single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
+    single { SessionRefreshCoordinator(get()) }
     factory { LoginUseCase(get()) }
     factory { RegisterUseCase(get()) }
     factory { SendPhoneOtpUseCase(get()) }

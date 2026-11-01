@@ -124,11 +124,17 @@ class LoginViewModelTest {
     }
 
     @Test
-    fun expiredSessionShowsTheForm() {
-        store.stored = TestFixtures.session.copy(expiresAtMillis = 0)
+    fun aSessionPastItsRefreshWindowShowsTheForm() {
+        store.stored = TestFixtures.session.copy(expiresAtMillis = 0, refreshExpiresAtMillis = 0)
         val vm = viewModel()
         assertNull(store.stored)
         assertEquals("", vm.state.value.email)
+    }
+
+    @Test
+    fun anExpiredAccessTokenStillSkipsTheForm() = runTest {
+        store.stored = TestFixtures.session.copy(expiresAtMillis = 0, refreshExpiresAtMillis = 10_000_000L)
+        assertEquals(LoginEffect.NavigateHome, viewModel().effects.first())
     }
 
     @Test

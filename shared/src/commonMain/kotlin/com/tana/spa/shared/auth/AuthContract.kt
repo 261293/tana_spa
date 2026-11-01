@@ -7,6 +7,8 @@ object AuthApi {
     const val BASE = "/api/v1/auth"
     const val LOGIN = "$BASE/login"
     const val REGISTER = "$BASE/register"
+    const val REFRESH = "$BASE/refresh"
+    const val LOGOUT = "$BASE/logout"
     const val ME = "$BASE/me"
     const val PHONE_OTP_SEND = "$BASE/phone/otp/send"
     const val PHONE_OTP_VERIFY = "$BASE/phone/otp/verify"
@@ -46,8 +48,23 @@ data class PhoneOtpSendResponse(
 @Serializable
 data class PhoneOtpVerifyRequest(val code: String)
 
+/** Trades [refreshToken] for a fresh pair. The one sent is spent: the answer carries its replacement. */
 @Serializable
-data class AuthResponse(val accessToken: String, val expiresInSeconds: Long, val user: UserDto)
+data class RefreshRequest(val refreshToken: String)
+
+/** Ends the session server-side, so the refresh token cannot outlive the sign-out by its 30 days. */
+@Serializable
+data class LogoutRequest(val refreshToken: String)
+
+@Serializable
+data class AuthResponse(
+    val accessToken: String,
+    val expiresInSeconds: Long,
+    val user: UserDto,
+    /** Opaque, single-use; spending it at [AuthApi.REFRESH] returns the next one. */
+    val refreshToken: String,
+    val refreshExpiresInSeconds: Long,
+)
 
 /** Stable machine-readable [code]s let each client localise the message itself. */
 @Serializable
@@ -93,6 +110,9 @@ object AuthErrorCodes {
     const val UNKNOWN_FLAG = "unknown_flag"
     const val TOO_MANY_REQUESTS = "too_many_requests"
     const val UNAUTHORIZED = "unauthorized"
+
+    /** Unknown, expired, revoked, or already spent. The guest has to sign in again. */
+    const val INVALID_REFRESH_TOKEN = "invalid_refresh_token"
 
     /** Signed in, but this account is not allowed to do that. */
     const val FORBIDDEN = "forbidden"

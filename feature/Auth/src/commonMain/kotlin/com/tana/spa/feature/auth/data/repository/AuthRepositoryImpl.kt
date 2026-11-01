@@ -50,12 +50,56 @@ class AuthRepositoryImpl(
 
     override fun currentSession(): Session? {
         val session = store.load() ?: return null
-        if (session.expiresAtMillis <= nowMillis()) {
-            AppLog.i(TAG) { "stored session for user=${session.user.id} has expired, clearing" }
+        // The access token expiring is ordinary and recoverable; losing the refresh token is not.
+        val usable = if (session.refreshToken.isEmpty()) {
+            !session.accessTokenExpired(nowMillis())
+        } else {
+            session.canRefresh(nowMillis())
+        }
+        if (!usable) {
+            AppLog.i(TAG) { "stored session for user=${session.user.id} can no longer be used, clearing" }
             store.clear()
             return null
         }
         return session
+    }
+
+    override suspend fun refreshSession(): Session? {
+        val stored = store.load() ?: return null
+        if (!stored.canRefresh(nowMillis())) {
+            AppLog.i(TAG) { "no usable refresh token for user=${stored.user.id}, signing out" }
+            store.clear()
+            return null
+        }
+        return try {
+            val session = remote.refresh(stored.refreshToken).toSession(nowMillis())
+            store.save(session)
+            AppLog.i(TAG) { "refreshed session for user=${session.user.id}" }
+            session
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: AuthApiException) {
+            AppLog.w(TAG) { "refresh rejected: ${e.describe()}, signing out" }
+            store.clear()
+            null
+        } catch (e: Throwable) {
+            // Offline is not the same as rejected: the session may still be good, so it is kept
+            // and the next call tries again. Clearing here would sign a guest out of a tunnel.
+            AppLog.w(TAG, e) { "refresh failed without a usable response: ${e::class.simpleName}" }
+            null
+        }
+    }
+
+    override suspend fun revokeRefreshToken(refreshToken: String) {
+        if (refreshToken.isEmpty()) return
+        try {
+            remote.logout(refreshToken)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            // The guest is signed out of this device either way; the server token expires on its own.
+            AppLog.w(TAG, e) { "logout call failed: ${e::class.simpleName}" }
+        }
     }
 
     override suspend fun sendPhoneOtp(): OtpSendResult {
@@ -161,8 +205,12 @@ private fun AuthApiException.toAuthFailure(): AuthFailure = when {
 
 private fun UserDto.toAuthUser() = AuthUser(id, email, displayName, phone, phoneVerified, UserRoleName.fromWire(role))
 
+private const val MILLIS_PER_SECOND = 1000
+
 private fun AuthResponse.toSession(nowMillis: Long) = Session(
     accessToken = accessToken,
-    expiresAtMillis = nowMillis + expiresInSeconds * 1000,
+    expiresAtMillis = nowMillis + expiresInSeconds * MILLIS_PER_SECOND,
     user = user.toAuthUser(),
+    refreshToken = refreshToken,
+    refreshExpiresAtMillis = nowMillis + refreshExpiresInSeconds * MILLIS_PER_SECOND,
 )

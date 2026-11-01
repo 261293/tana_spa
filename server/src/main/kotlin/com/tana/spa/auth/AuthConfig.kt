@@ -17,6 +17,8 @@ data class AuthConfig(
     val issuer: String = "tana-spa",
     val audience: String = "tana-spa-app",
     val tokenTtlSeconds: Long = 60 * 60,
+    /** How long a sign-in survives without the guest touching the app. */
+    val refreshTtlDays: Long = 30,
     val allowedOrigins: List<String> = DEFAULT_ORIGINS,
     val loginRateLimitPerMinute: Int = 10,
     /**
