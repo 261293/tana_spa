@@ -64,6 +64,7 @@ select pg_temp.seed('warm-stone-massage', 'mai', 2, '10:00') as first,
        pg_temp.seed('jade-roller-facial', 'tomas', 0, '19:00') as today_pending,
        pg_temp.seed('jade-roller-facial', 'tomas', 0, '16:00', 'declined') as today_declined,
        pg_temp.seed('jade-roller-facial', 'lena', -1, '10:00', 'confirmed') as yesterday,
+       pg_temp.seed('jade-roller-facial', 'lena', -1, '13:00', 'confirmed') as yesterday_done,
        pg_temp.seed('jade-roller-facial', 'mai', 4, '10:00', 'confirmed') as ahead,
        pg_temp.seed('jade-roller-facial', 'mai', 5, '10:00') as orphan;
 delete from public.booking_items where booking_id = (select orphan from bk);
@@ -124,7 +125,7 @@ select is(pg_temp.api_error(format('select public.spa_complete_booking(%L)', (se
 select is(pg_temp.api_error(format('select public.spa_no_show_booking(%L)', (select first from bk))), 'PGRST 409 invalid_transition',
   'no_show_pending_is_invalid_transition');
 select is(public.spa_no_show_booking((select yesterday from bk)) ->> 'status', 'NO_SHOW', 'no_show_after_start');
-select is(public.spa_complete_booking((select today_confirmed from bk)) ->> 'status', 'COMPLETED', 'complete_after_start');
+select is(public.spa_complete_booking((select yesterday_done from bk)) ->> 'status', 'COMPLETED', 'complete_after_start');
 
 select is(pg_temp.api_error($$select public.spa_create_service('Hot Stone', 'Basalt', 60, 1000000, 'MASSAGE')$$), 'PGRST 403 forbidden',
   'staff_cannot_create_service');
