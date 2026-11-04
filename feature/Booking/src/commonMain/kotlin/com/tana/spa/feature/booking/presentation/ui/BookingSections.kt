@@ -1,7 +1,6 @@
 package com.tana.spa.feature.booking.presentation.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindowSize
 import com.tana.spa.core.ui.components.SpaAvatar
@@ -53,7 +53,9 @@ import com.tana.spa.core.ui.components.SpaSlotButton
 import com.tana.spa.core.ui.formatHour
 import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.formatRelativeDayAndTime
+import com.tana.spa.core.ui.localizedLabel
 import com.tana.spa.core.ui.monthShort
+import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.core.ui.weekdayShort
 import com.tana.spa.feature.booking.domain.Slot
 import com.tana.spa.feature.booking.presentation.ANY_THERAPIST
@@ -160,12 +162,16 @@ private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .background(if (selected) MaterialTheme.colorScheme.surfaceContainerLow else Color.Transparent, shape)
-            .clickable(role = Role.RadioButton, onClick = onSelect)
+            .spaClickable(role = Role.RadioButton, onClick = onSelect)
             .padding(horizontal = 8.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SpaImageTile(Modifier.size(PICK_THUMB_SIZE), shape = PickThumbShape)
+        SpaImageTile(
+            Modifier.size(PICK_THUMB_SIZE),
+            shape = PickThumbShape,
+            photo = SpaPhotos.treatment(service.id),
+        )
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = service.name,
@@ -176,7 +182,7 @@ private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = stringResource(Res.string.booking_service_meta, service.minutes, service.category.label),
+                text = stringResource(Res.string.booking_service_meta, service.minutes, service.category.localizedLabel()),
                 style = SpaTheme.textStyles.label,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

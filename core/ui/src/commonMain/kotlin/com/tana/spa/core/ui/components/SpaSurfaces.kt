@@ -1,5 +1,7 @@
 package com.tana.spa.core.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -52,6 +54,8 @@ import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.resources.Res
 import com.tana.spa.core.ui.resources.bg_topo
 import com.tana.spa.core.ui.resources.brand_name
+import com.tana.spa.core.ui.spaPointer
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -144,15 +148,10 @@ fun SpaCard(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val hovered by interactionSource.collectIsHoveredAsState()
-    val container = when {
-        selected -> MaterialTheme.colorScheme.primaryContainer
-
-        // The design tints a row on hover instead of raising it; a transparent card has nothing
-        // to raise, and Material's hovered elevation would draw a shadow around empty space.
-        hovered && onClick != null -> MaterialTheme.colorScheme.surfaceVariant
-
-        else -> color
-    }
+    val container = if (selected) MaterialTheme.colorScheme.primaryContainer else color
+    // The largest tone step this palette can make is 1.2:1 against a white card, which reads as no
+    // feedback at all, so hover steps the card's hairline up the way the design export does.
+    val hoverBorder = if (hovered && onClick != null) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null
     val colors = CardDefaults.cardColors(
         containerColor = container,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -176,8 +175,9 @@ fun SpaCard(
             shape = shape,
             colors = colors,
             elevation = elevation,
+            border = hoverBorder,
             interactionSource = interactionSource,
-            modifier = modifier,
+            modifier = modifier.spaPointer(),
         ) {
             Box(Modifier.padding(padding)) { content() }
         }
@@ -267,24 +267,33 @@ fun SpaAvatar(
 }
 
 /**
- * Stands in for the forest photography in the design file. There is no image loader on the
- * classpath yet, so the layout reserves the real crop and fills it tonally.
+ * The picture slot the design file fills with photography. With [photo] it shows that picture
+ * cropped to the slot; without one it falls back to a tonal panel carrying [icon].
  */
 @Composable
-fun SpaImageTile(modifier: Modifier = Modifier, shape: Shape = SpaPebbleShape, icon: SpaIcon = SpaIcon.Leaf) {
+fun SpaImageTile(
+    modifier: Modifier = Modifier,
+    shape: Shape = SpaPebbleShape,
+    icon: SpaIcon = SpaIcon.Leaf,
+    photo: DrawableResource? = null,
+    contentDescription: String? = null,
+) {
     Box(
-        modifier = modifier.background(
-            Brush.linearGradient(
-                listOf(
-                    MaterialTheme.colorScheme.primaryContainer,
-                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                ),
-            ),
-            shape,
-        ),
+        modifier = modifier
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         contentAlignment = Alignment.Center,
     ) {
-        SpaIconImage(icon, size = 28.dp, tint = MaterialTheme.colorScheme.primary)
+        if (photo != null) {
+            Image(
+                painter = painterResource(photo),
+                contentDescription = contentDescription,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            SpaIconImage(icon, size = 28.dp, tint = MaterialTheme.colorScheme.primary)
+        }
     }
 }
 

@@ -57,6 +57,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private val VALID_UNTIL: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US)
+
+/** CLDR Vietnamese puts the day first and writes the month as "thg 10", as `SpaDateFormat` does. */
+private val VALID_UNTIL_VI: DateTimeFormatter = DateTimeFormatter.ofPattern("d 'thg' M, yyyy", Locale.US)
 private val SHORT_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
 
 /** Install after `authModule`: it owns ContentNegotiation, CORS, StatusPages and the JWT realm. */
@@ -76,16 +79,18 @@ fun Application.bookingModule(service: BookingService, auth: AuthService, promot
         }
 
         get(BookingApi.OFFERS) {
-            call.respond(OffersResponse(service.offers().map { it.toDto() }))
+            val vietnamese = call.vietnamese()
+            call.respond(OffersResponse(service.offers().map { it.toDto(vietnamese) }))
         }
 
         post(BookingApi.OFFER_CHECK) {
             val request = call.receive<OfferCheckRequest>()
             val verdict = service.checkCode(request.code, request.serviceSlug)
+            val vietnamese = call.vietnamese()
             call.respond(
                 OfferCheckResponse(
                     accepted = verdict.refusal == null,
-                    offer = verdict.voucher?.takeIf { verdict.refusal == null }?.toDto(),
+                    offer = verdict.voucher?.takeIf { verdict.refusal == null }?.toDto(vietnamese),
                     discount = verdict.discount.toInt(),
                     reason = verdict.refusal,
                 ),
@@ -354,15 +359,18 @@ private fun TherapistRow.toDto(nextSlot: SlotMomentDto?, vietnamese: Boolean) = 
     nextSlot = nextSlot,
 )
 
-private fun VoucherRow.toDto() = OfferDto(
+private fun VoucherRow.toDto(vietnamese: Boolean) = OfferDto(
     code = code,
-    title = title,
-    terms = description.orEmpty(),
+    title = inLanguage(titleVi, title, vietnamese),
+    terms = inLanguage(descriptionVi, description.orEmpty(), vietnamese),
     percentOff = value.toInt().takeIf { percent },
     amountOff = value.toInt().takeIf { !percent },
     minSpend = minOrder.toInt().takeIf { it > 0 },
     eligible = eligibleCategories.map { it.toCategoryDto() },
-    validUntil = endsAt?.let { LocalDate.ofInstant(it, java.time.ZoneOffset.UTC).format(VALID_UNTIL) },
+    validUntil = endsAt?.let {
+        LocalDate.ofInstant(it, java.time.ZoneOffset.UTC)
+            .format(if (vietnamese) VALID_UNTIL_VI else VALID_UNTIL)
+    },
 )
 
 private fun VoucherRow.toAdminDto(): AdminCodeDto {

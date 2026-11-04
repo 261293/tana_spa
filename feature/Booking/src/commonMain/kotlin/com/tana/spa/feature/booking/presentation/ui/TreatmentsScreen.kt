@@ -3,8 +3,10 @@ package com.tana.spa.feature.booking.presentation.ui
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
+import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaFilterChip
 import com.tana.spa.core.ui.components.SpaPage
@@ -28,6 +31,7 @@ import com.tana.spa.core.ui.components.SpaSkeleton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.SpaTreatmentCard
 import com.tana.spa.core.ui.formatPrice
+import com.tana.spa.core.ui.localizedLabel
 import com.tana.spa.core.ui.rememberSpaScrollState
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.booking.presentation.TreatmentsEffect
@@ -51,6 +55,8 @@ import com.tana.spa.shared.spa.Service
 import com.tana.spa.shared.spa.ServiceCategory
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.stringResource
+
+private val TreatmentCardMinWidth = 280.dp
 
 private const val CARD_PLACEHOLDERS = 3
 private val CARD_PLACEHOLDER_HEIGHT = 280.dp
@@ -117,7 +123,7 @@ private fun CategoryRail(chosen: ServiceCategory?, modifier: Modifier = Modifier
         )
         ServiceCategory.entries.forEach { category ->
             SpaFilterChip(
-                label = category.label,
+                label = category.localizedLabel(),
                 selected = chosen == category,
                 onClick = { onChoose(category) },
             )
@@ -138,9 +144,22 @@ private fun Results(state: TreatmentsState, onEvent: (TreatmentsEvent) -> Unit) 
         NoMatches(cleared = { onEvent(TreatmentsEvent.FiltersCleared) }, filtered = state.filtered)
         return
     }
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        shown.forEachIndexed { index, service ->
-            TreatmentCard(service, Modifier.revealOnScroll(order = index)) { onEvent(TreatmentsEvent.TreatmentChosen(service.id)) }
+    // The design lays the menu out as `repeat(auto-fit, minmax(280px, 1fr))`; one card per row
+    // leaves a whole screen per treatment.
+    BoxWithConstraints {
+        val columns = (maxWidth / TreatmentCardMinWidth).toInt().coerceAtLeast(1)
+        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            shown.chunked(columns).forEachIndexed { row, group ->
+                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    group.forEachIndexed { column, service ->
+                        TreatmentCard(
+                            service,
+                            Modifier.weight(1f).revealOnScroll(order = row * columns + column),
+                        ) { onEvent(TreatmentsEvent.TreatmentChosen(service.id)) }
+                    }
+                    repeat(columns - group.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
         }
     }
 }
@@ -153,8 +172,9 @@ private fun TreatmentCard(service: Service, modifier: Modifier = Modifier, onOpe
         priceLabel = formatPrice(service.priceUsd),
         detail = stringResource(Res.string.service_minutes, service.minutes),
         onClick = onOpen,
-        category = service.category.label,
+        category = service.category.localizedLabel(),
         description = service.includes,
+        photo = SpaPhotos.treatment(service.id),
     )
 }
 

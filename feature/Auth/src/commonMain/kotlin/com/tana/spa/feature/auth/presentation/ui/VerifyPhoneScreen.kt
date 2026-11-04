@@ -2,7 +2,6 @@ package com.tana.spa.feature.auth.presentation.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,13 +20,13 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaOtpField
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyMessage
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneEffect
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneEvent
@@ -138,7 +138,7 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .padding(top = 8.dp)
-                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.45f), RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(12.dp))
                         .padding(horizontal = 12.dp, vertical = 4.dp),
                 )
             }
@@ -212,7 +212,8 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .padding(top = 4.dp)
-                .clickable(enabled = !state.isVerifying, role = Role.Button) { onEvent(VerifyPhoneEvent.Skip) }
+                .spaClickable(enabled = !state.isVerifying) { onEvent(VerifyPhoneEvent.Skip) }
+                .minimumInteractiveComponentSize()
                 .padding(horizontal = 16.dp, vertical = 10.dp),
         )
     }

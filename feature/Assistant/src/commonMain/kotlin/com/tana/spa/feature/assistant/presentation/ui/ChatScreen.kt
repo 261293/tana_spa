@@ -11,7 +11,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -36,6 +35,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,7 +47,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
@@ -60,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.feature.assistant.domain.model.Author
 import com.tana.spa.feature.assistant.domain.model.ChatMessage
 import com.tana.spa.feature.assistant.presentation.manipulator.ChatEffect
@@ -348,7 +348,8 @@ private fun FailedRow(onRetry: () -> Unit) {
             fontWeight = FontWeight.Bold,
             color = SpaTheme.extraColors.link,
             modifier = Modifier
-                .clickable(role = Role.Button, onClick = onRetry)
+                .spaClickable(onClick = onRetry)
+                .minimumInteractiveComponentSize()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         )
     }
@@ -401,7 +402,7 @@ private fun InputBar(value: String, onValueChange: (String) -> Unit, onSend: () 
                 .size(46.dp)
                 .clip(CircleShape)
                 .background(if (canSend) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
-                .clickable(enabled = canSend, role = Role.Button, onClick = onSend)
+                .spaClickable(enabled = canSend, onClick = onSend)
                 .semantics { contentDescription = sendDescription },
             contentAlignment = Alignment.Center,
         ) {

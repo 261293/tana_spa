@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
@@ -31,6 +35,9 @@ import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.core.ui.formatHour
 import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.formatRelative
+import com.tana.spa.core.ui.localizedEligibleLabel
+import com.tana.spa.core.ui.localizedLabel
+import com.tana.spa.core.ui.localizedTitle
 import com.tana.spa.feature.booking.domain.GuestBooking
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingState
@@ -63,7 +70,6 @@ import com.tana.spa.feature.booking.resources.booking_subtotal
 import com.tana.spa.feature.booking.resources.booking_total_label
 import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.PromoRejection
-import com.tana.spa.shared.spa.eligibleLabel
 import org.jetbrains.compose.resources.stringResource
 
 /** Summary, discount code and the moss pocket that closes the booking. */
@@ -74,7 +80,8 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
         val service = state.service
         SpaSummaryRow(
             label = stringResource(Res.string.booking_review_treatment),
-            value = service?.let { "${it.name} · ${stringResource(Res.string.booking_service_meta, it.minutes, it.category.label)}" }
+            value =
+            service?.let { "${it.name} · ${stringResource(Res.string.booking_service_meta, it.minutes, it.category.localizedLabel())}" }
                 ?: notChosen,
         )
         SpaSummaryRow(
@@ -95,6 +102,11 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
             helper = promoHelper(state.check),
             error = promoError(state.check),
             modifier = Modifier.padding(top = 16.dp),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Characters,
+                imeAction = ImeAction.Done,
+            ),
+            keyboardActions = KeyboardActions(onDone = { onEvent(BookingEvent.ApplyCode) }),
             trailing = {
                 TextButton(
                     onClick = { onEvent(BookingEvent.ApplyCode) },
@@ -153,7 +165,7 @@ private fun promoHelper(check: PromoCheck?): String? = when (check) {
     is PromoCheck.Applied -> stringResource(
         Res.string.booking_code_applied,
         check.promo.code,
-        check.promo.title.lowercase(),
+        check.promo.localizedTitle.lowercase(),
     )
 
     is PromoCheck.Rejected -> null
@@ -172,13 +184,13 @@ private fun promoError(check: PromoCheck?): String? {
         PromoRejection.WRONG_CATEGORY -> stringResource(
             Res.string.booking_code_wrong_category,
             rejected.code,
-            rejected.promo?.eligibleLabel().orEmpty(),
+            rejected.promo?.localizedEligibleLabel().orEmpty(),
         )
 
         PromoRejection.BELOW_MINIMUM_SPEND -> stringResource(
             Res.string.booking_code_minimum,
             rejected.code,
-            rejected.promo?.minSpendUsd ?: 0,
+            formatPrice(rejected.promo?.minSpendUsd ?: 0),
         )
     }
 }

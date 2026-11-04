@@ -11,13 +11,21 @@ import com.tana.spa.notifications.PostgresNotificationRepository
 import com.tana.spa.promotions.PromotionService
 import com.tana.spa.shared.booking.BookingApi
 import com.tana.spa.shared.booking.CatalogResponse
+import com.tana.spa.shared.booking.OfferCheckRequest
+import com.tana.spa.shared.booking.OfferCheckResponse
+import com.tana.spa.shared.booking.OfferDto
+import com.tana.spa.shared.booking.OffersResponse
 import com.tana.spa.shared.booking.ServiceDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
@@ -64,6 +72,12 @@ class CatalogLanguageTest {
 
     private fun CatalogResponse.service(slug: String): ServiceDto =
         assertNotNull(services.firstOrNull { it.slug == slug }, "$slug is missing from the menu")
+
+    private suspend fun HttpClient.offersIn(language: String): OffersResponse =
+        get(BookingApi.OFFERS) { header(HttpHeaders.AcceptLanguage, language) }.body()
+
+    private fun OffersResponse.offer(code: String): OfferDto =
+        assertNotNull(offers.firstOrNull { it.code == code }, "$code is missing from the offers")
 
     @Test
     fun a_vietnamese_app_reads_the_menu_in_vietnamese() = testApplication {
@@ -124,5 +138,37 @@ class CatalogLanguageTest {
         val menu = jsonClient().get(BookingApi.CATALOG).body<CatalogResponse>()
 
         assertTrue(menu.services.any { it.name == "Warm Stone Massage" }, "the English name is the fallback")
+    }
+
+    @Test
+    fun a_vietnamese_app_reads_the_offers_in_vietnamese() = testApplication {
+        application { module(auth, spa()) }
+        val first = jsonClient().offersIn("vi").offer("FIRSTVISIT")
+
+        assertEquals("Giảm 10% cho lần đặt đầu tiên", first.title)
+        assertEquals("Dành cho khách mới. Mọi liệu trình.", first.terms)
+        assertTrue(first.validUntil!!.contains("thg"), "the date is still English: ${first.validUntil}")
+    }
+
+    @Test
+    fun an_english_app_reads_the_offers_as_the_spa_wrote_them() = testApplication {
+        application { module(auth, spa()) }
+        val first = jsonClient().offersIn("en-US,en;q=0.9").offer("FIRSTVISIT")
+
+        assertEquals("10% off your first booking", first.title)
+        assertEquals("New guests. Any treatment.", first.terms)
+    }
+
+    @Test
+    fun a_code_accepted_for_a_vietnamese_app_is_worded_in_vietnamese() = testApplication {
+        application { module(auth, spa()) }
+        val accepted: OfferCheckResponse = jsonClient().post(BookingApi.OFFER_CHECK) {
+            header(HttpHeaders.AcceptLanguage, "vi")
+            contentType(ContentType.Application.Json)
+            setBody(OfferCheckRequest("FIRSTVISIT", "warm-stone-massage"))
+        }.body()
+
+        assertTrue(accepted.accepted)
+        assertEquals("Giảm 10% cho lần đặt đầu tiên", assertNotNull(accepted.offer).title)
     }
 }

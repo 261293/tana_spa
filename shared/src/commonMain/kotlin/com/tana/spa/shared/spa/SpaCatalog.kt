@@ -35,16 +35,25 @@ data class Therapist(
     val anyAvailable: Boolean = false,
 )
 
+/**
+ * The `*Vi` fields hold the Vietnamese wording beside the English, the way the `_vi` columns do on
+ * the server. Null means nothing was written in that language and the English is shown instead.
+ * Read them through `localizedTitle`/`localizedTerms`/`localizedValidUntil` in `core:ui`, which
+ * knows the language the app is drawing itself in.
+ */
 data class Promo(
     val code: String,
     val title: String,
+    val titleVi: String? = null,
     val percentOff: Int? = null,
     val amountOffUsd: Int? = null,
     val minSpendUsd: Int? = null,
     /** Empty means every treatment qualifies. */
     val eligible: Set<ServiceCategory> = emptySet(),
     val validUntil: String,
+    val validUntilVi: String? = null,
     val terms: String,
+    val termsVi: String? = null,
 )
 
 enum class RequestStatus { PENDING, CONFIRMED, DECLINED }
@@ -113,26 +122,35 @@ object SpaCatalog {
         Promo(
             code = "JADE20",
             title = "20% off any facial",
+            titleVi = "Giảm 20% cho mọi liệu trình chăm sóc da mặt",
             percentOff = 20,
             eligible = setOf(ServiceCategory.FACIAL),
             validUntil = "Oct 31, 2026",
+            validUntilVi = "31 thg 10, 2026",
             terms = "Facials only. One use per guest.",
+            termsVi = "Chỉ áp dụng cho chăm sóc da mặt. Mỗi khách một lần.",
         ),
         Promo(
             code = "MIDWEEK15",
             title = "$15 off weekday massages",
+            titleVi = "Giảm 375.000đ cho massage ngày thường",
             amountOffUsd = 15,
             minSpendUsd = 120,
             eligible = setOf(ServiceCategory.MASSAGE),
             validUntil = "Nov 15, 2026",
+            validUntilVi = "15 thg 11, 2026",
             terms = "Tue-Thu appointments. Minimum spend $120.",
+            termsVi = "Áp dụng thứ Ba đến thứ Năm. Đơn tối thiểu 3.000.000đ.",
         ),
         Promo(
             code = "FIRSTVISIT",
             title = "10% off your first booking",
+            titleVi = "Giảm 10% cho lần đặt đầu tiên",
             percentOff = 10,
             validUntil = "Dec 31, 2026",
+            validUntilVi = "31 thg 12, 2026",
             terms = "New guests. Any treatment.",
+            termsVi = "Dành cho khách mới. Mọi liệu trình.",
         ),
     )
 

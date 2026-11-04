@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
+import com.tana.spa.core.ui.spaPointer
 
 private val ButtonShape = CircleShape
 private val ButtonHeight = 48.dp
@@ -43,7 +44,7 @@ fun SpaPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
             disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = DISABLED_ALPHA),
             disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = DISABLED_ALPHA),
         ),
-        modifier = modifier.fillMaxWidth().height(ButtonHeight),
+        modifier = modifier.spaPointer(enabled && !loading).fillMaxWidth().height(ButtonHeight),
     ) {
         if (loading) {
             CircularProgressIndicator(
@@ -80,7 +81,7 @@ fun SpaPocketButton(
             disabledContentColor = SpaTheme.extraColors.onPocket.copy(alpha = DISABLED_ALPHA),
         ),
         contentPadding = PaddingValues(horizontal = 22.dp),
-        modifier = modifier.fillMaxWidth().height(ButtonHeight),
+        modifier = modifier.spaPointer(enabled).fillMaxWidth().height(ButtonHeight),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(text = text, style = SpaTheme.textStyles.buttonLabel)
@@ -103,7 +104,7 @@ fun SpaSocialButton(text: String, icon: Painter, onClick: () -> Unit, modifier: 
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DISABLED_ALPHA),
         ),
         contentPadding = PaddingValues(horizontal = 22.dp),
-        modifier = modifier.fillMaxWidth().height(ButtonHeight),
+        modifier = modifier.spaPointer(enabled).fillMaxWidth().height(ButtonHeight),
     ) {
         Image(painter = icon, contentDescription = null, modifier = Modifier.size(22.dp))
         Spacer(Modifier.size(10.dp))
@@ -132,7 +133,7 @@ fun SpaSecondaryButton(
             contentColor = contentColor,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DISABLED_ALPHA),
         ),
-        modifier = modifier.fillMaxWidth().height(ButtonHeight),
+        modifier = modifier.spaPointer(enabled).fillMaxWidth().height(ButtonHeight),
     ) {
         Text(text = text, style = SpaTheme.textStyles.buttonLabel)
     }

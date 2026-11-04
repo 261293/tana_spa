@@ -35,9 +35,9 @@ class NavDestinationsTest {
     }
 
     @Test
-    fun the_alert_badge_is_hidden_while_notifications_are_switched_off() {
+    fun the_alerts_destination_is_gone_while_notifications_are_switched_off() {
         val off = navDestinations(desk = false, notificationsEnabled = false, unread = 3, labels = labels)
-        assertEquals(0, off.first { it.route == Routes.NOTIFICATIONS }.badgeCount)
+        assertTrue(off.none { it.route == Routes.NOTIFICATIONS })
         val on = navDestinations(desk = false, notificationsEnabled = true, unread = 3, labels = labels)
         assertEquals(3, on.first { it.route == Routes.NOTIFICATIONS }.badgeCount)
     }

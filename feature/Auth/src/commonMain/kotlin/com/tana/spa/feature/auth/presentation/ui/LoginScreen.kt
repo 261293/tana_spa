@@ -1,7 +1,6 @@
 package com.tana.spa.feature.auth.presentation.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,11 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -26,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,6 +38,8 @@ import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSocialButton
 import com.tana.spa.core.ui.components.SpaTextField
+import com.tana.spa.core.ui.spaClickable
+import com.tana.spa.core.ui.spaPointer
 import com.tana.spa.feature.auth.presentation.manipulator.LoginEffect
 import com.tana.spa.feature.auth.presentation.manipulator.LoginEvent
 import com.tana.spa.feature.auth.presentation.manipulator.LoginState
@@ -146,13 +148,16 @@ private fun ColumnScope.LoginForm(state: LoginState, onEvent: (LoginEvent) -> Un
         }),
         trailing = {
             val description = stringResource(if (showPassword) Res.string.hide_password else Res.string.show_password)
-            Image(
-                painter = painterResource(if (showPassword) Res.drawable.ic_eye else Res.drawable.ic_eye_off),
-                contentDescription = description,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable(role = Role.Button) { onEvent(LoginEvent.TogglePasswordVisibility) },
-            )
+            IconButton(
+                onClick = { onEvent(LoginEvent.TogglePasswordVisibility) },
+                modifier = Modifier.spaPointer(),
+            ) {
+                Image(
+                    painter = painterResource(if (showPassword) Res.drawable.ic_eye else Res.drawable.ic_eye_off),
+                    contentDescription = description,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
         },
     )
 
@@ -172,7 +177,8 @@ private fun ColumnScope.LoginForm(state: LoginState, onEvent: (LoginEvent) -> Un
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier
             .align(Alignment.End)
-            .clickable(enabled = !state.isLoading, role = Role.Button) { onEvent(LoginEvent.ForgotPasswordClicked) }
+            .spaClickable(enabled = !state.isLoading) { onEvent(LoginEvent.ForgotPasswordClicked) }
+            .minimumInteractiveComponentSize()
             .padding(vertical = 4.dp),
     )
 
@@ -186,13 +192,13 @@ private fun ColumnScope.LoginForm(state: LoginState, onEvent: (LoginEvent) -> Un
     )
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+        HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
         Text(
             text = stringResource(Res.string.continue_with),
             style = SpaTheme.textStyles.caption,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outline)
+        HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
     }
 
     SpaSocialButton(

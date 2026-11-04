@@ -272,7 +272,9 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
         id = getString("id"),
         code = getString("code"),
         title = getString("title"),
+        titleVi = getString("title_vi"),
         description = getString("description"),
+        descriptionVi = getString("description_vi"),
         percent = getString("discount_type") == "percent",
         value = getLong("discount_value"),
         minOrder = getLong("min_order_vnd"),
@@ -332,7 +334,8 @@ class PostgresBookingRepository(private val dataSource: DataSource) : BookingRep
 
         const val VOUCHER_SELECT = """
             SELECT id, code, title, description, discount_type, discount_value, min_order_vnd,
-                   starts_at, ends_at, usage_limit, used_count, is_active, eligible_categories
+                   starts_at, ends_at, usage_limit, used_count, is_active, eligible_categories,
+                   title_vi, description_vi
             FROM vouchers
         """
 

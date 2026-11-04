@@ -51,8 +51,7 @@ class SpaColorSchemeTest {
         assertEquals(SpaColors.SurfaceAlt, LightExtraColors.felt)
         assertEquals(SpaColors.Shadow, LightExtraColors.shadow)
         assertEquals(SpaColors.Moss, LightExtraColors.eyebrow)
-        assertEquals(listOf(SpaColors.Forest, SpaColors.ForestDeep), LightExtraColors.heroGradient)
-        assertEquals(listOf(SpaColors.Surface, SpaColors.SurfaceAlt), LightExtraColors.cardGradient)
+        assertEquals(SpaColors.InkSoft, LightExtraColors.inkSoft)
     }
 
     /** WCAG 2.2 1.4.3 for every pairing the screens actually use. */
@@ -72,5 +71,15 @@ class SpaColorSchemeTest {
         assertTrue(contrastRatio(SpaColors.ForestDeep, SpaColors.OnForest) >= 4.5)
         assertTrue(contrastRatio(SpaColors.DangerDeep, SpaColors.ClaySoft) >= 4.5)
         assertTrue(contrastRatio(SpaColors.Danger, SpaColors.Surface) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Forest600, SpaColors.SageSoft) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.Forest600, SpaColors.SageTint) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.InkSoft, SpaColors.Ground) >= 4.5)
+        assertTrue(contrastRatio(SpaColors.InkSoft, SpaColors.SurfaceAlt) >= 4.5)
+    }
+
+    @Test
+    fun a_control_boundary_can_be_seen() {
+        assertTrue(contrastRatio(SpaColors.LineStrong, SpaColors.Surface) >= 3.0)
+        assertTrue(contrastRatio(SpaColors.LineStrong, SpaColors.Ground) >= 3.0)
     }
 }

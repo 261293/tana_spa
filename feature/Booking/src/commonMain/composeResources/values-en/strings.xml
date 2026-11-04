@@ -42,6 +42,7 @@
     <string name="bookings_subtitle">What you’ve asked for, and what the spa has confirmed.</string>
     <string name="bookings_meta">%1$s · %2$s · %3$s</string>
     <string name="bookings_empty">You have no visits booked yet.</string>
+    <string name="bookings_book_now">Book a treatment</string>
     <string name="bookings_failed">We couldn’t load your visits.</string>
     <string name="bookings_retry">Try again</string>
     <string name="bookings_status_pending">Awaiting confirmation</string>
@@ -89,7 +90,7 @@
     <string name="booking_code_unknown">“%1$s” isn’t a valid code.</string>
     <string name="booking_code_no_service">Choose a treatment first.</string>
     <string name="booking_code_wrong_category">%1$s applies to %2$s treatments only.</string>
-    <string name="booking_code_minimum">%1$s needs a minimum spend of $%2$d.</string>
+    <string name="booking_code_minimum">%1$s needs a minimum spend of %2$s.</string>
 
     <string name="booking_total_label">total due at the spa</string>
     <string name="booking_request">Request booking</string>
@@ -107,7 +108,7 @@
     <string name="booking_eyebrow">Reserve</string>
     <string name="booking_today">Today</string>
     <string name="booking_change">Change</string>
-    <string name="booking_subtotal">Treatment</string>
+    <string name="booking_subtotal">Subtotal</string>
     <string name="booking_slots_morning">Morning</string>
     <string name="booking_slots_afternoon">Afternoon</string>
     <string name="booking_slots_evening">Evening</string>

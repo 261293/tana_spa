@@ -4,8 +4,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,9 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
@@ -41,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
+import com.tana.spa.core.ui.spaPointer
 
 private val FieldShape = RoundedCornerShape(8.dp)
 private val FieldHeight = 52.dp
@@ -79,11 +86,16 @@ fun SpaTextField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
+    val hovered by interactionSource.collectIsHoveredAsState()
     var hadFocus by remember { mutableStateOf(false) }
-    val textStyle = SpaTheme.textStyles.fieldText.copy(color = MaterialTheme.colorScheme.onSurface)
+    val fieldFocus = remember { FocusRequester() }
+    val inkAlpha = if (enabled) 1f else DISABLED_ALPHA
+    val textStyle = SpaTheme.textStyles.fieldText.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = inkAlpha))
     val outline = when {
         error != null -> MaterialTheme.colorScheme.error
         focused -> MaterialTheme.colorScheme.primary
+        !enabled -> MaterialTheme.colorScheme.outline.copy(alpha = DISABLED_ALPHA)
+        hovered -> MaterialTheme.colorScheme.onSurfaceVariant
         else -> MaterialTheme.colorScheme.outline
     }
     // The resting hairline is 1dp; focus and errors thicken it rather than change the layout.
@@ -98,6 +110,13 @@ fun SpaTextField(
                 error != null -> MaterialTheme.colorScheme.error
                 else -> MaterialTheme.colorScheme.onSurface
             },
+            modifier = Modifier
+                .spaPointer(enabled, PointerIcon.Text)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    enabled = enabled,
+                ) { fieldFocus.requestFocus() },
         )
         BasicTextField(
             value = value,
@@ -112,6 +131,9 @@ fun SpaTextField(
             interactionSource = interactionSource,
             modifier = Modifier
                 .fillMaxWidth()
+                .focusRequester(fieldFocus)
+                .hoverable(interactionSource, enabled = enabled)
+                .spaPointer(enabled, PointerIcon.Text)
                 .onFocusChanged { focusState ->
                     if (hadFocus && !focusState.isFocused) onFocusLost?.invoke()
                     hadFocus = focusState.isFocused
@@ -124,7 +146,10 @@ fun SpaTextField(
                 },
             decorationBox = { innerTextField ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = FieldHeight).padding(horizontal = 14.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = FieldHeight)
+                        .padding(start = 14.dp, end = if (trailing != null) 2.dp else 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (leadingIcon != null) {
@@ -135,13 +160,13 @@ fun SpaTextField(
                         if (value.isEmpty()) {
                             Text(
                                 text = placeholder,
-                                style = textStyle.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                                style = textStyle.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = inkAlpha)),
                             )
                         }
                         innerTextField()
                     }
                     if (trailing != null) {
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(4.dp))
                         trailing()
                     }
                 }

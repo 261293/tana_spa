@@ -1,7 +1,6 @@
 package com.tana.spa.feature.notifications.presentation.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +24,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -49,6 +48,7 @@ import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.rememberSpaLazyListState
 import com.tana.spa.core.ui.revealOnScroll
+import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.feature.notifications.domain.NotificationItem
 import com.tana.spa.feature.notifications.presentation.NotificationsEffect
 import com.tana.spa.feature.notifications.presentation.NotificationsEvent
@@ -88,6 +88,7 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
 
 private val ScreenPadding = 16.dp
+private val ActionWidth = 320.dp
 
 /** Stateless: renders [state], reports intents via [onEvent], routes one-shot [effects]. */
 @Composable
@@ -210,7 +211,8 @@ private fun Header(state: NotificationsState, onEvent: (NotificationsEvent) -> U
                 style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .clickable(role = Role.Button) { onEvent(NotificationsEvent.MarkAllRead) }
+                    .spaClickable { onEvent(NotificationsEvent.MarkAllRead) }
+                    .minimumInteractiveComponentSize()
                     .padding(8.dp),
             )
         }
@@ -288,7 +290,7 @@ private fun NotificationRow(item: NotificationItem, nowEpochMillis: Long, onClic
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
+            .spaClickable(onClick = onClick)
             .semantics { if (!item.read) stateDescription = unread },
     )
 }
@@ -356,7 +358,11 @@ private fun LoadFailed(onRetry: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
         )
-        SpaPrimaryButton(text = stringResource(Res.string.notifications_retry), onClick = onRetry)
+        SpaSecondaryButton(
+            text = stringResource(Res.string.notifications_retry),
+            onClick = onRetry,
+            modifier = Modifier.widthIn(max = ActionWidth),
+        )
     }
 }
 

@@ -9,12 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
+import com.tana.spa.core.ui.spaPointer
 
 @Composable
 fun SpaFloatingActionButton(icon: Painter, contentDescription: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     FloatingActionButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.spaPointer(),
         shape = CircleShape,
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,

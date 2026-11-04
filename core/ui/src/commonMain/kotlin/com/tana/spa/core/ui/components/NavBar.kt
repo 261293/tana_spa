@@ -1,12 +1,12 @@
 package com.tana.spa.core.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -18,6 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
@@ -26,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.model.NavConfig
+import com.tana.spa.core.ui.spaClickable
 
 /** Phone-width navigation: Material's bottom bar. */
 @Composable
@@ -80,33 +84,35 @@ fun SpaNavigationRail(items: List<NavConfig>, selectedRoute: String, onSelect: (
  */
 @Composable
 fun SpaTopBarDestinations(items: List<NavConfig>, selectedRoute: String, onSelect: (String) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
         items.forEach { item ->
             val selected = item.route == selectedRoute
-            FilledTonalButton(
-                onClick = { onSelect(item.route) },
-                shape = MaterialTheme.shapes.small,
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = if (selected) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.background
-                    },
-                    contentColor = if (selected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                ),
-                modifier = Modifier.semantics {
-                    this.selected = selected
-                    role = Role.Tab
-                },
+            // A filled chip here only reads while the bar keeps its resting colour: once the bar
+            // lifts on scroll every chip shows up and none of them looks chosen. The design marks
+            // the place with weight, full ink and a rule under the word instead.
+            val ink = if (selected) MaterialTheme.colorScheme.onSurface else SpaTheme.extraColors.inkSoft
+            val rule = MaterialTheme.colorScheme.secondary
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .spaClickable(role = Role.Tab) { onSelect(item.route) }
+                    .semantics { this.selected = selected }
+                    .drawBehind {
+                        if (selected) {
+                            val width = 1.dp.toPx()
+                            val y = size.height - width / 2
+                            drawLine(rule, Offset(0f, y), Offset(size.width, y), strokeWidth = width)
+                        }
+                    }
+                    .padding(horizontal = 6.dp, vertical = 12.dp),
             ) {
-                NavIcon(item)
+                NavIcon(item, ink)
                 Text(
                     text = item.label,
-                    style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
+                    style = SpaTheme.textStyles.body.copy(
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    ),
+                    color = ink,
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }
@@ -115,7 +121,7 @@ fun SpaTopBarDestinations(items: List<NavConfig>, selectedRoute: String, onSelec
 }
 
 @Composable
-private fun NavIcon(item: NavConfig) {
+private fun NavIcon(item: NavConfig, tint: Color = LocalContentColor.current) {
     BadgedBox(
         badge = {
             if (item.badgeCount > 0) {
@@ -128,6 +134,6 @@ private fun NavIcon(item: NavConfig) {
             }
         },
     ) {
-        SpaIconImage(item.icon, size = 22.dp)
+        SpaIconImage(item.icon, size = 22.dp, tint = tint)
     }
 }
