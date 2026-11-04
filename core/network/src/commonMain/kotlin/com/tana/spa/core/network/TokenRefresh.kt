@@ -24,8 +24,8 @@ class TokenRefreshConfig {
  * its hour costs a round trip instead of a trip back to the sign-in screen.
  *
  * Only calls that carried a bearer token are retried: a 401 from sign-in means the password was
- * wrong, and the refresh and logout endpoints carry no token, which is also what stops this
- * plugin recursing into itself.
+ * wrong, and the refresh grant carries no token, which is also what stops this plugin recursing
+ * into itself. Calls that carry a token but must not be retried opt out with [withoutTokenRefresh].
  */
 val TokenRefresh = createClientPlugin("TokenRefresh", ::TokenRefreshConfig) {
     val provideRefresher = pluginConfig.refresher
@@ -46,6 +46,15 @@ val TokenRefresh = createClientPlugin("TokenRefresh", ::TokenRefreshConfig) {
         request.headers[HttpHeaders.Authorization] = BEARER + fresh
         proceed(request)
     }
+}
+
+/**
+ * For a call whose token must not be swapped for the stored session's: the first call made with a
+ * token just granted (a refresh in progress holds the refresh lock, so refreshing again would wait
+ * on itself), and a sign-out (by then the stored session may belong to the next sign-in).
+ */
+fun HttpRequestBuilder.withoutTokenRefresh() {
+    attributes.put(AlreadyRetried, true)
 }
 
 private fun HttpRequestBuilder.bearerToken(): String? =

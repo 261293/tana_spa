@@ -13,8 +13,8 @@ interface AuthRemoteApi {
     /** Spends [refreshToken]; the answer carries its replacement. */
     suspend fun refresh(refreshToken: String): AuthResponse
 
-    /** Revokes [refreshToken] and every token descended from the same sign-in. */
-    suspend fun logout(refreshToken: String)
+    /** Ends the sign-in [accessToken] belongs to, and with it that sign-in's refresh token. */
+    suspend fun logout(accessToken: String)
 
     /** Asks the server to text a code to the phone number already on the account. */
     suspend fun sendPhoneOtp(accessToken: String): PhoneOtpSendResponse

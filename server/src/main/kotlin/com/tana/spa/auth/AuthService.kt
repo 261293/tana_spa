@@ -36,7 +36,7 @@ class AuthService(
         val normalizedPhone = PhoneNumbers.parse(phone, defaultPhoneRegion)?.e164
             ?: return@withContext AuthResult.InvalidInput
         if (AuthValidation.validatePassword(password) != null ||
-            password.length > AuthValidation.MAX_PASSWORD_LENGTH
+            password.encodeToByteArray().size > AuthValidation.MAX_PASSWORD_BYTES
         ) {
             return@withContext AuthResult.InvalidInput
         }
@@ -60,7 +60,7 @@ class AuthService(
         if (AuthValidation.validateName(name) != null) return@withContext AuthResult.InvalidInput
         if (AuthValidation.validateEmail(email) != null) return@withContext AuthResult.InvalidInput
         if (AuthValidation.validatePassword(password) != null ||
-            password.length > AuthValidation.MAX_PASSWORD_LENGTH
+            password.encodeToByteArray().size > AuthValidation.MAX_PASSWORD_BYTES
         ) {
             return@withContext AuthResult.InvalidInput
         }
@@ -79,7 +79,7 @@ class AuthService(
     suspend fun login(email: String, password: String): AuthResult = withContext(io) {
         // Cap length before hashing so a huge payload cannot be used to burn CPU.
         if (AuthValidation.validateEmail(email) != null || password.isEmpty() ||
-            password.length > AuthValidation.MAX_PASSWORD_LENGTH
+            password.encodeToByteArray().size > AuthValidation.MAX_PASSWORD_BYTES
         ) {
             return@withContext AuthResult.InvalidCredentials
         }

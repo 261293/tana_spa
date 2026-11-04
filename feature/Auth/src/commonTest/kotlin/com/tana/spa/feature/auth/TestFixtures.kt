@@ -91,8 +91,8 @@ class FakeRemote(
         return refreshResponse ?: response
     }
 
-    override suspend fun logout(refreshToken: String) {
-        loggedOutWith += refreshToken
+    override suspend fun logout(accessToken: String) {
+        loggedOutWith += accessToken
     }
 
     override suspend fun sendPhoneOtp(accessToken: String): PhoneOtpSendResponse {
@@ -140,8 +140,8 @@ class FakeAuthRepository(var session: Session? = TestFixtures.session) : AuthRep
         return session
     }
 
-    override suspend fun revokeRefreshToken(refreshToken: String) {
-        revokedTokens += refreshToken
+    override suspend fun revokeSession(accessToken: String) {
+        revokedTokens += accessToken
     }
 
     override suspend fun sendPhoneOtp(): OtpSendResult {

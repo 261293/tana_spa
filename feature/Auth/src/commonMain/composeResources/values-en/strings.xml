@@ -54,6 +54,7 @@
     <string name="error_phone_invalid">Invalid phone number</string>
     <string name="error_password_empty">Please enter your password</string>
     <string name="error_password_too_short">Password must be at least 8 characters</string>
+    <string name="error_password_too_long">Password is too long</string>
 
     <!-- Request failures -->
     <string name="failure_invalid_credentials">Incorrect email or password</string>

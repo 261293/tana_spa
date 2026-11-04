@@ -2,7 +2,7 @@ package com.tana.spa.shared.auth
 
 enum class EmailError { EMPTY, INVALID }
 
-enum class PasswordError { EMPTY, TOO_SHORT }
+enum class PasswordError { EMPTY, TOO_SHORT, TOO_LONG }
 
 enum class PhoneError { EMPTY, INVALID }
 
@@ -14,7 +14,9 @@ enum class NameError { EMPTY, TOO_LONG }
  */
 object AuthValidation {
     const val MIN_PASSWORD_LENGTH = 8
-    const val MAX_PASSWORD_LENGTH = 128
+
+    /** Supabase Auth hashes with bcrypt, which reads only the first 72 bytes, and refuses anything longer. */
+    const val MAX_PASSWORD_BYTES = 72
     const val MAX_EMAIL_LENGTH = 254
     const val MAX_NAME_LENGTH = 100
 
@@ -54,6 +56,7 @@ object AuthValidation {
     fun validatePassword(password: String): PasswordError? = when {
         password.isEmpty() -> PasswordError.EMPTY
         password.length < MIN_PASSWORD_LENGTH -> PasswordError.TOO_SHORT
+        password.encodeToByteArray().size > MAX_PASSWORD_BYTES -> PasswordError.TOO_LONG
         else -> null
     }
 

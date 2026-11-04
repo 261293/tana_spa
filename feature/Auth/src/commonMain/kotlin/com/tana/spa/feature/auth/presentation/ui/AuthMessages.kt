@@ -13,6 +13,7 @@ import com.tana.spa.feature.auth.resources.error_email_invalid
 import com.tana.spa.feature.auth.resources.error_name_empty
 import com.tana.spa.feature.auth.resources.error_name_too_long
 import com.tana.spa.feature.auth.resources.error_password_empty
+import com.tana.spa.feature.auth.resources.error_password_too_long
 import com.tana.spa.feature.auth.resources.error_password_too_short
 import com.tana.spa.feature.auth.resources.error_phone_empty
 import com.tana.spa.feature.auth.resources.error_phone_invalid
@@ -58,6 +59,7 @@ internal fun PhoneError.res(): StringResource = when (this) {
 internal fun PasswordError.res(): StringResource = when (this) {
     PasswordError.EMPTY -> Res.string.error_password_empty
     PasswordError.TOO_SHORT -> Res.string.error_password_too_short
+    PasswordError.TOO_LONG -> Res.string.error_password_too_long
 }
 
 internal fun AuthFailure.res(): StringResource = when (this) {
