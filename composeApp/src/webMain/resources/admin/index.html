@@ -202,6 +202,12 @@ async function api(fn, body) {
   }
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
 function state(value) {
   return value ? '<span class="on">on</span>' : '<span class="off">off</span>';
 }
@@ -227,15 +233,15 @@ function renderFlags() {
       ? '<span class="muted">not set</span>'
       : state(flag.globalEnabled);
     return '<tr>' +
-      '<td><code>' + flag.key + '</code><br><span class="muted small">' + flag.description + '</span></td>' +
+      '<td><code>' + escapeHtml(flag.key) + '</code><br><span class="muted small">' + escapeHtml(flag.description) + '</span></td>' +
       '<td>' + state(flag.enabled) + '</td>' +
       '<td>' + stored + '</td>' +
       '<td>' + state(flag.deployDefault) + '</td>' +
       '<td>' + (flag.overrides || []).length + '</td>' +
       '<td style="white-space:nowrap">' +
-        '<button data-global="' + flag.key + '" data-enabled="true">On</button>' +
-        '<button data-global="' + flag.key + '" data-enabled="false">Off</button>' +
-        '<button data-clear-global="' + flag.key + '">Clear</button>' +
+        '<button data-global="' + escapeHtml(flag.key) + '" data-enabled="true">On</button>' +
+        '<button data-global="' + escapeHtml(flag.key) + '" data-enabled="false">Off</button>' +
+        '<button data-clear-global="' + escapeHtml(flag.key) + '">Clear</button>' +
       '</td></tr>';
   });
   el('flag-rows').innerHTML = rows.join('');
@@ -250,16 +256,16 @@ function renderUser() {
   var rows = view.flags.map(function (flag) {
     var override = overrideFor(flag, selected.id);
     var stored = override
-      ? state(override.enabled) + (override.note ? ' <span class="muted small">' + override.note + '</span>' : '')
+      ? state(override.enabled) + (override.note ? ' <span class="muted small">' + escapeHtml(override.note) + '</span>' : '')
       : '<span class="muted">follows everybody</span>';
     return '<tr>' +
-      '<td><code>' + flag.key + '</code></td>' +
+      '<td><code>' + escapeHtml(flag.key) + '</code></td>' +
       '<td>' + state(effective(flag, selected.id)) + '</td>' +
       '<td>' + stored + '</td>' +
       '<td style="white-space:nowrap">' +
-        '<button data-user="' + flag.key + '" data-enabled="true">On</button>' +
-        '<button data-user="' + flag.key + '" data-enabled="false">Off</button>' +
-        '<button data-clear-user="' + flag.key + '"' + (override ? '' : ' disabled') + '>Clear</button>' +
+        '<button data-user="' + escapeHtml(flag.key) + '" data-enabled="true">On</button>' +
+        '<button data-user="' + escapeHtml(flag.key) + '" data-enabled="false">Off</button>' +
+        '<button data-clear-user="' + escapeHtml(flag.key) + '"' + (override ? '' : ' disabled') + '>Clear</button>' +
       '</td></tr>';
   });
   el('user-rows').innerHTML = rows.join('');
@@ -377,9 +383,9 @@ el('search-form').addEventListener('submit', async function (event) {
       return;
     }
     el('results').innerHTML = found.users.map(function (user) {
-      return '<li><button data-pick="' + user.id + '">Select</button>' +
-        '<strong>' + user.displayName + '</strong> ' +
-        '<span class="muted small">' + user.email + ' · ' + user.role + ' · <code>' + user.id + '</code></span></li>';
+      return '<li><button data-pick="' + escapeHtml(user.id) + '">Select</button>' +
+        '<strong>' + escapeHtml(user.displayName) + '</strong> ' +
+        '<span class="muted small">' + escapeHtml(user.email) + ' · ' + escapeHtml(user.role) + ' · <code>' + escapeHtml(user.id) + '</code></span></li>';
     }).join('');
     el('results').dataset.found = JSON.stringify(found.users);
   } catch (e) {
