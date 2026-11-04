@@ -1,6 +1,6 @@
 begin;
 \ir _helpers.psql
-select plan(16);
+select plan(18);
 
 create temp table ctx as
 select pg_temp.new_user('admin', 'root@test.local') as root,
@@ -50,6 +50,13 @@ update public.feature_flags set enabled = true where key = 'app_update_gate';
 delete from public.app_update_config;
 select pg_temp.as_anon();
 select is(public.app_update_config(), null::jsonb, 'no_row_answers_null');
+
+select pg_temp.as_postgres();
+select is(private.parse_version('99999999999999999999'), null, 'huge_segment_parses_to_null');
+select pg_temp.as_user((select root from ctx));
+select is(
+  pg_temp.api_error($$select public.save_app_update_config('99999999999999999999.0.0', '2.0.0', false)$$), 'PGRST 400 invalid_request',
+  'huge_segment_is_400');
 
 select * from finish();
 rollback;

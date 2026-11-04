@@ -5,7 +5,7 @@ declare
     segments text[] := string_to_array(btrim(raw, E' \t\r\n'), '.');
     numbers int[] := '{}';
     segment text;
-    parsed bigint;
+    parsed numeric;
 begin
     if cardinality(segments) not between 1 and 3 then
         return null;
