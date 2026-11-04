@@ -1,21 +1,23 @@
+create function private.flag_catalog() returns table (ord int, key text, default_enabled boolean, description text)
+    language sql immutable set search_path = ''
+as $$
+    select * from (values
+        (1, 'phone_otp_verification', false, 'Phone-number verification with SMS one-time codes'),
+        (2, 'app_update_gate', true, 'Force and optional app-update prompts driven by app_update_config'),
+        (3, 'notifications', false, 'Notification centre and push delivery to registered devices')
+    ) as c(ord, key, default_enabled, description)
+$$;
+
 create function private.flag_default(key text) returns boolean
     language sql immutable set search_path = ''
 as $$
-    select case key
-        when 'phone_otp_verification' then false
-        when 'app_update_gate' then true
-        when 'notifications' then false
-    end
+    select c.default_enabled from private.flag_catalog() c where c.key = flag_default.key
 $$;
 
 create function private.flag_description(key text) returns text
     language sql immutable set search_path = ''
 as $$
-    select case key
-        when 'phone_otp_verification' then 'Phone-number verification with SMS one-time codes'
-        when 'app_update_gate' then 'Force and optional app-update prompts driven by app_update_config'
-        when 'notifications' then 'Notification centre and push delivery to registered devices'
-    end
+    select c.description from private.flag_catalog() c where c.key = flag_description.key
 $$;
 
 create function private.flag_enabled(key text, uid uuid) returns boolean
@@ -54,28 +56,28 @@ as $$
                 from public.feature_flag_overrides o where o.flag_key = c.key
             ), '[]'::jsonb)
         ) order by c.ord), '[]'::jsonb))
-    from unnest(array['phone_otp_verification', 'app_update_gate', 'notifications']) with ordinality as c(key, ord)
+    from private.flag_catalog() c
     left join public.feature_flags g on g.key = c.key
 $$;
 
 create function private.require_known_flag(key text) returns void
-    language plpgsql immutable set search_path = ''
+    language plpgsql stable set search_path = ''
 as $$
 begin
-    if private.flag_default(key) is null then
+    if not exists (select 1 from private.flag_catalog() c where c.key = require_known_flag.key) then
         perform private.fail('unknown_flag', 404, 'No such feature flag');
     end if;
 end
 $$;
 
-revoke all on function private.flag_default(text), private.flag_description(text), private.flag_enabled(text, uuid),
+revoke all on function private.flag_catalog(), private.flag_default(text), private.flag_description(text), private.flag_enabled(text, uuid),
     private.require_flag(text, uuid), private.flag_admin_view(), private.require_known_flag(text) from public;
 
 create function public.feature_flags() returns jsonb
     language sql stable security definer set search_path = ''
 as $$
-    select jsonb_build_object('flags', jsonb_object_agg(k, private.flag_enabled(k, auth.uid())))
-    from unnest(array['phone_otp_verification', 'app_update_gate', 'notifications']) as k
+    select jsonb_build_object('flags', jsonb_object_agg(c.key, private.flag_enabled(c.key, auth.uid())))
+    from private.flag_catalog() c
 $$;
 
 create function public.admin_feature_flags() returns jsonb

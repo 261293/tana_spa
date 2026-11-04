@@ -1,6 +1,6 @@
 begin;
 \ir _helpers.psql
-select plan(27);
+select plan(28);
 
 create temp table people as
 select pg_temp.new_user('customer', 'lan@test.local') as lan,
@@ -13,6 +13,10 @@ select results_eq(
   $$select k, private.flag_default(k) from unnest(array['phone_otp_verification', 'app_update_gate', 'notifications']) with ordinality as t(k, n) order by n$$,
   $$values ('phone_otp_verification', false), ('app_update_gate', true), ('notifications', false)$$,
   'flag_defaults_match_kotlin');
+select results_eq(
+  $$select ord, key, default_enabled from private.flag_catalog() order by ord$$,
+  $$values (1, 'phone_otp_verification', false), (2, 'app_update_gate', true), (3, 'notifications', false)$$,
+  'catalog_lists_flags_once_in_order');
 select is(private.flag_default('nope'), null, 'unknown_key_has_no_default');
 
 select results_eq(
