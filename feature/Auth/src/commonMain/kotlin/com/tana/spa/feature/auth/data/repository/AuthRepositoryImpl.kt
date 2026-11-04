@@ -72,7 +72,7 @@ class AuthRepositoryImpl(
             return null
         }
         return try {
-            val session = remote.refresh(stored.refreshToken).toSession(nowMillis())
+            val session = remote.refresh(stored.refreshToken, stored.user.toUserDto()).toSession(nowMillis())
             store.save(session)
             AppLog.i(TAG) { "refreshed session for user=${session.user.id}" }
             session
@@ -204,6 +204,8 @@ private fun AuthApiException.toAuthFailure(): AuthFailure = when {
 }
 
 private fun UserDto.toAuthUser() = AuthUser(id, email, displayName, phone, phoneVerified, UserRoleName.fromWire(role))
+
+private fun AuthUser.toUserDto() = UserDto(id, email, displayName, phone, phoneVerified, role.wire)
 
 private const val MILLIS_PER_SECOND = 1000
 

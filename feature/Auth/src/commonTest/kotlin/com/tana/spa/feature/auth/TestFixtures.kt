@@ -85,7 +85,7 @@ class FakeRemote(
         return response
     }
 
-    override suspend fun refresh(refreshToken: String): AuthResponse {
+    override suspend fun refresh(refreshToken: String, knownUser: UserDto): AuthResponse {
         refreshedWith += refreshToken
         refreshError?.let { throw it }
         return refreshResponse ?: response

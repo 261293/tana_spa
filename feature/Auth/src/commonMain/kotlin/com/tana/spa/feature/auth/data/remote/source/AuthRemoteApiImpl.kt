@@ -1,5 +1,6 @@
 package com.tana.spa.feature.auth.data.remote.source
 
+import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.network.NetworkClient
 import com.tana.spa.core.network.withoutTokenRefresh
 import com.tana.spa.feature.auth.data.remote.AuthApiException
@@ -59,8 +60,9 @@ class AuthRemoteApiImpl(private val networkClient: NetworkClient, private val ba
         },
     )
 
-    override suspend fun refresh(refreshToken: String): AuthResponse = signIn(
+    override suspend fun refresh(refreshToken: String, knownUser: UserDto): AuthResponse = signIn(
         send(HttpMethod.Post, SupabasePaths.REFRESH_GRANT) { json(buildJsonObject { put("refresh_token", refreshToken) }) },
+        knownUser,
     )
 
     override suspend fun logout(accessToken: String) {
@@ -96,12 +98,12 @@ class AuthRemoteApiImpl(private val networkClient: NetworkClient, private val ba
         return me(accessToken)
     }
 
-    private suspend fun signIn(response: HttpResponse): AuthResponse {
+    private suspend fun signIn(response: HttpResponse, knownUser: UserDto? = null): AuthResponse {
         val grant = response.body<Grant>()
         return AuthResponse(
             accessToken = grant.accessToken,
             expiresInSeconds = grant.expiresIn,
-            user = me(grant.accessToken, refreshable = false),
+            user = if (knownUser == null) me(grant.accessToken, refreshable = false) else meOr(knownUser, grant.accessToken),
             refreshToken = grant.refreshToken,
             refreshExpiresInSeconds = REFRESH_LIFETIME_SECONDS,
         )
@@ -111,6 +113,15 @@ class AuthRemoteApiImpl(private val networkClient: NetworkClient, private val ba
         bearerAuth(accessToken)
         if (!refreshable) withoutTokenRefresh()
     }.body()
+
+    private suspend fun meOr(knownUser: UserDto, accessToken: String): UserDto = try {
+        me(accessToken, refreshable = false)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Throwable) {
+        AppLog.w(TAG, e) { "profile unavailable after refresh, keeping the stored one: ${e::class.simpleName}" }
+        knownUser
+    }
 
     private fun phoneOf(user: UserDto): String =
         user.phone?.let(AuthValidation::normalizePhone) ?: throw AuthApiException(HTTP_BAD_REQUEST, AuthErrorCodes.INVALID_REQUEST)
@@ -162,6 +173,7 @@ class AuthRemoteApiImpl(private val networkClient: NetworkClient, private val ba
         const val OTP_LIFETIME_SECONDS = 3600
         const val REFRESH_LIFETIME_SECONDS = 30L * 24 * 60 * 60
         const val MASK_VISIBLE = 3
+        const val TAG = "AuthRemote"
     }
 
     private fun mask(phone: String): String =

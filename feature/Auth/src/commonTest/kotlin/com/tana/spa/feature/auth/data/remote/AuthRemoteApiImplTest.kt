@@ -123,7 +123,7 @@ class AuthRemoteApiImplTest {
     fun spent_refresh_token_maps_to_invalid_refresh_token() = runTest {
         val api = api { Reply(HttpStatusCode.BadRequest, """{"code":400,"error_code":"refresh_token_not_found","msg":"x"}""") }
 
-        val e = assertFailsWith<AuthApiException> { api.refresh("r0") }
+        val e = assertFailsWith<AuthApiException> { api.refresh("r0", TestFixtures.response.user) }
 
         assertEquals(AuthErrorCodes.INVALID_REFRESH_TOKEN, e.code)
         assertEquals("""{"refresh_token":"r0"}""", sent.single().body)
@@ -215,6 +215,59 @@ class AuthRemoteApiImplTest {
 
         assertEquals(listOf("/rest/v1/rpc/me", "/auth/v1/verify", "/rest/v1/rpc/me"), sent.map { it.target })
         assertEquals("""{"type":"phone_change","phone":"+84912345678","token":"123456"}""", sent[1].body)
+    }
+
+    private val signedIn = TestFixtures.session.copy(accessToken = "stale", refreshToken = "r0")
+
+    private suspend fun refreshWith(store: FakeSessionStore, route: (Sent) -> Reply) =
+        AuthRepositoryImpl(AuthRemoteApiImpl(client(route = route), "http://api.test"), store, nowMillis = { 0L }).refreshSession()
+
+    @Test
+    fun refresh_keeps_the_new_tokens_and_the_old_user_when_me_answers_an_error() = runTest {
+        val store = FakeSessionStore(signedIn)
+
+        val session = refreshWith(store) {
+            if (it.target.startsWith("/auth/v1/token")) ok(grant("fresh", "r1")) else Reply(HttpStatusCode.ServiceUnavailable, "{}")
+        }
+
+        assertEquals("fresh", session?.accessToken)
+        assertEquals("fresh", store.stored?.accessToken)
+        assertEquals("r1", store.stored?.refreshToken)
+        assertEquals(signedIn.user, store.stored?.user)
+    }
+
+    @Test
+    fun refresh_keeps_the_new_tokens_and_the_old_user_when_me_cannot_be_reached() = runTest {
+        val store = FakeSessionStore(signedIn)
+
+        refreshWith(store) {
+            if (it.target.startsWith("/auth/v1/token")) ok(grant("fresh", "r1")) else throw IllegalStateException("connection reset")
+        }
+
+        assertEquals("r1", store.stored?.refreshToken)
+        assertEquals(signedIn.user, store.stored?.user)
+    }
+
+    @Test
+    fun refresh_saves_the_refreshed_user_when_me_answers() = runTest {
+        val store = FakeSessionStore(signedIn)
+
+        refreshWith(store) { if (it.target.startsWith("/auth/v1/token")) ok(grant("fresh", "r1")) else ok(me) }
+
+        assertEquals("r1", store.stored?.refreshToken)
+        assertEquals("+84912345678", store.stored?.user?.phone)
+    }
+
+    @Test
+    fun a_spent_refresh_token_clears_the_session() = runTest {
+        val store = FakeSessionStore(signedIn)
+
+        val session = refreshWith(store) {
+            Reply(HttpStatusCode.BadRequest, """{"code":400,"error_code":"refresh_token_already_used","msg":"x"}""")
+        }
+
+        assertEquals(null, session)
+        assertEquals(null, store.stored)
     }
 
     @Test
