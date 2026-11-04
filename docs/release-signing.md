@@ -157,6 +157,5 @@ leaked API key because an API key can be revoked without invalidating existing b
 - [ ] Play App Signing enabled; upload keystore and its password backed up separately.
 - [ ] `TEAM_ID` and `ExportOptions.plist` filled in; archive signed with Apple Distribution.
 - [ ] `mapping.txt` archived per release, privately ([code-hardening.md](code-hardening.md)).
-- [ ] `Constants.apiBaseUrl` points at the deployed HTTPS backend — release builds block
-      cleartext HTTP.
+- [ ] The Supabase project in `Constants` has the deployed backend — the apps always call it.
 - [ ] The signed build smoke-tested on a real device, not just the debug build.

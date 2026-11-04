@@ -12,6 +12,10 @@ composeApp ──► feature/* ──► core/{mvi,navigation,network,cache,ui} 
 Rules: features never depend on each other; `core/*` never depends on `feature/*`;
 only `composeApp` knows every feature (via `FeaturesRegistry` and `appModules()`).
 
+The backend is Supabase (`supabase/`): Auth, database functions called over the Data API, and two
+Edge Functions. The `data` layer of a feature calls it through `core/network`; see
+`docs/adr/0007-backend-on-supabase.md`.
+
 ## Inside a feature (see `feature/Feed`)
 
 | Layer | Package | Responsibility |
