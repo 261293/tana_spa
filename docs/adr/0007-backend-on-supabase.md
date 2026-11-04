@@ -12,8 +12,9 @@ The owner wants the app to run for as little as possible, ideally nothing. The d
 lived on a free Supabase project. The backend was a Ktor server packaged as a JVM fat jar, and no
 free host the owner accepted could run it:
 
-- **Fly.io** was considered first and rejected; the specific reason is not recorded in this
-  repository beyond the JVM not fitting a free tier the owner accepted.
+- **Fly.io** was considered first: a `fly.toml` was written and the server image was built and
+  verified locally, but never committed. The owner rejected Fly, and the goal became a free or
+  lowest-cost app, which Fly, with no free tier, does not meet.
 - **Cloud Run** was declined by the owner.
 - **Cloudflare Containers** needs Workers Paid; the Cloudflare account is on the free plan.
 - **Supabase Compute** is a private alpha.
@@ -77,8 +78,8 @@ request bodies changed (`shared/.../SupabasePaths.kt`). `supabase-kt` was not ad
 
 | Alternative | Why not |
 |---|---|
-| Keep Ktor on **Fly.io** | Rejected by the owner; a JVM server did not fit the free tier the owner accepted |
+| Keep Ktor on **Fly.io** | Rejected by the owner; Fly has no free tier, and the goal is a free or lowest-cost app |
 | Keep Ktor on **Cloud Run** | Declined by the owner |
 | Keep Ktor on **Cloudflare Containers** | Needs Workers Paid; the account is free |
-| **Rewrite the server as one TypeScript Edge Function** behind the unchanged `/api/v1/...` contract | The client would only have changed its base URL, but about 6,200 lines of server would have been rewritten by hand, auth and refresh-token rotation included. Recommended by the assistant; the owner chose the Supabase-native approach instead |
+| **Rewrite the server as one TypeScript Edge Function** behind the unchanged `/api/v1/...` contract | The client would only have changed its base URL, but about 6,200 lines of server would have been rewritten by hand, auth and refresh-token rotation included. Considered first; the owner chose the Supabase-native approach instead |
 | One Edge Function per module | Every client URL changes anyway, plus a cold start per module |
