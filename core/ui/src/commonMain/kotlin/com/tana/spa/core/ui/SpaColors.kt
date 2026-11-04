@@ -31,7 +31,7 @@ object SpaColors {
     val ClaySoft = Color(0xFFF6E6DF)
 
     val Line = Color(0xFFDBE2D9)
-    val LineStrong = Color(0xFFC3CEC4)
+    val LineStrong = Color(0xFF6F8A76)
 
     val Danger = Color(0xFF8C3823)
     val DangerDeep = Color(0xFF742C1A)

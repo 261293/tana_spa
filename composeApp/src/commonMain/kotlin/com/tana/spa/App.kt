@@ -11,11 +11,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -27,7 +28,7 @@ import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tana.spa.common.FeaturesRegistry
@@ -59,6 +60,8 @@ import com.tana.spa.core.ui.resources.nav_settings
 import com.tana.spa.core.ui.resources.nav_treatments
 import com.tana.spa.core.ui.resources.nav_visits
 import com.tana.spa.core.ui.scafold.AppScaffold
+import com.tana.spa.core.ui.spaClickable
+import com.tana.spa.core.ui.spaPointer
 import com.tana.spa.feature.appupdate.AppUpdateGate
 import com.tana.spa.feature.auth.data.local.SessionStore
 import com.tana.spa.feature.booking.presentation.CurrentVisit
@@ -262,7 +265,7 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
         topBarActions = {
             // The only other way into the visits list is the sheet shown right after booking, so
             // without this a guest who reopens the app cannot see or cancel what they booked.
-            IconButton(onClick = { navigator.navigate(Routes.MY_BOOKINGS) }) {
+            IconButton(onClick = { navigator.navigate(Routes.MY_BOOKINGS) }, modifier = Modifier.spaPointer()) {
                 SpaIconImage(
                     icon = SpaIcon.CalendarCheck,
                     size = 22.dp,
@@ -273,8 +276,10 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
             SpaAvatar(
                 initials = initialsOf(account?.displayName.orEmpty()),
                 modifier = Modifier
-                    .padding(end = 12.dp)
-                    .clickable(role = Role.Button) { navigator.navigate(Routes.SETTINGS) },
+                    .padding(end = 6.dp)
+                    .clip(CircleShape)
+                    .spaClickable { navigator.navigate(Routes.SETTINGS) }
+                    .minimumInteractiveComponentSize(),
             )
         },
     ) {
@@ -343,7 +348,7 @@ data class NavLabels(
 internal fun navDestinations(desk: Boolean, notificationsEnabled: Boolean, unread: Int, labels: NavLabels): List<NavConfig> = buildList {
     if (!desk) add(NavConfig(Routes.TREATMENTS, labels.treatments, SpaIcon.Lotus))
     add(NavConfig(Routes.BOOKING, labels.book, SpaIcon.CalendarPlus))
-    add(NavConfig(Routes.NOTIFICATIONS, labels.alerts, SpaIcon.Bell, badgeCount = if (notificationsEnabled) unread else 0))
+    if (notificationsEnabled) add(NavConfig(Routes.NOTIFICATIONS, labels.alerts, SpaIcon.Bell, badgeCount = unread))
     add(NavConfig(Routes.PROMOTIONS, labels.offers, SpaIcon.Tag))
     if (desk) add(NavConfig(Routes.ADMIN_REQUESTS, labels.desk, SpaIcon.Calendar))
     add(NavConfig(Routes.SETTINGS, labels.settings, SpaIcon.Gear))

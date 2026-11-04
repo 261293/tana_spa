@@ -1,6 +1,5 @@
 package com.tana.spa.feature.settings.presentation.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +47,7 @@ import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.spaFelt
 import com.tana.spa.core.ui.rememberSpaScrollState
 import com.tana.spa.core.ui.revealOnScroll
+import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.feature.settings.presentation.NotificationPref
 import com.tana.spa.feature.settings.presentation.SettingsEffect
 import com.tana.spa.feature.settings.presentation.SettingsEvent
@@ -316,6 +316,6 @@ private fun LanguageRow(language: AppLanguage, onChange: (AppLanguage) -> Unit) 
             }
         },
         colors = rowColors(),
-        modifier = Modifier.clickable(role = Role.Button) { expanded = true },
+        modifier = Modifier.spaClickable { expanded = true },
     )
 }

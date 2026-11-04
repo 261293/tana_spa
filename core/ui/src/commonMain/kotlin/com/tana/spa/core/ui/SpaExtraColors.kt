@@ -25,8 +25,7 @@ data class SpaExtraColors(
     val shadow: Color,
     /** The uppercase label that sits above a heading. */
     val eyebrow: Color,
-    val heroGradient: List<Color>,
-    val cardGradient: List<Color>,
+    val inkSoft: Color,
 )
 
 internal val LightExtraColors = SpaExtraColors(
@@ -42,8 +41,7 @@ internal val LightExtraColors = SpaExtraColors(
     felt = SpaColors.SurfaceAlt,
     shadow = SpaColors.Shadow,
     eyebrow = SpaColors.Moss,
-    heroGradient = listOf(SpaColors.Forest, SpaColors.ForestDeep),
-    cardGradient = listOf(SpaColors.Surface, SpaColors.SurfaceAlt),
+    inkSoft = SpaColors.InkSoft,
 )
 
 internal val LocalSpaExtraColors = staticCompositionLocalOf { LightExtraColors }

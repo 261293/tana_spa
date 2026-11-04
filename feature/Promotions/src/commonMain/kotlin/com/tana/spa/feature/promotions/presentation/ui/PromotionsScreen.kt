@@ -1,7 +1,6 @@
 package com.tana.spa.feature.promotions.presentation.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,12 +29,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaPebbleShape
+import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindow
 import com.tana.spa.core.ui.components.SpaCard
@@ -50,6 +49,10 @@ import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.spaFelt
 import com.tana.spa.core.ui.components.spaTopo
+import com.tana.spa.core.ui.localizedEligibleLabel
+import com.tana.spa.core.ui.localizedTerms
+import com.tana.spa.core.ui.localizedTitle
+import com.tana.spa.core.ui.localizedValidUntil
 import com.tana.spa.core.ui.rememberSpaScrollState
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.promotions.presentation.PromotionsEffect
@@ -76,8 +79,8 @@ import com.tana.spa.feature.promotions.resources.promotions_title_accent
 import com.tana.spa.feature.promotions.resources.promotions_use_code
 import com.tana.spa.feature.promotions.resources.promotions_valid_until
 import com.tana.spa.shared.spa.Promo
-import com.tana.spa.shared.spa.eligibleLabel
 import kotlinx.coroutines.flow.Flow
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
@@ -148,15 +151,15 @@ private fun FeaturedOffer(promo: Promo, wide: Boolean, onEvent: (PromotionsEvent
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(
-                text = promo.title,
+                text = promo.localizedTitle,
                 style = SpaTheme.textStyles.displayTitle,
                 color = MaterialTheme.colorScheme.onBackground,
             )
-            Text(promo.terms, style = SpaTheme.textStyles.body, color = MaterialTheme.colorScheme.onSurface)
+            Text(promo.localizedTerms, style = SpaTheme.textStyles.body, color = MaterialTheme.colorScheme.onSurface)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 SpaIconImage(SpaIcon.Calendar, size = 16.dp, tint = MaterialTheme.colorScheme.onSurface)
                 Text(
-                    text = stringResource(Res.string.promotions_valid_until, promo.validUntil),
+                    text = stringResource(Res.string.promotions_valid_until, promo.localizedValidUntil),
                     style = SpaTheme.textStyles.body,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -166,7 +169,7 @@ private fun FeaturedOffer(promo: Promo, wide: Boolean, onEvent: (PromotionsEvent
                 text = if (promo.eligible.isEmpty()) {
                     stringResource(Res.string.promotions_book_any, promo.code)
                 } else {
-                    stringResource(Res.string.promotions_book_eligible, promo.eligibleLabel(), promo.code)
+                    stringResource(Res.string.promotions_book_eligible, promo.localizedEligibleLabel(), promo.code)
                 },
                 onClick = { onEvent(PromotionsEvent.UseCode(promo.code)) },
             )
@@ -181,12 +184,12 @@ private fun FeaturedOffer(promo: Promo, wide: Boolean, onEvent: (PromotionsEvent
     ) {
         if (wide) {
             Row(Modifier.heightIn(min = 300.dp)) {
-                SpaImageTile(Modifier.weight(1.1f).fillMaxSize(), shape = SpaPebbleShape)
+                SpaImageTile(Modifier.weight(1.1f).fillMaxSize(), shape = SpaPebbleShape, photo = promo.photo())
                 Box(Modifier.weight(1f)) { body() }
             }
         } else {
             Column {
-                SpaImageTile(Modifier.fillMaxWidth().height(180.dp), shape = SpaPebbleShape)
+                SpaImageTile(Modifier.fillMaxWidth().height(180.dp), shape = SpaPebbleShape, photo = promo.photo())
                 body()
             }
         }
@@ -233,12 +236,12 @@ private fun PromoRow(promo: Promo, onEvent: (PromotionsEvent) -> Unit, modifier:
                 }
             },
             headlineContent = {
-                Text(promo.title, style = SpaTheme.textStyles.cardTitle, color = MaterialTheme.colorScheme.onBackground)
+                Text(promo.localizedTitle, style = SpaTheme.textStyles.cardTitle, color = MaterialTheme.colorScheme.onBackground)
             },
             supportingContent = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = stringResource(Res.string.promotions_terms_until, promo.terms, promo.validUntil),
+                        text = stringResource(Res.string.promotions_terms_until, promo.localizedTerms, promo.localizedValidUntil),
                         style = SpaTheme.textStyles.body,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -291,7 +294,7 @@ private fun CodeChecker(state: PromotionsState, onEvent: (PromotionsEvent) -> Un
                 )
                 Text(
                     text = if (checked != null) {
-                        stringResource(Res.string.promotions_check_ok, checked.code, checked.title, checked.terms)
+                        stringResource(Res.string.promotions_check_ok, checked.code, checked.localizedTitle, checked.localizedTerms)
                     } else {
                         stringResource(Res.string.promotions_check_failed)
                     },
@@ -302,3 +305,5 @@ private fun CodeChecker(state: PromotionsState, onEvent: (PromotionsEvent) -> Un
         }
     }
 }
+
+private fun Promo.photo(): DrawableResource? = SpaPhotos.category(eligible.firstOrNull()?.name) ?: SpaPhotos.category("MASSAGE")

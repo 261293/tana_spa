@@ -52,12 +52,11 @@ import org.jetbrains.compose.resources.stringResource
 fun WelcomeScreen(accepted: Boolean, onAcceptedChange: (Boolean) -> Unit, onContinue: () -> Unit, onClose: () -> Unit) {
     ScreenCard(maxWidth = 520.dp) {
         Column(Modifier.fillMaxSize()) {
-            // Hero: soft pink gradient with the assistant and its greeting bubble.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(260.dp)
-                    .background(Brush.verticalGradient(SpaTheme.extraColors.heroGradient)),
+                    .background(SpaTheme.extraColors.pocket),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

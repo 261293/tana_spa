@@ -3,7 +3,6 @@ package com.tana.spa.feature.assistant.presentation.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
+import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.feature.assistant.resources.Res
 import com.tana.spa.feature.assistant.resources.ic_sparkle
 import org.jetbrains.compose.resources.DrawableResource
@@ -83,7 +83,7 @@ internal fun ScreenCard(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(SpaTheme.extraColors.cardGradient))
+            .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .imePadding(),
         contentAlignment = Alignment.Center,
@@ -123,7 +123,7 @@ internal fun IconSquareButton(
             .clip(shape)
             .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, MaterialTheme.colorScheme.outline, shape)
-            .clickable(role = Role.Button, onClick = onClick)
+            .spaClickable(onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {

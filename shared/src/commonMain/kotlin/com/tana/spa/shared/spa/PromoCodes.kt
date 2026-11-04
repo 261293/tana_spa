@@ -35,6 +35,3 @@ fun checkPromoCode(raw: String, service: Service?): PromoCheck {
     val discount = promo.percentOff?.let { (service.priceUsd * it + 50) / 100 } ?: promo.amountOffUsd ?: 0
     return PromoCheck.Applied(promo, discount)
 }
-
-/** The categories a code applies to, spelled for a sentence ("facial, body"). */
-fun Promo.eligibleLabel(): String = if (eligible.isEmpty()) "all" else eligible.joinToString(", ") { it.label.lowercase() }

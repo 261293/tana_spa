@@ -2,7 +2,6 @@ package com.tana.spa.core.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +26,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
+import com.tana.spa.core.ui.spaClickable
+import org.jetbrains.compose.resources.DrawableResource
 
 private const val MEDIA_RATIO = 4f / 3f
 private const val DESCRIPTION_LINES = 2
@@ -75,6 +77,7 @@ fun SpaTreatmentCard(
     modifier: Modifier = Modifier,
     category: String? = null,
     description: String? = null,
+    photo: DrawableResource? = null,
 ) {
     val shape = MaterialTheme.shapes.large
     Column(
@@ -83,11 +86,13 @@ fun SpaTreatmentCard(
             .clip(shape)
             .background(MaterialTheme.colorScheme.surface, shape)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
-            .clickable(role = Role.Button, onClick = onClick),
+            .spaClickable(role = Role.Button, onClick = onClick),
     ) {
         SpaImageTile(
             modifier = Modifier.fillMaxWidth().aspectRatio(MEDIA_RATIO),
             shape = RoundedCornerShape(0.dp),
+            photo = photo,
+            contentDescription = if (photo != null) title else null,
         )
         Column(
             Modifier.padding(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 20.dp),
@@ -166,7 +171,8 @@ fun SpaBackLink(text: String, onClick: () -> Unit, modifier: Modifier = Modifier
     Row(
         modifier = modifier
             .clip(MaterialTheme.shapes.extraSmall)
-            .clickable(role = Role.Button, onClick = onClick)
+            .spaClickable(onClick = onClick)
+            .minimumInteractiveComponentSize()
             .padding(vertical = 6.dp, horizontal = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -185,9 +191,9 @@ fun SpaDateBlock(weekday: String, day: String, month: String, modifier: Modifier
             .padding(horizontal = 12.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        SpaEyebrow(weekday, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        SpaEyebrow(weekday, color = MaterialTheme.colorScheme.onSecondaryContainer)
         Text(text = day, style = SpaTheme.textStyles.cardTitle, color = MaterialTheme.colorScheme.onSurface)
-        Text(text = month, style = SpaTheme.textStyles.label, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text = month, style = SpaTheme.textStyles.label, color = MaterialTheme.colorScheme.onSecondaryContainer)
     }
 }
 
@@ -214,7 +220,7 @@ fun SpaPersonPill(name: String, modifier: Modifier = Modifier, onClick: (() -> U
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surface, CircleShape)
             .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-            .then(if (onClick == null) Modifier else Modifier.clickable(role = Role.Button, onClick = onClick))
+            .then(if (onClick == null) Modifier else Modifier.spaClickable(role = Role.Button, onClick = onClick))
             .padding(start = 5.dp, end = 14.dp, top = 5.dp, bottom = 5.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,

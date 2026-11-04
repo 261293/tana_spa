@@ -2,7 +2,6 @@ package com.tana.spa.core.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
+import com.tana.spa.core.ui.spaClickable
 
 private val StepNumberSize = 26.dp
 private val DateCellWidth = 72.dp
@@ -91,7 +91,7 @@ private fun StepNumber(number: Int, done: Boolean, current: Boolean) {
     val border = when {
         current -> MaterialTheme.colorScheme.primary
         done -> MaterialTheme.colorScheme.secondary
-        else -> MaterialTheme.colorScheme.outline
+        else -> MaterialTheme.colorScheme.outlineVariant
     }
     val content = when {
         current -> MaterialTheme.colorScheme.onPrimary
@@ -168,7 +168,7 @@ fun SpaDateCell(
             .widthIn(min = DateCellWidth)
             .background(container, shape)
             .border(1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, shape)
-            .clickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
+            .spaClickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 10.dp)
             .alphaIfDisabled(enabled)
             .describedAs(contentDescription),
@@ -190,7 +190,7 @@ fun SpaSlotButton(label: String, selected: Boolean, onClick: () -> Unit, modifie
             .defaultMinSize(minHeight = SlotHeight)
             .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface, shape)
             .border(1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, shape)
-            .clickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
+            .spaClickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 6.dp)
             .alphaIfDisabled(enabled),
         contentAlignment = Alignment.Center,
@@ -229,7 +229,7 @@ fun SpaChoiceRow(
                 if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                 ChoiceShape,
             )
-            .clickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
+            .spaClickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
             .padding(14.dp)
             .alphaIfDisabled(enabled),
         horizontalArrangement = Arrangement.spacedBy(12.dp),

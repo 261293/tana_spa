@@ -22,6 +22,8 @@ object BookingsEntry : FeatureEntry {
         val state by viewModel.state.collectAsStateWithLifecycle()
         val opened = navigator.current.routeArg(Routes.ARG_BOOKING)
         LaunchedEffect(opened) { viewModel.onEvent(BookingsEvent.Opened(opened)) }
-        BookingsScreen(state = state, effects = viewModel.effects, onEvent = viewModel::onEvent)
+        BookingsScreen(state = state, effects = viewModel.effects, onEvent = viewModel::onEvent, onBack = navigator::back, onBook = {
+            navigator.navigate(Routes.BOOKING)
+        })
     }
 }

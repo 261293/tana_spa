@@ -1,5 +1,6 @@
 package com.tana.spa.feature.booking.presentation
 
+import com.tana.spa.core.ui.localizedLabel
 import com.tana.spa.shared.spa.Service
 import com.tana.spa.shared.spa.ServiceCategory
 
@@ -26,7 +27,9 @@ data class TreatmentsState(
     val filtered: Boolean get() = query.isNotBlank() || category != null
 }
 
-private fun Service.matches(term: String): Boolean = listOf(name, category.label, includes).any { it.contains(term, ignoreCase = true) }
+private fun Service.matches(term: String): Boolean = listOf(name, category.label, category.localizedLabel(), includes).any {
+    it.contains(term, ignoreCase = true)
+}
 
 sealed interface TreatmentsEvent {
     data object Opened : TreatmentsEvent

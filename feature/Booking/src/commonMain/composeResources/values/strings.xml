@@ -42,6 +42,7 @@
     <string name="bookings_subtitle">Những gì bạn đã đặt và những gì spa đã xác nhận.</string>
     <string name="bookings_meta">%1$s · %2$s · %3$s</string>
     <string name="bookings_empty">Bạn chưa đặt lịch hẹn nào.</string>
+    <string name="bookings_book_now">Đặt lịch ngay</string>
     <string name="bookings_failed">Không tải được lịch hẹn của bạn.</string>
     <string name="bookings_retry">Thử lại</string>
     <string name="bookings_status_pending">Chờ xác nhận</string>
@@ -89,7 +90,7 @@
     <string name="booking_code_unknown">“%1$s” không phải mã hợp lệ.</string>
     <string name="booking_code_no_service">Bạn hãy chọn dịch vụ trước.</string>
     <string name="booking_code_wrong_category">%1$s chỉ áp dụng cho dịch vụ %2$s.</string>
-    <string name="booking_code_minimum">%1$s cần hóa đơn tối thiểu %2$d$.</string>
+    <string name="booking_code_minimum">%1$s cần hóa đơn tối thiểu %2$s.</string>
 
     <string name="booking_total_label">tổng thanh toán tại spa</string>
     <string name="booking_request">Gửi yêu cầu đặt lịch</string>
@@ -107,7 +108,7 @@
     <string name="booking_eyebrow">Đặt lịch</string>
     <string name="booking_today">Hôm nay</string>
     <string name="booking_change">Đổi</string>
-    <string name="booking_subtotal">Dịch vụ</string>
+    <string name="booking_subtotal">Tạm tính</string>
     <string name="booking_slots_morning">Buổi sáng</string>
     <string name="booking_slots_afternoon">Buổi chiều</string>
     <string name="booking_slots_evening">Buổi tối</string>

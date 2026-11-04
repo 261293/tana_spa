@@ -2,7 +2,6 @@ package com.tana.spa.feature.auth.presentation.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +46,7 @@ import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSocialButton
 import com.tana.spa.core.ui.components.SpaTextField
+import com.tana.spa.core.ui.spaPointer
 import com.tana.spa.feature.auth.presentation.manipulator.SignUpEffect
 import com.tana.spa.feature.auth.presentation.manipulator.SignUpEvent
 import com.tana.spa.feature.auth.presentation.manipulator.SignUpState
@@ -197,13 +197,16 @@ private fun SignUpForm(state: SignUpState, onEvent: (SignUpEvent) -> Unit) {
                 trailing = {
                     val description =
                         stringResource(if (showPassword) Res.string.hide_password else Res.string.show_password)
-                    Image(
-                        painter = painterResource(if (showPassword) Res.drawable.ic_eye else Res.drawable.ic_eye_off),
-                        contentDescription = description,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable(role = Role.Button) { onEvent(SignUpEvent.TogglePasswordVisibility) },
-                    )
+                    IconButton(
+                        onClick = { onEvent(SignUpEvent.TogglePasswordVisibility) },
+                        modifier = Modifier.spaPointer(),
+                    ) {
+                        Image(
+                            painter = painterResource(if (showPassword) Res.drawable.ic_eye else Res.drawable.ic_eye_off),
+                            contentDescription = description,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
                 },
             )
         }

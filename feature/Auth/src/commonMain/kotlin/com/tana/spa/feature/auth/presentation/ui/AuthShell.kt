@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
+import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindow
 import com.tana.spa.core.ui.components.SpaBrand
@@ -82,7 +83,7 @@ internal fun AuthShell(title: String, accent: String, intro: String, content: @C
 @Composable
 private fun Panel(modifier: Modifier) {
     Box(modifier) {
-        SpaImageTile(Modifier.fillMaxSize(), shape = RectangleShape)
+        SpaImageTile(Modifier.fillMaxSize(), shape = RectangleShape, photo = SpaPhotos.hero)
         Surface(
             shape = MaterialTheme.shapes.small,
             color = MaterialTheme.colorScheme.background,

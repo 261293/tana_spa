@@ -21,6 +21,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
+import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaBackLink
 import com.tana.spa.core.ui.components.SpaEyebrow
@@ -29,6 +30,7 @@ import com.tana.spa.core.ui.components.SpaIncludeRow
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.formatPrice
+import com.tana.spa.core.ui.localizedLabel
 import com.tana.spa.core.ui.rememberSpaScrollState
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.booking.presentation.ServiceDetailEffect
@@ -88,13 +90,15 @@ private fun Treatment(service: Service, onBook: () -> Unit) {
     SpaImageTile(
         modifier = Modifier.fillMaxWidth().aspectRatio(HERO_RATIO).revealOnScroll(order = 1),
         shape = MaterialTheme.shapes.extraLarge,
+        photo = SpaPhotos.treatment(service.id),
+        contentDescription = service.name,
     )
 
     Column(Modifier.revealOnScroll(order = 2), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SpaEyebrow(
             stringResource(
                 Res.string.service_eyebrow,
-                service.category.label,
+                service.category.localizedLabel(),
                 stringResource(Res.string.service_minutes, service.minutes),
             ),
         )

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaTheme
+import com.tana.spa.core.ui.components.SpaBackLink
 import com.tana.spa.core.ui.components.SpaDateBlock
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaPage
@@ -48,6 +50,8 @@ import com.tana.spa.feature.booking.presentation.BookingsEffect
 import com.tana.spa.feature.booking.presentation.BookingsEvent
 import com.tana.spa.feature.booking.presentation.BookingsState
 import com.tana.spa.feature.booking.resources.Res
+import com.tana.spa.feature.booking.resources.booking_back
+import com.tana.spa.feature.booking.resources.bookings_book_now
 import com.tana.spa.feature.booking.resources.bookings_cancel
 import com.tana.spa.feature.booking.resources.bookings_cancel_body
 import com.tana.spa.feature.booking.resources.bookings_cancel_keep
@@ -83,7 +87,13 @@ import org.jetbrains.compose.resources.stringResource
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
 @Composable
-fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent: (BookingsEvent) -> Unit) {
+fun BookingsScreen(
+    state: BookingsState,
+    effects: Flow<BookingsEffect>,
+    onEvent: (BookingsEvent) -> Unit,
+    onBack: () -> Unit,
+    onBook: () -> Unit,
+) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(effects) {
         effects.collect { effect ->
@@ -102,6 +112,7 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
             maxWidth = SpaPageWidth.Reading,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            SpaBackLink(stringResource(Res.string.booking_back), onBack, Modifier.revealOnScroll())
             SpaScreenHeader(
                 eyebrow = stringResource(Res.string.bookings_eyebrow),
                 title = stringResource(Res.string.bookings_title),
@@ -118,7 +129,11 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
                     onAction = { onEvent(BookingsEvent.Refresh) },
                 )
 
-                state.bookings.isEmpty() -> Message(text = stringResource(Res.string.bookings_empty))
+                state.bookings.isEmpty() -> Message(
+                    text = stringResource(Res.string.bookings_empty),
+                    action = stringResource(Res.string.bookings_book_now),
+                    onAction = onBook,
+                )
 
                 else -> state.bookings.forEachIndexed { index, booking ->
                     BookingRow(
@@ -348,7 +363,9 @@ private fun Message(text: String, action: String? = null, onAction: () -> Unit =
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
-        if (action != null) SpaSecondaryButton(text = action, onClick = onAction)
+        if (action != null) {
+            SpaSecondaryButton(text = action, onClick = onAction, modifier = Modifier.widthIn(max = ActionWidth))
+        }
     }
 }
 
@@ -360,3 +377,4 @@ private fun declineText(reason: DeclineReasonDto) = when (reason) {
 
 private const val SKELETONS = 3
 private val ROW_HEIGHT = 120.dp
+private val ActionWidth = 320.dp
