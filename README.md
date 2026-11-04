@@ -94,7 +94,7 @@ npx supabase test db                              # database tests (pgTAP)
 
 - One module: `./gradlew :feature:Auth:jvmTest`
 - One test: `./gradlew :feature:Auth:jvmTest --tests "com.tana.spa.feature.auth.presentation.LoginViewModelTest"`
-- Edge Functions: `npx supabase functions serve`, then
+- Edge Functions, with the stack running (it already serves them):
   `deno test --allow-net --allow-env --allow-run supabase/functions`
 
 ---

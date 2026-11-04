@@ -208,17 +208,16 @@ jobs:
         run: npx --yes "$SUPABASE_CLI" start -x logflare,vector,studio
       - name: Database tests (pgTAP)
         run: npx --yes "$SUPABASE_CLI" test db
-      # The accounts function's local_stack test calls the served function through the stack's
-      # gateway, so serve it and wait until it answers its preflight.
-      - name: Serve the Edge Functions
+      # The stack's own edge runtime serves supabase/functions; the accounts function's
+      # local_stack test calls it through the gateway, so wait until it answers its preflight.
+      - name: Wait for the Edge Functions
         run: |
-          npx --yes "$SUPABASE_CLI" functions serve > "$RUNNER_TEMP/functions.log" 2>&1 &
           for _ in $(seq 1 60); do
             status=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://127.0.0.1:54321/functions/v1/accounts || true)
             if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then exit 0; fi
             sleep 2
           done
-          cat "$RUNNER_TEMP/functions.log"
+          docker logs supabase_edge_runtime_tana-spa || true
           exit 1
       # The local_stack test reads the stack's URL and keys from these variables; without them it
       # would run an unpinned `npx supabase status` itself.
@@ -226,9 +225,9 @@ jobs:
         run: |
           eval "$(npx --yes "$SUPABASE_CLI" status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
           SUPABASE_URL="$API_URL" SUPABASE_ANON_KEY="$ANON_KEY" SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY"             deno test --allow-net --allow-env --allow-run supabase/functions
-      - name: Print the functions log
+      - name: Print the edge runtime log
         if: failure()
-        run: cat "$RUNNER_TEMP/functions.log" || true
+        run: docker logs supabase_edge_runtime_tana-spa || true
 
   ios:
     name: Build (iOS)

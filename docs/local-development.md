@@ -124,7 +124,6 @@ implementing anything.
 
 # 5. the backend (needs the local stack): database tests, then the Edge Function tests
 npx supabase test db
-npx supabase functions serve        # in another terminal, for the accounts local-stack test
 deno test --allow-net --allow-env --allow-run supabase/functions
 
 # 6. no secret in your commits
@@ -209,18 +208,20 @@ Two functions live in `supabase/functions/`, each with its Deno tests beside it:
 - `push` — called by the database for each new notification; sends it through FCM;
 - `accounts` — creates an account for an owner or admin.
 
+`npx supabase start` already runs an edge runtime that serves both, at
+`http://127.0.0.1:54321/functions/v1/<name>`; the tests need nothing else:
+
 ```bash
-npx supabase functions serve                                       # serves both on the local stack
 deno test --allow-net --allow-env --allow-run supabase/functions   # unit tests, plus accounts' local_stack test
 ```
 
 The `local_stack` test in `accounts/index_test.ts` creates and deletes its own users on the local
-stack and calls the served function; it fails, rather than skips, when the stack or the function
-is down. It reads the local keys from `npx supabase status -o env`.
+stack and calls the `accounts` function through the gateway; it fails, rather than skips, when
+the stack is down. It reads the local keys from `npx supabase status -o env`.
 
-Secrets for local serving (`PUSH_WEBHOOK_SECRET`, `FCM_SERVICE_ACCOUNT_JSON`) go in
-`supabase/functions/.env`, which is gitignored. Without them `push` refuses every call
-(no webhook secret) or only logs (no FCM key).
+To run a function with secrets (`PUSH_WEBHOOK_SECRET`, `FCM_SERVICE_ACCOUNT_JSON`), serve it with
+`npx supabase functions serve`, which reads them from `supabase/functions/.env` (gitignored).
+Without them `push` refuses every call (no webhook secret) or only logs (no FCM key).
 
 Release builds of the clients: see the [README](../README.md#release-builds).
 
@@ -233,8 +234,8 @@ Release builds of the clients: see the [README](../README.md#release-builds).
 | `Could not find a JDK` / toolchain error | JDK 21 is not installed and Gradle cannot provision one here. Install it, or point your IDE at it. |
 | `npx supabase start` fails | Docker is not running, or a port in `supabase/config.toml` (54321–54324) is taken. `npx supabase stop` and start again. |
 | `npx supabase test db` fails after pulling | the local database is behind the migrations. `npx supabase db reset`. |
-| The first call to a served function answers `502` | the edge runtime is still fetching the function's dependencies; retry after a few seconds. |
-| `local_stack` fails with "the local stack is not running" | start the stack, and serve the functions (`npx supabase functions serve`). |
+| The first call to a function answers `502` | the edge runtime is still fetching the function's dependencies; retry after a few seconds. |
+| `local_stack` fails with "the local stack is not running" | start the stack: `npx supabase start -x logflare,vector,studio`. |
 | The app shows errors for every call | the remote project does not have this branch's functions yet; they arrive with the deployment. |
 | OTP screen never appears | `phone_otp_verification` is off by default. Turn it on at `/admin/` — and enable the phone provider in the Supabase project ([phone-verification.md](phone-verification.md)). |
 | Cannot sign in to `/admin/` | no account has `role = 'admin'`. Promote one with SQL: `update public.users set role = 'admin' where email = '…';` |

@@ -24,8 +24,7 @@ Kotlin Multiplatform app (Android, iOS, Desktop/JVM, Web/wasmJs) with a Compose 
 npx supabase start -x logflare,vector,studio       # or `devbox run supabase:start`
 npx supabase test db                               # pgTAP, supabase/tests/database
 npx supabase db reset                              # replay supabase/migrations from empty
-npx supabase functions serve                       # then, in another terminal:
-deno test --allow-net --allow-env --allow-run supabase/functions
+deno test --allow-net --allow-env --allow-run supabase/functions   # the stack already serves the functions
 ```
 
 Every command in order (first-time setup, daily loop, pre-push gate, schema changes, troubleshooting): `docs/local-development.md`. Full CI matrix and the local equivalent of each job: `docs/ci.md`. Before pushing, a change that touches `commonMain` should compile for the web target too (`:composeApp:compileKotlinWasmJs`), since it is the strictest target and CI builds it.

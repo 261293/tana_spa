@@ -11,18 +11,18 @@ Workflow: `.github/workflows/ci.yml`. It runs on each pull request into `main` a
 | **Build (web, Android)** | Code that compiles in tests but not in the shipped app; a stale `kotlin-js-store/wasm/yarn.lock`; source maps in the web bundle | `./gradlew :composeApp:verifyWebDistributionStripped :androidApp:assembleDebug` |
 | ↳ same job, release hardening | A release APK or desktop jar that ships unobfuscated — minification turned off, a keep rule grown too broad ([docs/code-hardening.md](code-hardening.md)) | `./gradlew :androidApp:verifyReleaseObfuscation :composeApp:proguardReleaseJars` |
 | **Build (iOS)** | iOS-only compile or link errors (macOS runner) | `./gradlew :composeApp:compileKotlinIosSimulatorArm64` on any host catches the Kotlin errors; only the link step needs a Mac: `./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64` |
-| **Backend tests (Supabase)** | A migration that no longer applies from empty; a database rule, permission check or error code that changed (pgTAP); a regression in the `push` or `accounts` Edge Function (Deno) | `npx supabase start -x logflare,vector,studio`, `npx supabase test db`, then `npx supabase functions serve` and `deno test --allow-net --allow-env --allow-run supabase/functions` |
+| **Backend tests (Supabase)** | A migration that no longer applies from empty; a database rule, permission check or error code that changed (pgTAP); a regression in the `push` or `accounts` Edge Function (Deno) | `npx supabase start -x logflare,vector,studio`, `npx supabase test db`, then `deno test --allow-net --allow-env --allow-run supabase/functions` |
 | **CI passed** | Aggregates all of the above into one check | n/a |
 
 ### How the backend job runs
 
 It installs Node 22 (`actions/setup-node`) for the Supabase CLI, which it runs through `npx` at a
 pinned version (`SUPABASE_CLI` in the workflow), and Deno 2.9.8 (`denoland/setup-deno`). It starts
-the local stack in the runner's Docker, runs the pgTAP files, then starts
-`npx supabase functions serve` in the background and polls the `accounts` function's preflight
-until it answers, because `accounts`' `local_stack` test calls the served function through the
-stack's gateway. Only then does it run every Deno test in `supabase/functions`. The functions log
-is printed if a step fails. No secret is involved: the stack's keys are the CLI's public
+the local stack in the runner's Docker, which also starts an edge runtime serving
+`supabase/functions`, and runs the pgTAP files. It then polls the `accounts` function's preflight
+until it answers, because `accounts`' `local_stack` test calls that function through the stack's
+gateway; there is no separate `functions serve` step. Only then does it run every Deno test in
+`supabase/functions`. The edge runtime's log is printed if a step fails. No secret is involved: the stack's keys are the CLI's public
 development keys, and the `push` tests stub FCM.
 
 ## Make the checks required (one-time, in GitHub)
@@ -66,7 +66,7 @@ Rules live in `.editorconfig` (IntelliJ/Android Studio read it too, so "Reformat
 ## Known limits (please read)
 
 - **This pipeline has not run on GitHub yet.** The workflow passes `actionlint`, every action input was checked against its pinned `action.yml`, and each command was run locally, but the first real run may need small adjustments (most likely the Android SDK step or the iOS job).
-- **The backend job is unverified on GitHub**: its commands were run locally on Windows, not on an Ubuntu runner, and the background `functions serve` plus readiness poll is the part most likely to need adjusting.
+- **The backend job is unverified on GitHub**: its commands were run locally on Windows, not on an Ubuntu runner, and the edge-runtime readiness poll (and its container name, `supabase_edge_runtime_tana-spa`) is the part most likely to need adjusting.
 - **The iOS job is unverified**: it needs a Mac and could not be run here. It is part of `CI passed`; if it proves flaky, remove it from `needs:` in the `ci-passed` job instead of weakening the others.
 - macOS runners cost roughly ten times Linux minutes.
 - Not included on purpose: dependency vulnerability scanning (GitHub's dependency review needs the dependency graph/Advanced Security for private repos; OWASP dependency-check is slow) and UI/instrumented tests.
