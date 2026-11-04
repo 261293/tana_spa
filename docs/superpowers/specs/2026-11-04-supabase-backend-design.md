@@ -68,7 +68,7 @@ Nothing is in production. There are no users or data to preserve, and the client
 
 | | Approach | Trade-off | Outcome |
 |---|---|---|---|
-| 1 | One Edge Function `api` (TypeScript, Hono) behind the unchanged `/api/v1/...` contract, keeping the custom auth | Client only changes its base URL; but ~6,200 lines of server rewritten, auth and refresh-token rotation re-implemented by hand | Recommended by the assistant, **not chosen** |
+| 1 | One Edge Function `api` (TypeScript, Hono) behind the unchanged `/api/v1/...` contract, keeping the custom auth | Client only changes its base URL; but ~6,200 lines of server rewritten, auth and refresh-token rotation re-implemented by hand | Considered first, **not chosen** |
 | 2 | Supabase Auth + Data API with RLS + Postgres functions (RPC) + one Edge Function for push | Least backend code, platform handles sessions; but every client data layer changes, and the Data API must be re-opened safely with per-table policies | **Chosen by the owner** |
 | 3 | One Edge Function per module | URLs lose their common prefix so every client call changes anyway, plus a cold start per module | Rejected |
 
@@ -83,7 +83,7 @@ Nothing is in production. There are no users or data to preserve, and the client
 | PBKDF2 hashing, `refresh_tokens`, `RefreshTokenService`, the token sweep | Removed. Supabase Auth owns credentials, rotation and reuse detection |
 | Welcome voucher granted after sign-up (`PromotionService.grant(NEW_GUEST_CODE)`) | Inside the sign-up trigger (below), wrapped so that a failure to grant never fails the sign-up, matching today's behaviour |
 | Seeding admins/owner from `SEED_*` env vars | Removed. A short runbook: create the first admin in Supabase Auth, then set `users.role` with SQL. Every later account is created from the app (next row) |
-| `POST /api/v1/accounts` (owner/admin creates an account with a password and a role; used by `DeskRepositoryImpl.createAccount` from `AdminMenuViewModel`) | Edge Function `accounts` *(assistant's call, see Accounts below)* |
+| `POST /api/v1/accounts` (owner/admin creates an account with a password and a role; used by `DeskRepositoryImpl.createAccount` from `AdminMenuViewModel`) | Edge Function `accounts` *(decided during design, see Accounts below)* |
 | `PATCH /api/v1/accounts/{id}/role` | RPC, same rules (`role_not_allowed`, `own_role_unchangeable`, `unknown_account`) |
 | `POST /auth/phone/otp/send` and `/verify`, `TwilioVerifyProvider`, `PhoneVerificationService` | Supabase Auth phone change: `updateUser(phone = ...)` sends the code, `verifyPhoneOtp(type = PHONE_CHANGE)` checks it. SMS goes through Supabase's Twilio Verify provider, configured in the dashboard |
 | Catalogue, offers, `my bookings`, notifications list, app-update config | Direct `select` through the Data API, each allowed by an RLS policy |
@@ -118,7 +118,7 @@ Nothing is in production. There are no users or data to preserve, and the client
 - Users cannot write their own `users.role`. Profile edits, if any, go through a function or a
   column-limited grant.
 
-### Phone numbers *(assistant's call)*
+### Phone numbers *(decided during design)*
 
 A small SQL function normalises the shape the app accepts today to E.164, assuming Vietnam for
 numbers written with a leading 0 (`0912345678` → `+84912345678`). The client applies the same rule
@@ -147,7 +147,7 @@ is the cost of having no server.
   (`slot_taken`, `too_late_to_cancel`, `own_role_unchangeable`, ...), so `shared/`'s error-code
   constants stay the contract. HTTP status codes no longer carry meaning; client code that branches
   on a status must branch on the code instead.
-- *(Assistant's call)* Functions return `jsonb` shaped like the existing `shared/` DTOs, so the
+- *(Decided during design)* Functions return `jsonb` shaped like the existing `shared/` DTOs, so the
   client keeps decoding into the serializable classes it already has.
 - Booking creation does the overlap check and the insert in one transaction, with a lock that
   stops two guests taking the same therapist slot at once.
@@ -180,10 +180,10 @@ nobody's quoted price moves. Therapists and the Vietnamese texts (V11, V12) are 
 Client: `formatPrice` always formats dong (`formatVnd`) whatever the language; `VND_PER_USD` and
 `usdToVnd` are deleted, so the compiler finds every caller (21 call sites across `core:ui` and
 `feature/Booking`, plus `SpaMoneyFormatTest` and `SpaPromoTextTest`). Any promo text built from a
-fixed voucher value formats dong too. *(Assistant's call)* Amounts stay `Int` in the DTOs: the
+fixed voucher value formats dong too. *(Decided during design)* Amounts stay `Int` in the DTOs: the
 largest seed price is 4.125.000 and `Int` holds up to about 2,1 tỷ đồng.
 
-### Accounts *(assistant's call)*
+### Accounts *(decided during design)*
 
 Creating an account for someone else needs Supabase's Auth admin API, which needs the service role
 key. A Postgres function cannot create an `auth.users` row properly, and calling `signUpWith` from
@@ -205,7 +205,7 @@ deploy. It is seeded with **`Asia/Ho_Chi_Minh`**: the spa is in Vietnam (owner's
 replaces the Ktor code's fallback of `America/Los_Angeles`. The timezone drives availability slots,
 "today", the two-hour cancel window and reminder timing.
 
-### Environments *(assistant's call)*
+### Environments *(decided during design)*
 
 - One remote project, `jnlonvutjugxxxsfpeom`, becomes production. The second free project slot is
   left unused.
@@ -214,8 +214,8 @@ replaces the Ktor code's fallback of `America/Los_Angeles`. The timezone drives 
 - Migrations reach the remote only after their tests pass locally. The versions already recorded
   remotely are read from `supabase_migrations.schema_migrations` when `supabase/migrations/` is
   created.
-- Settings that live outside SQL (Auth options, Edge Function secrets, the webhook) are applied by
-  the assistant through the Supabase CLI, MCP or Management API where possible. Anything that
+- Settings that live outside SQL (Auth options, Edge Function secrets, the webhook) are applied
+  through the Supabase CLI, MCP or Management API where possible. Anything that
   needs the owner's login or money (Twilio, Firebase) is a checklist for the owner.
 - The post-deploy smoke test uses a throwaway account, deleted afterwards.
 
