@@ -42,3 +42,4 @@ GoogleService-Info.plist
 !.env.example
 # graphify: generated knowledge graph, rebuilt locally and machine-specific.
 graphify-out/
+.wrangler/
