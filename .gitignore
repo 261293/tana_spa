@@ -43,3 +43,6 @@ GoogleService-Info.plist
 # graphify: generated knowledge graph, rebuilt locally and machine-specific.
 graphify-out/
 .wrangler/
+supabase/.branches
+supabase/.temp
+supabase/functions/.env
