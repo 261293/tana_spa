@@ -10,14 +10,13 @@ import com.tana.spa.feature.booking.presentation.CurrentVisit
 import com.tana.spa.feature.booking.presentation.ServiceDetailViewModel
 import com.tana.spa.feature.booking.presentation.TreatmentsViewModel
 import com.tana.spa.shared.Constants
-import com.tana.spa.shared.Platform
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val bookingModule: Module = module {
-    single<SpaCatalogRepository> { SpaCatalogRepositoryImpl(get(), Constants.apiBaseUrl(get<Platform>().type)) }
-    single<GuestBookingRepository> { GuestBookingRepositoryImpl(get(), Constants.apiBaseUrl(get<Platform>().type), get()) }
+    single<SpaCatalogRepository> { SpaCatalogRepositoryImpl(get(), Constants.apiBaseUrl()) }
+    single<GuestBookingRepository> { GuestBookingRepositoryImpl(get(), Constants.apiBaseUrl(), get()) }
 
     single { CurrentVisit(get(), get()) }
 

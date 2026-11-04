@@ -7,8 +7,7 @@
 
     <!-- allowBackup=false keeps the stored session out of `adb backup` and cloud backups, so a
          decompiled APK cannot be paired with a copy of someone else's app data.
-         usesCleartextTraffic=false blocks plain HTTP; src/debug overrides it so the emulator can
-         still reach the local Ktor server on http://10.0.2.2. -->
+         usesCleartextTraffic=false blocks plain HTTP; the backend is only ever reached over HTTPS. -->
     <application
         android:name=".TanaApplication"
         android:allowBackup="false"

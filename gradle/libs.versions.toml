@@ -1,11 +1,6 @@
 [versions]
 ktlint = "1.8.0"
 ktlint-gradle = "14.2.0"
-flyway = "13.10.0"
-embedded-postgres = "2.2.2"
-postgresql = "42.7.13"
-hikari = "7.1.0"
-libphonenumber = "9.0.41"
 agp = "9.4.1"
 android-compileSdk = "37"
 android-minSdk = "31"
@@ -26,7 +21,6 @@ kotlin = "2.4.20"
 kotlinx-browser = "0.5.0"
 kotlinx-serialization = "1.11.0"
 ktor = "3.6.0"
-logback = "1.6.5"
 material3 = "1.11.0-alpha07"
 sqldelight = "2.4.1"
 
@@ -51,8 +45,8 @@ compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMul
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 
-# Firebase Cloud Messaging: the push transport on Android (and the one the server talks to for
-# every platform). Only the android source set uses it.
+# Firebase Cloud Messaging: the push transport on Android (and the one the push Edge Function
+# talks to for every platform). Only the android source set uses it.
 firebase-messaging = { module = "com.google.firebase:firebase-messaging", version.ref = "firebase-messaging" }
 
 # Coroutines
@@ -84,29 +78,7 @@ ktor-clientJs = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-clientContentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serializationJson = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
-# Ktor server
-logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
-ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
-ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
-ktor-serverContentNegotiation = { module = "io.ktor:ktor-server-content-negotiation-jvm", version.ref = "ktor" }
-ktor-serverCors = { module = "io.ktor:ktor-server-cors-jvm", version.ref = "ktor" }
-ktor-serverStatusPages = { module = "io.ktor:ktor-server-status-pages-jvm", version.ref = "ktor" }
-ktor-serverAuth = { module = "io.ktor:ktor-server-auth-jvm", version.ref = "ktor" }
-ktor-serverAuthJwt = { module = "io.ktor:ktor-server-auth-jwt-jvm", version.ref = "ktor" }
-ktor-serverRateLimit = { module = "io.ktor:ktor-server-rate-limit-jvm", version.ref = "ktor" }
-ktor-serverForwardedHeader = { module = "io.ktor:ktor-server-forwarded-header-jvm", version.ref = "ktor" }
-ktor-serverCallLogging = { module = "io.ktor:ktor-server-call-logging-jvm", version.ref = "ktor" }
-ktor-serverCallId = { module = "io.ktor:ktor-server-call-id-jvm", version.ref = "ktor" }
 ktor-clientMock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
-
-# Database (server only)
-flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
-flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
-postgresql-driver = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
-libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
-hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
-embedded-postgres = { module = "io.zonky.test:embedded-postgres", version.ref = "embedded-postgres" }
 
 # Gradle plugin artifacts (consumed by build-logic convention plugins)
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -122,8 +94,6 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMul
 googleServices = { id = "com.google.gms.google-services", version.ref = "google-services" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }

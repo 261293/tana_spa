@@ -55,5 +55,3 @@ include(":feature:Notifications")
 include(":feature:Profile")
 include(":feature:Promotions")
 include(":feature:Settings")
-
-include(":server")

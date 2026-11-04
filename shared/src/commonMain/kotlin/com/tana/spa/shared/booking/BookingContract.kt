@@ -2,51 +2,6 @@ package com.tana.spa.shared.booking
 
 import kotlinx.serialization.Serializable
 
-/**
- * The booking contract, compiled into both the app and the server. Change a path, a field or an
- * error code here and both sides move together.
- *
- * Money is a whole unit of the catalogue's currency (dong, so a price is written 4125000 for 4.125.000đ). Times are
- * epoch milliseconds, UTC, as everywhere else in this API.
- */
-object BookingApi {
-    const val BASE = "/api/v1/spa"
-
-    const val CATALOG = "$BASE/catalog"
-    const val OFFERS = "$BASE/offers"
-    const val OFFER_CHECK = "$BASE/offers/check"
-    const val AVAILABILITY = "$BASE/availability"
-    const val BOOKINGS = "$BASE/bookings"
-
-    /** The guest's own booking: only the account that made it may cancel it. */
-    fun cancel(bookingId: String): String = "$BOOKINGS/$bookingId/cancel"
-
-    /** Run the spa: the owner's queue, the decisions and the menu. Refused for every other role. */
-    const val OWNER_BASE = "/api/v1/owner/spa"
-    const val OWNER_BOOKINGS = "$OWNER_BASE/bookings"
-    const val OWNER_SERVICES = "$OWNER_BASE/services"
-    const val OWNER_THERAPISTS = "$OWNER_BASE/therapists"
-
-    fun confirm(bookingId: String): String = "$OWNER_BOOKINGS/$bookingId/confirm"
-
-    fun decline(bookingId: String): String = "$OWNER_BOOKINGS/$bookingId/decline"
-
-    fun complete(bookingId: String): String = "$OWNER_BOOKINGS/$bookingId/complete"
-
-    fun noShow(bookingId: String): String = "$OWNER_BOOKINGS/$bookingId/no-show"
-
-    /** Operate the system: discount codes stay with the administrator, like the feature flags. */
-    const val ADMIN_BASE = "/api/v1/admin/spa"
-    const val ADMIN_CODES = "$ADMIN_BASE/codes"
-
-    /** The treatment the times are asked for: a longer one needs more of the diary free. */
-    const val QUERY_SERVICE = "service"
-
-    /** `?therapist=mai&day=20376` (epoch day, in the house's own time zone). */
-    const val QUERY_THERAPIST = "therapist"
-    const val QUERY_DAY = "day"
-}
-
 /** House rules both sides have to agree on: the app withholds an action the server would refuse. */
 object BookingRules {
     /** A guest may cancel until this long before the start; after that the spa has to be phoned. */
@@ -114,32 +69,6 @@ data class TherapistDto(
 @Serializable
 data class CatalogResponse(val services: List<ServiceDto>, val therapists: List<TherapistDto>, val todayEpochDay: Int)
 
-@Serializable
-data class OfferDto(
-    val code: String,
-    val title: String,
-    val terms: String,
-    val percentOff: Int?,
-    val amountOff: Int?,
-    val minSpend: Int?,
-    /** Empty means every treatment qualifies. */
-    val eligible: List<ServiceCategoryDto>,
-    val validUntil: String?,
-)
-
-@Serializable
-data class OffersResponse(val offers: List<OfferDto>)
-
-@Serializable
-data class OfferCheckRequest(val code: String, val serviceSlug: String?)
-
-/**
- * [discount] is what this code takes off [serviceSlug]; it is 0 and [offer] null when the code was
- * refused, and [reason] is one of [BookingErrorCodes] worded by the client.
- */
-@Serializable
-data class OfferCheckResponse(val accepted: Boolean, val offer: OfferDto? = null, val discount: Int = 0, val reason: String? = null)
-
 /** A moment in the house's own time zone: [hour] is 14.5 for half past two, which is what a clock face needs. */
 @Serializable
 data class SlotMomentDto(val dayEpochDay: Int, val hour: Double)
@@ -166,6 +95,7 @@ enum class BookingStatusDto { PENDING, CONFIRMED, DECLINED, COMPLETED, CANCELLED
 @Serializable
 enum class DeclineReasonDto { OVERLAP, THERAPIST_UNAVAILABLE, NO_ROOM }
 
+/** Money is whole dong; times are epoch milliseconds, UTC. */
 @Serializable
 data class BookingDto(
     val id: String,
@@ -225,35 +155,3 @@ data class ConfirmBookingRequest(
 
 @Serializable
 data class DeclineBookingRequest(val reason: DeclineReasonDto, val alternativeOffer: String? = null)
-
-@Serializable
-enum class CodeStateDto { LIVE, SCHEDULED, EXPIRED, DISABLED }
-
-@Serializable
-data class AdminCodeDto(
-    val code: String,
-    val offer: String,
-    val eligible: String,
-    val starts: String,
-    val ends: String?,
-    val used: Int,
-    val limit: Int?,
-    val state: CodeStateDto,
-    val note: String? = null,
-)
-
-@Serializable
-data class AdminCodesResponse(val codes: List<AdminCodeDto>)
-
-@Serializable
-data class CreateCodeRequest(
-    val code: String,
-    val title: String,
-    val percentOff: Int? = null,
-    val amountOff: Int? = null,
-    val minSpend: Int? = null,
-    val eligible: List<ServiceCategoryDto> = emptyList(),
-    val startsAtEpochMillis: Long? = null,
-    val endsAtEpochMillis: Long? = null,
-    val usageLimit: Int? = null,
-)

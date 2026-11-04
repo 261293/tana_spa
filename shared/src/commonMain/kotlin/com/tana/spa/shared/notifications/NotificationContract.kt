@@ -3,40 +3,6 @@ package com.tana.spa.shared.notifications
 import com.tana.spa.shared.helpers.PlatformEnum
 import kotlinx.serialization.Serializable
 
-/** Wire contract of the notification API, shared by the Ktor server and every client target. */
-object NotificationApi {
-    const val BASE = "/api/v1/notifications"
-
-    const val LIMIT_QUERY = "limit"
-    const val BEFORE_QUERY = "before"
-    const val ID_PARAM = "id"
-
-    // Route templates, relative to BASE: the server mounts these and the absolute paths below
-    // are built from them, so a client and the server cannot drift apart.
-    const val UNREAD_COUNT_PATH = "/unread-count"
-    const val READ_ALL_PATH = "/read-all"
-    const val DEVICES_PATH = "/devices"
-
-    /**
-     * Unregister posts the token in a body instead of taking a `DELETE /devices/{token}`: a path
-     * lands in every access log, and a push token is enough to send to that device.
-     */
-    const val DEVICES_UNREGISTER_PATH = "/devices/unregister"
-
-    /** Admin-only fan-out, so delivery can be operated and smoke-tested without a staging release. */
-    const val SEND_PATH = "/send"
-    const val READ_PATH = "/{$ID_PARAM}/read"
-
-    const val LIST = BASE
-    const val UNREAD_COUNT = BASE + UNREAD_COUNT_PATH
-    const val READ_ALL = BASE + READ_ALL_PATH
-    const val DEVICES = BASE + DEVICES_PATH
-    const val DEVICES_UNREGISTER = BASE + DEVICES_UNREGISTER_PATH
-    const val SEND = BASE + SEND_PATH
-
-    fun read(notificationId: String): String = "$BASE/$notificationId/read"
-}
-
 /** The `type` column's CHECK constraint (`V4__engagement.sql`) accepts exactly these. */
 enum class NotificationType(val wire: String) {
     ORDER("order"),
@@ -143,19 +109,3 @@ data class DeviceRegistrationRequest(
 
 @Serializable
 data class DeviceUnregisterRequest(val token: String)
-
-@Serializable
-data class NotificationSendRequest(
-    val userId: String,
-    val type: String = NotificationType.SYSTEM.wire,
-    val title: String,
-    val body: String? = null,
-    val data: Map<String, String> = emptyMap(),
-)
-
-/**
- * [removed] counts tokens the provider rejected as unregistered, which this call deleted. The row
- * is stored even when [devices] is 0, so the notification still shows up in the app.
- */
-@Serializable
-data class NotificationSendResponse(val notificationId: String, val devices: Int, val delivered: Int, val removed: Int)
