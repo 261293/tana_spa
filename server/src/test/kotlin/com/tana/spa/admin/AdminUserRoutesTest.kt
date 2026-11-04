@@ -130,14 +130,4 @@ class AdminUserRoutesTest {
         assertEquals(HttpStatusCode.Forbidden, forbidden.status)
         assertEquals(AuthErrorCodes.FORBIDDEN, forbidden.body<ErrorResponse>().code)
     }
-
-    @Test
-    fun thePortalPageItselfIsServed() = testApplication {
-        application { module(services()) }
-
-        val page = jsonClient().get("/admin/index.html")
-
-        assertEquals(HttpStatusCode.OK, page.status)
-        assertTrue(page.body<String>().contains("Feature flags"), "the portal page should be on the classpath")
-    }
 }

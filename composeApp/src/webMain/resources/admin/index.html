@@ -139,20 +139,22 @@
   </div>
 
   <p class="muted small">
-    Server: <code id="origin"></code> · If no administrator can sign in, flags can still be changed with SQL
+    Supabase: <code id="origin"></code> · If no administrator can sign in, flags can still be changed with SQL
     (<code>UPDATE feature_flags SET enabled = true WHERE key = '…'</code>, or
     <code>UPDATE app_update_config SET minimum_version = '…'</code>).
   </p>
 </div>
 
 <script>
+// Set window.TANA_API_BASE_URL / TANA_SUPABASE_KEY here to point the page at another project.
 'use strict';
 
-var TOKEN_KEY = 'tana.admin.token';
-var token = sessionStorage.getItem(TOKEN_KEY);
-var view = null;          // last /feature-flags/admin response
+var SUPABASE_URL = window.TANA_API_BASE_URL || 'https://jnlonvutjugxxxsfpeom.supabase.co';
+var SUPABASE_KEY = window.TANA_SUPABASE_KEY || 'sb_publishable_OH8tYugWOYtJEynk0AElHA_rB18Sy3t';
+var token = null;         // in memory only: a reload signs out
+var view = null;          // last admin_feature_flags response
 var selected = null;      // the user whose overrides are on screen
-var updateConfig = null;  // last /app-update response, null when nothing is stored
+var updateConfig = null;  // last app_update_config response, null when nothing is stored
 
 var el = function (id) { return document.getElementById(id); };
 
@@ -166,28 +168,38 @@ function showNotice(message) {
   el('notice').hidden = !message;
 }
 
-async function api(method, path, body) {
-  var headers = { 'Accept': 'application/json' };
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
-  if (token) headers['Authorization'] = 'Bearer ' + token;
-  var response = await fetch(path, {
-    method: method,
+async function request(path, headers, body) {
+  headers['apikey'] = SUPABASE_KEY;
+  headers['Content-Type'] = 'application/json';
+  var response = await fetch(SUPABASE_URL + path, {
+    method: 'POST',
     headers: headers,
-    body: body === undefined ? undefined : JSON.stringify(body)
+    body: JSON.stringify(body || {})
   });
   var text = await response.text();
   var data = null;
   if (text) {
     try { data = JSON.parse(text); } catch (e) { data = null; }
   }
-  if (response.status === 401) {
-    signOut('The session has expired. Sign in again.');
-    throw new Error('Not signed in');
-  }
   if (!response.ok) {
-    throw new Error((data && data.message) || ('Request failed with ' + response.status));
+    var message = data && (data.message || data.msg || data.error_description);
+    var error = new Error(message || ('Request failed with ' + response.status));
+    error.status = response.status;
+    throw error;
   }
   return data;
+}
+
+async function api(fn, body) {
+  try {
+    return await request('/rest/v1/rpc/' + fn, { 'Authorization': 'Bearer ' + token }, body);
+  } catch (e) {
+    if (e.status === 401) {
+      signOut('The session has expired. Sign in again.');
+      throw new Error('Not signed in');
+    }
+    throw e;
+  }
 }
 
 function state(value) {
@@ -266,19 +278,18 @@ function renderUpdateConfig() {
 }
 
 async function loadUpdateConfig() {
-  updateConfig = await api('GET', '/api/v1/app-update');
+  updateConfig = await api('app_update_config');
   renderUpdateConfig();
 }
 
 async function loadFlags() {
-  view = await api('GET', '/api/v1/feature-flags/admin');
+  view = await api('admin_feature_flags');
   renderFlags();
   renderUser();
 }
 
 function signOut(message) {
   token = null;
-  sessionStorage.removeItem(TOKEN_KEY);
   view = null;
   selected = null;
   updateConfig = null;
@@ -296,7 +307,7 @@ async function start() {
   if (!token) { signOut(); return; }
   var me;
   try {
-    me = await api('GET', '/api/v1/auth/me');
+    me = await api('me');
   } catch (e) {
     showError(e.message);
     return;
@@ -323,12 +334,11 @@ el('signin-form').addEventListener('submit', async function (event) {
   showError('');
   showNotice('');
   try {
-    var auth = await api('POST', '/api/v1/auth/login', {
+    var auth = await request('/auth/v1/token?grant_type=password', {}, {
       email: el('email').value.trim(),
       password: el('password').value
     });
-    token = auth.accessToken;
-    sessionStorage.setItem(TOKEN_KEY, token);
+    token = auth.access_token;
     el('password').value = '';
     await start();
   } catch (e) {
@@ -341,7 +351,7 @@ el('update-form').addEventListener('submit', async function (event) {
   showError('');
   showNotice('');
   try {
-    updateConfig = await api('PUT', '/api/v1/app-update', {
+    updateConfig = await api('save_app_update_config', {
       minimumVersion: el('minimum-version').value.trim(),
       latestVersion: el('latest-version').value.trim(),
       forceUpdate: el('force-update').checked
@@ -361,7 +371,7 @@ el('search-form').addEventListener('submit', async function (event) {
   var query = el('query').value.trim();
   if (!query) { el('results').innerHTML = ''; return; }
   try {
-    var found = await api('GET', '/api/v1/admin/users?q=' + encodeURIComponent(query));
+    var found = await api('admin_users', { q: query, limit: 20 });
     if (found.users.length === 0) {
       el('results').innerHTML = '<li class="muted small">Nobody matches that.</li>';
       return;
@@ -391,16 +401,18 @@ document.addEventListener('click', async function (event) {
       return;
     }
     if (data.global) {
-      view = await api('PUT', '/api/v1/feature-flags/' + data.global, { enabled: data.enabled === 'true' });
+      view = await api('set_feature_flag', { key: data.global, enabled: data.enabled === 'true' });
     } else if (data.clearGlobal) {
-      view = await api('DELETE', '/api/v1/feature-flags/' + data.clearGlobal);
+      view = await api('clear_feature_flag', { key: data.clearGlobal });
     } else if (data.user && selected) {
-      view = await api('PUT', '/api/v1/feature-flags/' + data.user + '/users/' + selected.id, {
+      view = await api('set_feature_flag_for_user', {
+        key: data.user,
+        userId: selected.id,
         enabled: data.enabled === 'true',
         note: 'set from the admin portal'
       });
     } else if (data.clearUser && selected) {
-      view = await api('DELETE', '/api/v1/feature-flags/' + data.clearUser + '/users/' + selected.id);
+      view = await api('clear_feature_flag_for_user', { key: data.clearUser, userId: selected.id });
     } else {
       return;
     }
@@ -412,7 +424,7 @@ document.addEventListener('click', async function (event) {
   }
 });
 
-el('origin').textContent = location.origin;
+el('origin').textContent = SUPABASE_URL;
 start();
 </script>
 </body>
