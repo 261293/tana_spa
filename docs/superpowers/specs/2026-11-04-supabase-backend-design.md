@@ -21,6 +21,8 @@ Nothing is in production. There are no users or data to preserve, and the client
 | Email confirmation on sign-up | **Off**. Signing up signs you in, as today |
 | Web hosting | Stays on Cloudflare Workers static assets (already live at `https://tana-spa-web.spa-tana.workers.dev`) |
 | Spa location | Vietnam; timezone `Asia/Ho_Chi_Minh` |
+| Seed content | The spa is **Tana Spa** in Hồ Chí Minh City. Keep the current menu, therapists and offers; reprice them in dong |
+| Currency | Prices are **stored and shown in dong in every language**. Dollars disappear from the app |
 
 ## Goals
 
@@ -151,6 +153,35 @@ is the cost of having no server.
   stops two guests taking the same therapist slot at once.
 - `EXECUTE` is granted only to the roles that should call each function (`authenticated`, and
   `anon` only for public reads such as availability and offer check), and revoked from `PUBLIC`.
+
+### Seed content and currency
+
+Today the catalogue is priced in whole dollars in columns named `*_vnd` (V9 admits this), and the
+client converts to dong for Vietnamese readers with `formatPrice(usd)` at the fixed display rate
+`VND_PER_USD = 25_000` (`shared/.../helpers/Money.kt`). After this change the columns hold dong,
+as their names always claimed.
+
+A new migration updates the live seed rows:
+
+| What | Before | After |
+|---|---|---|
+| Branch | Jade Bathhouse, 1452 Valencia Street, San Francisco | **Tana Spa**, city **TP. Hồ Chí Minh**, `address_line` = `Đang cập nhật` *(a visible placeholder; the owner has not given the address, and none is invented)*; hours 09:00–21:00 unchanged |
+| Warm Stone Massage | 165 | 4.125.000 |
+| Jade Roller Facial | 120 | 3.000.000 |
+| Deep Tissue Massage | 140 | 3.500.000 |
+| Matcha Body Polish | 98 | 2.450.000 |
+| Herbal Compress Ritual | 150 | 3.750.000 |
+| MIDWEEK15 (fixed) | 15 off, minimum 120 | 375.000 off, minimum 3.000.000; the English title and description rewritten in dong; the code keeps its name |
+| JADE20, FIRSTVISIT | percent | unchanged |
+
+The dong figures are the dollar prices × 25.000, i.e. exactly what Vietnamese readers see today, so
+nobody's quoted price moves. Therapists and the Vietnamese texts (V11, V12) are unchanged.
+
+Client: `formatPrice` always formats dong (`formatVnd`) whatever the language; `VND_PER_USD` and
+`usdToVnd` are deleted, so the compiler finds every caller (21 call sites across `core:ui` and
+`feature/Booking`, plus `SpaMoneyFormatTest` and `SpaPromoTextTest`). Any promo text built from a
+fixed voucher value formats dong too. *(Assistant's call)* Amounts stay `Int` in the DTOs: the
+largest seed price is 4.125.000 and `Int` holds up to about 2,1 tỷ đồng.
 
 ### Accounts *(assistant's call)*
 
