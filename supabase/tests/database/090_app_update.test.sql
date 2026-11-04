@@ -49,7 +49,7 @@ select pg_temp.as_postgres();
 update public.feature_flags set enabled = true where key = 'app_update_gate';
 delete from public.app_update_config;
 select pg_temp.as_anon();
-select is(pg_temp.api_error($$select public.app_update_config()$$), 'PGRST 404 invalid_request', 'no_row_is_404');
+select is(public.app_update_config(), null::jsonb, 'no_row_answers_null');
 
 select * from finish();
 rollback;

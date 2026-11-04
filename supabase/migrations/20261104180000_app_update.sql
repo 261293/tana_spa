@@ -38,15 +38,9 @@ $$;
 create function public.app_update_config() returns jsonb
     language plpgsql stable security definer set search_path = ''
 as $$
-declare
-    dto jsonb;
 begin
     perform private.require_flag('app_update_gate', null);
-    dto := private.app_update_dto();
-    if dto is null then
-        perform private.fail('invalid_request', 404, 'No app update gate is configured');
-    end if;
-    return dto;
+    return private.app_update_dto();
 end
 $$;
 
