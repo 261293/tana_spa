@@ -9,8 +9,8 @@
 ## Checklist
 
 - [ ] `./gradlew ktlintCheck` passes (`./gradlew ktlintFormat` fixes most findings)
-- [ ] `./gradlew jvmTest :server:test` passes
+- [ ] `./gradlew jvmTest` passes, and `npx supabase test db` for a change under `supabase/`
 - [ ] No secrets, tokens, keys or real personal data in the diff, tests, docs or screenshots
-- [ ] New configuration is read from environment variables and documented (never committed)
-- [ ] Database changes are a new `V<n>__*.sql` migration (applied migrations are never edited)
+- [ ] New secrets live in Edge Function secrets and are documented (never committed)
+- [ ] Database changes are a new file in `supabase/migrations/` (applied migrations are never edited)
 - [ ] User-facing text is in string resources for every supported language

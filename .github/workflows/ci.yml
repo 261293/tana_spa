@@ -128,10 +128,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-      # `jvmTest` runs every Kotlin Multiplatform module's shared tests on the JVM; `:server:test`
-      # runs the backend suite, which starts a real embedded PostgreSQL (no Docker needed).
+      # `jvmTest` runs every Kotlin Multiplatform module's shared tests on the JVM. The backend's
+      # tests run in the `supabase` job.
       - name: Run unit tests
-        run: ./gradlew jvmTest :server:test --continue --console=plain --stacktrace
+        run: ./gradlew jvmTest --continue --console=plain --stacktrace
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -144,7 +144,7 @@ jobs:
           retention-days: 7
 
   build:
-    name: Build (web, Android, server)
+    name: Build (web, Android)
     runs-on: ubuntu-latest
     # The release builds run R8 and ProGuard, which the debug builds do not.
     timeout-minutes: 60
@@ -164,12 +164,11 @@ jobs:
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
       # The production web bundle also fails when kotlin-js-store/wasm/yarn.lock is out of date,
       # which a plain compile would not catch.
-      - name: Build web, Android debug and server
+      - name: Build web and Android debug
         run: >
           ./gradlew
           :composeApp:verifyWebDistributionStripped
           :androidApp:assembleDebug
-          :server:assemble
           --console=plain --stacktrace
       # The shipped artifacts must stay unreadable: `verifyReleaseObfuscation` builds the release
       # APK and fails if R8 left original class names or debug log messages in it, and
@@ -185,6 +184,51 @@ jobs:
       # repository that would hand everyone the key to deobfuscate - and this APK is unsigned and
       # never shipped, so its mapping is worthless anyway. The release pipeline that signs an APK
       # is the one that has to archive its own mapping.txt.
+
+  supabase:
+    name: Backend tests (Supabase)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Pinned so a CLI release cannot change the stack under the tests; bump it deliberately.
+      SUPABASE_CLI: supabase@3.0.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: "2.9.8"
+      # The stack runs in Docker, which the Ubuntu runner already has. No test needs the
+      # excluded services.
+      - name: Start the local Supabase stack
+        run: npx --yes "$SUPABASE_CLI" start -x logflare,vector,studio
+      - name: Database tests (pgTAP)
+        run: npx --yes "$SUPABASE_CLI" test db
+      # The accounts function's local_stack test calls the served function through the stack's
+      # gateway, so serve it and wait until it answers its preflight.
+      - name: Serve the Edge Functions
+        run: |
+          npx --yes "$SUPABASE_CLI" functions serve > "$RUNNER_TEMP/functions.log" 2>&1 &
+          for _ in $(seq 1 60); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://127.0.0.1:54321/functions/v1/accounts || true)
+            if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then exit 0; fi
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/functions.log"
+          exit 1
+      # The local_stack test reads the stack's URL and keys from these variables; without them it
+      # would run an unpinned `npx supabase status` itself.
+      - name: Edge Function tests (Deno)
+        run: |
+          eval "$(npx --yes "$SUPABASE_CLI" status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          SUPABASE_URL="$API_URL" SUPABASE_ANON_KEY="$ANON_KEY" SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY"             deno test --allow-net --allow-env --allow-run supabase/functions
+      - name: Print the functions log
+        if: failure()
+        run: cat "$RUNNER_TEMP/functions.log" || true
 
   ios:
     name: Build (iOS)
@@ -211,7 +255,7 @@ jobs:
   ci-passed:
     name: CI passed
     if: always()
-    needs: [wrapper-validation, secret-scan, ktlint, unit-tests, build, ios]
+    needs: [wrapper-validation, secret-scan, ktlint, unit-tests, build, supabase, ios]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
