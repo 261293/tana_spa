@@ -1,11 +1,13 @@
-create function pg_temp.new_user(role text default 'customer', email text default null) returns uuid
+create function pg_temp.new_user(role text default 'customer', email text default null, meta jsonb default '{}') returns uuid
 language plpgsql as $$
 declare
     uid uuid := gen_random_uuid();
     address text := coalesce(email, 'user-' || uid || '@test.local');
 begin
-    insert into auth.users (id, email, aud, role) values (uid, address, 'authenticated', 'authenticated');
-    insert into public.users (id, email, full_name, role) values (uid, address, 'Test User', new_user.role);
+    insert into auth.users (id, email, aud, role, raw_user_meta_data) values (uid, address, 'authenticated', 'authenticated', meta);
+    if new_user.role <> 'customer' then
+        update public.users set role = new_user.role where id = uid;
+    end if;
     return uid;
 end
 $$;
@@ -30,5 +32,23 @@ create function pg_temp.as_postgres() returns void
 language plpgsql as $$
 begin
     reset role;
+end
+$$;
+
+create function pg_temp.api_error(statement text) returns text
+language plpgsql as $$
+declare
+    state text;
+    body text;
+    extra text;
+begin
+    execute statement;
+    return 'no error';
+exception when others then
+    get stacked diagnostics state = returned_sqlstate, body = message_text, extra = pg_exception_detail;
+    if state <> 'PGRST' then
+        return state || ' ' || body;
+    end if;
+    return state || ' ' || (extra::json ->> 'status') || ' ' || (body::json ->> 'code');
 end
 $$;
