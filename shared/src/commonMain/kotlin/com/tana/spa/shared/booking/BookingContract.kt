@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
  * The booking contract, compiled into both the app and the server. Change a path, a field or an
  * error code here and both sides move together.
  *
- * Money is a whole unit of the catalogue's currency (the design prices in dollars). Times are
+ * Money is a whole unit of the catalogue's currency (dong, so a price is written 4125000 for 4.125.000đ). Times are
  * epoch milliseconds, UTC, as everywhere else in this API.
  */
 object BookingApi {

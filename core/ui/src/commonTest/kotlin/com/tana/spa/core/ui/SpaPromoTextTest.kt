@@ -37,15 +37,15 @@ class SpaPromoTextTest {
     }
 
     @Test
-    fun the_money_in_an_offer_is_written_in_the_currency_that_language_shows() {
+    fun the_money_in_an_offer_is_written_in_dong_in_both_languages() {
         val midweek = promo("MIDWEEK15")
 
         SelectedLanguage.value = AppLanguage.ENGLISH
-        assertEquals("\$15 off weekday massages", midweek.localizedTitle)
+        assertEquals("375.000đ off weekday massages", midweek.localizedTitle)
+        assertEquals("Tue-Thu appointments. Minimum spend 3.000.000đ.", midweek.localizedTerms)
 
         SelectedLanguage.value = AppLanguage.VIETNAMESE
-        // The prose must agree with formatPrice, which shows the same offer converted.
-        assertEquals("Giảm ${formatPrice(15)} cho massage ngày thường", midweek.localizedTitle)
+        assertEquals("Giảm ${formatPrice(375_000)} cho massage ngày thường", midweek.localizedTitle)
     }
 
     @Test

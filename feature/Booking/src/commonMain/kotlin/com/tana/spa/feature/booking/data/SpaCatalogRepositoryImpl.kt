@@ -37,7 +37,7 @@ private fun ServiceDto.toService() = Service(
     id = slug,
     name = name,
     minutes = minutes,
-    priceUsd = price,
+    priceVnd = price,
     category = category.toCategory(),
     includes = includes,
 )

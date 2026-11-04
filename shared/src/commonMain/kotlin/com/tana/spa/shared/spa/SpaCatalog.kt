@@ -20,7 +20,7 @@ data class Service(
     val id: String,
     val name: String,
     val minutes: Int,
-    val priceUsd: Int,
+    val priceVnd: Int,
     val category: ServiceCategory,
     val includes: String,
 )
@@ -46,8 +46,8 @@ data class Promo(
     val title: String,
     val titleVi: String? = null,
     val percentOff: Int? = null,
-    val amountOffUsd: Int? = null,
-    val minSpendUsd: Int? = null,
+    val amountOffVnd: Int? = null,
+    val minSpendVnd: Int? = null,
     /** Empty means every treatment qualifies. */
     val eligible: Set<ServiceCategory> = emptySet(),
     val validUntil: String,
@@ -69,7 +69,7 @@ data class BookingRequest(
     val requested: String,
     val status: RequestStatus,
     val code: String? = null,
-    val discountUsd: Int? = null,
+    val discountVnd: Int? = null,
     val note: String? = null,
     val conflict: String? = null,
 )
@@ -98,11 +98,32 @@ data class AdminCode(
 
 object SpaCatalog {
     val services = listOf(
-        Service("stone", "Warm Stone Massage", 90, 165, ServiceCategory.MASSAGE, "Basalt stones, full-body pressure work, scalp finish"),
-        Service("jade-facial", "Jade Roller Facial", 60, 120, ServiceCategory.FACIAL, "Double cleanse, enzyme mask, cooled jade rolling"),
-        Service("deep", "Deep Tissue Massage", 75, 140, ServiceCategory.MASSAGE, "Targeted back, neck and shoulder release"),
-        Service("scrub", "Matcha Body Polish", 50, 98, ServiceCategory.BODY, "Green tea salt scrub, rinse, hydrating balm"),
-        Service("herbal", "Herbal Compress Ritual", 75, 150, ServiceCategory.BODY, "Steamed lemongrass compresses, light oil massage"),
+        Service(
+            "stone",
+            "Warm Stone Massage",
+            90,
+            4_125_000,
+            ServiceCategory.MASSAGE,
+            "Basalt stones, full-body pressure work, scalp finish",
+        ),
+        Service(
+            "jade-facial",
+            "Jade Roller Facial",
+            60,
+            3_000_000,
+            ServiceCategory.FACIAL,
+            "Double cleanse, enzyme mask, cooled jade rolling",
+        ),
+        Service("deep", "Deep Tissue Massage", 75, 3_500_000, ServiceCategory.MASSAGE, "Targeted back, neck and shoulder release"),
+        Service("scrub", "Matcha Body Polish", 50, 2_450_000, ServiceCategory.BODY, "Green tea salt scrub, rinse, hydrating balm"),
+        Service(
+            "herbal",
+            "Herbal Compress Ritual",
+            75,
+            3_750_000,
+            ServiceCategory.BODY,
+            "Steamed lemongrass compresses, light oil massage",
+        ),
     )
 
     /** The day the design was drawn against; the demo catalogue is anchored to it. */
@@ -132,14 +153,14 @@ object SpaCatalog {
         ),
         Promo(
             code = "MIDWEEK15",
-            title = "$15 off weekday massages",
+            title = "375.000đ off weekday massages",
             titleVi = "Giảm 375.000đ cho massage ngày thường",
-            amountOffUsd = 15,
-            minSpendUsd = 120,
+            amountOffVnd = 375_000,
+            minSpendVnd = 3_000_000,
             eligible = setOf(ServiceCategory.MASSAGE),
             validUntil = "Nov 15, 2026",
             validUntilVi = "15 thg 11, 2026",
-            terms = "Tue-Thu appointments. Minimum spend $120.",
+            terms = "Tue-Thu appointments. Minimum spend 3.000.000đ.",
             termsVi = "Áp dụng thứ Ba đến thứ Năm. Đơn tối thiểu 3.000.000đ.",
         ),
         Promo(
@@ -163,7 +184,7 @@ object SpaCatalog {
         BookingRequest(
             id = "BK-2417", guest = "Hannah Pham", phone = "(415) 555-0142", serviceId = "stone", therapistId = "mai",
             startHour = 14.5, requested = "9 min ago", status = RequestStatus.PENDING, code = "MIDWEEK15",
-            discountUsd = 15, note = "Lower back sensitivity, medium pressure please.",
+            discountVnd = 375_000, note = "Lower back sensitivity, medium pressure please.",
         ),
         BookingRequest(
             id = "BK-2416", guest = "Diego Alvarez", phone = "(415) 555-0178", serviceId = "deep", therapistId = "tomas",
@@ -173,7 +194,7 @@ object SpaCatalog {
         BookingRequest(
             id = "BK-2415", guest = "Priya Natarajan", phone = "(415) 555-0119", serviceId = "jade-facial",
             therapistId = "lena", startHour = 16.0, requested = "41 min ago", status = RequestStatus.PENDING,
-            code = "JADE20", discountUsd = 24,
+            code = "JADE20", discountVnd = 600_000,
         ),
         BookingRequest(
             id = "BK-2413", guest = "Grace Kim", phone = "(415) 555-0163", serviceId = "herbal", therapistId = "mai",
@@ -203,9 +224,9 @@ object SpaCatalog {
 
     val adminCodes = listOf(
         AdminCode("JADE20", "20% off", "Facials", "Oct 1", "Oct 31", 184, 250, AdminCodeState.LIVE, "Ends in 16 days"),
-        AdminCode("MIDWEEK15", "$15 off", "Massages - Tue-Thu - min $120", "Oct 6", "Nov 15", 62, null, AdminCodeState.LIVE),
+        AdminCode("MIDWEEK15", "375.000đ off", "Massages - Tue-Thu - min 3.000.000đ", "Oct 6", "Nov 15", 62, null, AdminCodeState.LIVE),
         AdminCode("FIRSTVISIT", "10% off", "All treatments - new guests", "Jan 1", "Dec 31", 412, null, AdminCodeState.LIVE),
-        AdminCode("WINTERSTEAM", "$25 off", "Herbal Compress Ritual", "Dec 1", "Jan 31", 0, 120, AdminCodeState.SCHEDULED),
+        AdminCode("WINTERSTEAM", "625.000đ off", "Herbal Compress Ritual", "Dec 1", "Jan 31", 0, 120, AdminCodeState.SCHEDULED),
         AdminCode("SUMMERGLOW", "15% off", "Facials - Body", "Jun 1", "Aug 31", 297, 300, AdminCodeState.EXPIRED),
         AdminCode(
             "STAFF50", "50% off", "All treatments", "Mar 1", "Sep 30", 38, null, AdminCodeState.DISABLED,

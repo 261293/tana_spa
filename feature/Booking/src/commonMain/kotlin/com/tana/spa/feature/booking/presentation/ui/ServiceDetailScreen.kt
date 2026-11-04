@@ -109,7 +109,7 @@ private fun Treatment(service: Service, onBook: () -> Unit) {
             modifier = Modifier.semantics { heading() },
         )
         Text(
-            text = formatPrice(service.priceUsd),
+            text = formatPrice(service.priceVnd),
             style = SpaTheme.textStyles.screenTitle,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -127,7 +127,7 @@ private fun Treatment(service: Service, onBook: () -> Unit) {
 
     Column(Modifier.revealOnScroll(order = 4), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SpaPrimaryButton(
-            text = stringResource(Res.string.service_book, formatPrice(service.priceUsd)),
+            text = stringResource(Res.string.service_book, formatPrice(service.priceVnd)),
             onClick = onBook,
         )
         Text(

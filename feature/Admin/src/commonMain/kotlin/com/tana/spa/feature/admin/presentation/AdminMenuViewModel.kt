@@ -47,7 +47,7 @@ class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRol
                 setState { copy(service = service.copy(minutes = event.value.digits(), minutesError = null)) }
 
             is AdminMenuEvent.ServicePriceChanged ->
-                setState { copy(service = service.copy(price = event.value.digits(), priceError = null)) }
+                setState { copy(service = service.copy(price = event.value.digits(MAX_PRICE_DIGITS), priceError = null)) }
 
             is AdminMenuEvent.ServiceCategoryChanged -> setState { copy(service = service.copy(category = event.category)) }
 
@@ -175,7 +175,7 @@ class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRol
     }
 
     /** Durations and prices are whole numbers; anything else cannot be typed into them. */
-    private fun String.digits(): String = filter { it.isDigit() }.take(MAX_DIGITS)
+    private fun String.digits(limit: Int = MAX_DIGITS): String = filter { it.isDigit() }.take(limit)
 
     private inline fun <T> runCatchingCancellable(block: () -> T): Result<T> = try {
         Result.success(block())
@@ -189,6 +189,7 @@ class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRol
 
     private companion object {
         const val MAX_DIGITS = 6
+        const val MAX_PRICE_DIGITS = 9
 
         val ROLE_ORDER = listOf(SpaRoles.ADMIN, SpaRoles.OWNER, SpaRoles.STAFF, SpaRoles.CUSTOMER)
     }

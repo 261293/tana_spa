@@ -2,7 +2,7 @@ package com.tana.spa.shared.spa
 
 /** The outcome of typing a discount code against a chosen treatment. */
 sealed interface PromoCheck {
-    data class Applied(val promo: Promo, val discountUsd: Int) : PromoCheck
+    data class Applied(val promo: Promo, val discountVnd: Int) : PromoCheck
 
     /** [reason] says which rule the code failed, so the screen can word it. */
     data class Rejected(val reason: PromoRejection, val code: String, val promo: Promo? = null) : PromoCheck
@@ -29,9 +29,9 @@ fun checkPromoCode(raw: String, service: Service?): PromoCheck {
     if (promo.eligible.isNotEmpty() && service.category !in promo.eligible) {
         return PromoCheck.Rejected(PromoRejection.WRONG_CATEGORY, code, promo)
     }
-    if (promo.minSpendUsd != null && service.priceUsd < promo.minSpendUsd) {
+    if (promo.minSpendVnd != null && service.priceVnd < promo.minSpendVnd) {
         return PromoCheck.Rejected(PromoRejection.BELOW_MINIMUM_SPEND, code, promo)
     }
-    val discount = promo.percentOff?.let { (service.priceUsd * it + 50) / 100 } ?: promo.amountOffUsd ?: 0
+    val discount = promo.percentOff?.let { (service.priceVnd * it + 50) / 100 } ?: promo.amountOffVnd ?: 0
     return PromoCheck.Applied(promo, discount)
 }

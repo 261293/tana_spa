@@ -188,7 +188,7 @@ private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
             )
         }
         Text(
-            text = formatPrice(service.priceUsd),
+            text = formatPrice(service.priceVnd),
             style = SpaTheme.textStyles.cardTitle,
             color = MaterialTheme.colorScheme.onSurface,
         )

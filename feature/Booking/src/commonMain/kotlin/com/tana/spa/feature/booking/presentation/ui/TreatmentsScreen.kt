@@ -169,7 +169,7 @@ private fun TreatmentCard(service: Service, modifier: Modifier = Modifier, onOpe
     SpaTreatmentCard(
         modifier = modifier,
         title = service.name,
-        priceLabel = formatPrice(service.priceUsd),
+        priceLabel = formatPrice(service.priceVnd),
         detail = stringResource(Res.string.service_minutes, service.minutes),
         onClick = onOpen,
         category = service.category.localizedLabel(),

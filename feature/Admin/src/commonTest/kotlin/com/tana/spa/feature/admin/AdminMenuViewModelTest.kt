@@ -148,10 +148,10 @@ class AdminMenuViewModelTest {
         val vm = viewModel()
 
         vm.onEvent(AdminMenuEvent.ServiceMinutesChanged("9o min"))
-        vm.onEvent(AdminMenuEvent.ServicePriceChanged("$165"))
+        vm.onEvent(AdminMenuEvent.ServicePriceChanged("4.125.000đ"))
 
         assertEquals("9", vm.state.value.service.minutes)
-        assertEquals("165", vm.state.value.service.price)
+        assertEquals("4125000", vm.state.value.service.price)
     }
 
     @Test
