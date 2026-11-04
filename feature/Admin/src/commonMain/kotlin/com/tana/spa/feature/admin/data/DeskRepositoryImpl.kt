@@ -7,11 +7,10 @@ import com.tana.spa.feature.admin.domain.DeskRefused
 import com.tana.spa.feature.admin.domain.DeskRepository
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
-import com.tana.spa.shared.auth.AccountsApi
+import com.tana.spa.shared.SupabasePaths
 import com.tana.spa.shared.auth.CreateAccountRequest
 import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.auth.ErrorResponse
-import com.tana.spa.shared.booking.BookingApi
 import com.tana.spa.shared.booking.BookingDto
 import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.booking.ConfirmBookingRequest
@@ -25,13 +24,19 @@ import com.tana.spa.shared.booking.TherapistDto
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
 import kotlin.time.Clock
 
 private const val MILLIS_PER_MINUTE = 60_000L
@@ -40,7 +45,7 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
     DeskRepository {
 
     override suspend fun queue(): DeskQueue {
-        val response = networkClient.httpClient.get(baseUrl + BookingApi.OWNER_BOOKINGS) { authorize() }
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_staff_queue")) { authorize() }
         val body = response.requireSuccess().body<StaffQueueResponse>()
         val now = nowEpochMillis()
         return DeskQueue(
@@ -51,31 +56,35 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
     }
 
     override suspend fun confirm(id: String, force: Boolean): DeskRequest {
-        val response = networkClient.httpClient.post(baseUrl + BookingApi.confirm(id)) {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_confirm_booking")) {
             authorize()
             contentType(ContentType.Application.Json)
-            setBody(ConfirmBookingRequest(force))
+            setBody(withId(id, ConfirmBookingRequest(force)))
         }
         return response.requireSuccess().body<BookingDto>().toRequest(nowEpochMillis())
     }
 
     override suspend fun decline(id: String, reason: DeclineReasonDto, alternative: String?): DeskRequest {
-        val response = networkClient.httpClient.post(baseUrl + BookingApi.decline(id)) {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_decline_booking")) {
             authorize()
             contentType(ContentType.Application.Json)
-            setBody(DeclineBookingRequest(reason, alternative))
+            setBody(withId(id, DeclineBookingRequest(reason, alternative)))
         }
         return response.requireSuccess().body<BookingDto>().toRequest(nowEpochMillis())
     }
 
     override suspend fun recordVisit(id: String, attended: Boolean): DeskRequest {
-        val path = if (attended) BookingApi.complete(id) else BookingApi.noShow(id)
-        val response = networkClient.httpClient.post(baseUrl + path) { authorize() }
+        val function = if (attended) "spa_complete_booking" else "spa_no_show_booking"
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc(function)) {
+            authorize()
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject { put("id", id) })
+        }
         return response.requireSuccess().body<BookingDto>().toRequest(nowEpochMillis())
     }
 
     override suspend fun createService(request: CreateServiceRequest): ServiceDto {
-        val response = networkClient.httpClient.post(baseUrl + BookingApi.OWNER_SERVICES) {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_create_service")) {
             authorize()
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -84,7 +93,7 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
     }
 
     override suspend fun createTherapist(request: CreateTherapistRequest): TherapistDto {
-        val response = networkClient.httpClient.post(baseUrl + BookingApi.OWNER_THERAPISTS) {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_create_therapist")) {
             authorize()
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -93,7 +102,7 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
     }
 
     override suspend fun createAccount(request: CreateAccountRequest): CreatedAccountDto {
-        val response = networkClient.httpClient.post(baseUrl + AccountsApi.BASE) {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.function("accounts")) {
             authorize()
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -102,6 +111,9 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
     }
 
     private fun nowEpochMillis(): Long = Clock.System.now().toEpochMilliseconds()
+
+    private inline fun <reified T> withId(id: String, request: T) =
+        JsonObject(Json.encodeToJsonElement(request).jsonObject + ("id" to JsonPrimitive(id)))
 
     private fun HttpRequestBuilder.authorize() {
         tokens.accessToken()?.let { bearerAuth(it) }

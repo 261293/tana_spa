@@ -33,7 +33,7 @@ data class Session(
     /** Absolute expiry as epoch milliseconds, so it stays meaningful after an app restart. */
     val expiresAtMillis: Long,
     val user: AuthUser,
-    /** Spent at `AuthApi.REFRESH` for the next pair; empty only for a session stored before refresh tokens existed. */
+    /** Spent at `SupabasePaths.REFRESH_GRANT` for the next pair; empty only for a session stored before refresh tokens existed. */
     val refreshToken: String = "",
     /** When the guest must sign in again, however often the app refreshes in the meantime. */
     val refreshExpiresAtMillis: Long = 0,

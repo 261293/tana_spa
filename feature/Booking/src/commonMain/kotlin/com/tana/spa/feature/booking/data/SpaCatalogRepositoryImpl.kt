@@ -3,7 +3,7 @@ package com.tana.spa.feature.booking.data
 import com.tana.spa.core.network.NetworkClient
 import com.tana.spa.feature.booking.domain.Catalog
 import com.tana.spa.feature.booking.domain.SpaCatalogRepository
-import com.tana.spa.shared.booking.BookingApi
+import com.tana.spa.shared.SupabasePaths
 import com.tana.spa.shared.booking.CatalogResponse
 import com.tana.spa.shared.booking.ServiceCategoryDto
 import com.tana.spa.shared.booking.ServiceDto
@@ -12,7 +12,7 @@ import com.tana.spa.shared.spa.Service
 import com.tana.spa.shared.spa.ServiceCategory
 import com.tana.spa.shared.spa.Therapist
 import io.ktor.client.call.body
-import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.http.isSuccess
 
 /**
@@ -22,7 +22,7 @@ import io.ktor.http.isSuccess
 class SpaCatalogRepositoryImpl(private val networkClient: NetworkClient, private val baseUrl: String) : SpaCatalogRepository {
 
     override suspend fun catalog(): Catalog {
-        val response = networkClient.httpClient.get(baseUrl + BookingApi.CATALOG)
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_catalog"))
         check(response.status.isSuccess()) { "Catalog request failed with ${response.status.value}" }
         val body = response.body<CatalogResponse>()
         return Catalog(

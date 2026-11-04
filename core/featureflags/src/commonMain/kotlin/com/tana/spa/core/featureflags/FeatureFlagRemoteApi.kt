@@ -1,11 +1,11 @@
 package com.tana.spa.core.featureflags
 
 import com.tana.spa.core.network.NetworkClient
-import com.tana.spa.shared.featureflags.FeatureFlagApi
+import com.tana.spa.shared.SupabasePaths
 import com.tana.spa.shared.featureflags.FeatureFlagsResponse
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.http.isSuccess
 
 interface FeatureFlagRemoteApi {
@@ -16,7 +16,7 @@ interface FeatureFlagRemoteApi {
 class FeatureFlagRemoteApiImpl(private val networkClient: NetworkClient, private val baseUrl: String) : FeatureFlagRemoteApi {
 
     override suspend fun fetch(accessToken: String?): Map<String, Boolean> {
-        val response = networkClient.httpClient.get(baseUrl + FeatureFlagApi.RESOLVED) {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("feature_flags")) {
             accessToken?.let { bearerAuth(it) }
         }
         check(response.status.isSuccess()) { "Feature flags request failed with ${response.status.value}" }
