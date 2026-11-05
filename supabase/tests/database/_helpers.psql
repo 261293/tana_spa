@@ -1,3 +1,5 @@
+-- The migration revokes PUBLIC execute by default; the test helpers are called by the API roles.
+alter default privileges for role postgres grant execute on functions to public;
 create function pg_temp.new_user(role text default 'customer', email text default null, meta jsonb default '{}') returns uuid
 language plpgsql as $$
 declare
