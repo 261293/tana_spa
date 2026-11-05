@@ -29,7 +29,7 @@ Android ─┐                                        ┌─ register_device    
 | DTOs, data keys, channel id | `shared/.../notifications/` |
 | Permission, token, registration lifecycle | `core:notifications` |
 | The centre (list, badge, mark read) | `feature/Notifications`, `core:notifications` (`NotificationBadge`) |
-| Functions, storage, the trigger | `supabase/migrations/20261104171746_notifications.sql`, `20261104190000_push_webhook.sql` |
+| Functions, storage, the trigger | `supabase/migrations/20261105004632_notifications.sql`, `20261105004700_push_webhook.sql` |
 | FCM transport | `supabase/functions/push/` |
 | Device registrations | `device_tokens` (`V8__push_notifications.sql`) |
 

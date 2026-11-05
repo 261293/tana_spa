@@ -14,14 +14,16 @@ Deeper guides, not repeated here: `docs/release-signing.md` (keystore, certifica
 
 | # | What | Where |
 |---|------|-------|
-| 0.1 | **The backend in `supabase/` is not deployed** | section 1 |
+| 0.1 | **`PUSH_WEBHOOK_SECRET` is not set on the project** | section 1.3 |
 | 0.2 | **No administrator exists** | section 1.4 |
 
 ### 0.1 Backend
 
-The apps call the Supabase project compiled into `Constants` (`jnlonvutjugxxxsfpeom`). Until the
-migrations and Edge Functions of this branch are deployed there, the apps render their UI and
-fail the calls whose functions the project does not have.
+The apps call the Supabase project compiled into `Constants` (`jnlonvutjugxxxsfpeom`). Every
+migration in `supabase/migrations/` and both Edge Functions are deployed there (2026-11-05), and
+the Vault holds `push_url` and `push_secret`. What is missing is the function secret that must
+equal `push_secret`; until it is set, the `push` function refuses the database's calls (401) and
+no push leaves, while every notification is still stored.
 
 ### 0.2 First administrator
 
@@ -61,6 +63,10 @@ the notification is still stored:
 |---|---|
 | `push_url` | `https://<project-ref>.supabase.co/functions/v1/push` |
 | `push_secret` | the same value as the function's `PUSH_WEBHOOK_SECRET` |
+
+Both are stored on the project. To set the function secret, reveal `push_secret` under
+Integrations → Vault in the dashboard, copy it, and add it as `PUSH_WEBHOOK_SECRET` under Edge
+Functions → Secrets. Rotating it means changing both to the same new value.
 
 ### 1.4 Auth settings and the first administrator
 

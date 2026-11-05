@@ -26,7 +26,7 @@ reads are primary-key lookups on two tiny tables.
 ## The catalog
 
 `shared/.../featureflags/FeatureFlags.kt` is the list the apps compile in;
-`private.flag_catalog()` (`supabase/migrations/20261104162513_feature_flags.sql`) is the same list
+`private.flag_catalog()` (`supabase/migrations/20261105004301_feature_flags.sql`) is the same list
 in SQL, with the same compiled defaults. **Change both together**: a key missing from the SQL copy
 is `404 unknown_flag` to the admin page, and a key missing from the Kotlin copy is ignored by the
 apps.

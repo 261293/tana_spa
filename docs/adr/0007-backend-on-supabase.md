@@ -31,7 +31,7 @@ reasoning and the owner's decisions are in
   to `/auth/v1/*`. A trigger on `auth.users` creates the `public.users` row as a `customer` and
   grants the welcome voucher; a second copies a confirmed phone across. `password_hash`,
   `refresh_tokens` and `phone_verifications` are dropped
-  (`20261104161631_identity_on_supabase_auth.sql`), and with them the custom token design of 0006.
+  (`20261105004153_identity_on_supabase_auth.sql`), and with them the custom token design of 0006.
 - **Every rule is a Postgres function.** The Data API stays closed (RLS on every table with no
   policies, table grants revoked from `anon` and `authenticated`); the client calls `public`
   functions at `/rest/v1/rpc/<name>`. Each is `security definer` with `set search_path = ''`, is

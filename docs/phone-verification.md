@@ -39,7 +39,7 @@ record.
 |---|---|
 | The calls and the error mapping | `feature/Auth/.../AuthRemoteApiImpl.kt` (`sendPhoneOtp`, `verifyPhoneOtp`, `appCode`) |
 | Normalising a typed number to E.164 | `AuthValidation.normalizePhone` in the app, `private.normalize_phone` in SQL |
-| Copying the confirmed phone | `private.on_auth_phone_confirmed` (`20261104161631_identity_on_supabase_auth.sql`) |
+| Copying the confirmed phone | `private.on_auth_phone_confirmed` (`20261105004153_identity_on_supabase_auth.sql`) |
 | Auth's SMS and rate-limit settings | the project's Auth settings; locally `[auth.sms]` and `[auth.rate_limit]` in `supabase/config.toml` |
 
 The resend countdown (60 s) and the expiry the screen shows (3600 s) are constants in

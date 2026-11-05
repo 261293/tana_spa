@@ -94,7 +94,7 @@ erDiagram
 
 ## Decisions worth knowing
 
-**Auth.** Supabase Auth owns credentials and sessions (`auth.users`). `users` is the profile, with the same `id`: a trigger on `auth.users` insert creates it as a `customer` and grants the welcome voucher, and another copies a confirmed phone across. `password_hash`, `refresh_tokens` and `phone_verifications` were dropped (`20261104161631_identity_on_supabase_auth.sql`). See `docs/adr/0007-backend-on-supabase.md`.
+**Auth.** Supabase Auth owns credentials and sessions (`auth.users`). `users` is the profile, with the same `id`: a trigger on `auth.users` insert creates it as a `customer` and grants the welcome voucher, and another copies a confirmed phone across. `password_hash`, `refresh_tokens` and `phone_verifications` were dropped (`20261105004153_identity_on_supabase_auth.sql`). See `docs/adr/0007-backend-on-supabase.md`.
 
 **Email/phone uniqueness.** Emails are stored lowercase (`CHECK email = lower(email)`, matching `AuthValidation.normalizeEmail`) and unique among *non-deleted* users only. Phone is stored as E.164 and is unique only among *verified* users (see V5 below): an unverified claim must not lock the real owner out.
 
