@@ -71,6 +71,7 @@ Functions → Secrets. Rotating it means changing both to the same new value.
 | Setting | Value |
 |---|---|
 | Email provider, "Confirm email" | **off** — signing up signs you in |
+| Minimum password length | **8** (`minimum_password_length`; matches `AuthValidation.MIN_PASSWORD_LENGTH`) |
 | Phone provider (Twilio Verify) | **off** while `phone_otp_verification` is off; see `docs/phone-verification.md` |
 
 Then sign up in the app with the administrator's address and run, in the SQL editor:
