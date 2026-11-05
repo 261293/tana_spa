@@ -55,6 +55,6 @@ Dependencies point inward: presentation -> domain <- data.
   type-safe `@Serializable` routes once screens need arguments or deep links.
 - `FeedCacheImpl` is in-memory; back it with a SQLDelight table (the `core/cache` module is ready).
   The web target has no SQLDelight driver yet.
-- `FeedRemoteApiImpl` returns stub data; call `NetworkClient.httpClient` with `Constants.BASE_URL`.
+- `FeedRemoteApiImpl` returns stub data; call `NetworkClient.httpClient` against `Constants.apiBaseUrl()` (a Supabase function).
 - Apply the Feed template (domain/data/MVI) to Auth, Explore, Likes, NewPost and Profile,
   which are still placeholder screens.
