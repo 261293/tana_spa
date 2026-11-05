@@ -14,18 +14,16 @@ Deeper guides, not repeated here: `docs/release-signing.md` (keystore, certifica
 
 | # | What | Where |
 |---|------|-------|
-| 0.1 | **`PUSH_WEBHOOK_SECRET` is not set on the project** | section 1.3 |
-| 0.2 | **No administrator exists** | section 1.4 |
+| 0.1 | **No administrator exists** | section 1.4 |
 
-### 0.1 Backend
+### Backend
 
 The apps call the Supabase project compiled into `Constants` (`jnlonvutjugxxxsfpeom`). Every
-migration in `supabase/migrations/` and both Edge Functions are deployed there (2026-11-05), and
-the Vault holds `push_url` and `push_secret`. What is missing is the function secret that must
-equal `push_secret`; until it is set, the `push` function refuses the database's calls (401) and
-no push leaves, while every notification is still stored.
+migration in `supabase/migrations/` and both Edge Functions are deployed there (2026-11-05), the
+Vault holds `push_url` and `push_secret`, and `PUSH_WEBHOOK_SECRET` matches it. Real pushes still
+wait on `FCM_SERVICE_ACCOUNT_JSON` and the `notifications` flag.
 
-### 0.2 First administrator
+### 0.1 First administrator
 
 Nothing is seeded. Accounts are created by signing up (always a `customer`) or, by an owner or
 admin, through the app. The first administrator therefore has to be promoted by hand — see 1.4.
