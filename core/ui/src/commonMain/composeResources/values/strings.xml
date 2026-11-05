@@ -1,5 +1,5 @@
 <resources>
-    <string name="brand_name">Jade Bathhouse</string>
+    <string name="brand_name">Tana Spa</string>
 
     <!-- The app's destinations, in the bottom bar, the rail and the app bar. -->
     <string name="nav_treatments">Liệu trình</string>
