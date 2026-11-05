@@ -224,7 +224,9 @@ jobs:
       - name: Edge Function tests (Deno)
         run: |
           eval "$(npx --yes "$SUPABASE_CLI" status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
-          test -n "$API_URL" && test -n "$ANON_KEY" && test -n "$SERVICE_ROLE_KEY"
+          test -n "$API_URL"
+          test -n "$ANON_KEY"
+          test -n "$SERVICE_ROLE_KEY"
           SUPABASE_URL="$API_URL" SUPABASE_ANON_KEY="$ANON_KEY" SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
             deno test --allow-net --allow-env --allow-run supabase/functions
       - name: Print the edge runtime log
