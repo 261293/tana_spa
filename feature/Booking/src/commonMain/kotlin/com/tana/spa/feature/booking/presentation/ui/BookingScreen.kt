@@ -250,7 +250,7 @@ private fun BookingHeader(modifier: Modifier = Modifier) {
 private fun stripSummary(state: BookingState): String {
     val day = state.day.formatRelative(state.today)
     val time = state.slot?.let { formatHour(it.startHour) } ?: stringResource(Res.string.booking_strip_pick_time)
-    return listOf(day, time, formatPrice(state.totalUsd)).joinToString(STRIP_SEPARATOR)
+    return listOf(day, time, formatPrice(state.totalVnd)).joinToString(STRIP_SEPARATOR)
 }
 
 private const val STRIP_SEPARATOR = " · "

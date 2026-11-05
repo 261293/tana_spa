@@ -72,7 +72,7 @@ class AuthRepositoryImpl(
             return null
         }
         return try {
-            val session = remote.refresh(stored.refreshToken).toSession(nowMillis())
+            val session = remote.refresh(stored.refreshToken, stored.user.toUserDto()).toSession(nowMillis())
             store.save(session)
             AppLog.i(TAG) { "refreshed session for user=${session.user.id}" }
             session
@@ -90,10 +90,10 @@ class AuthRepositoryImpl(
         }
     }
 
-    override suspend fun revokeRefreshToken(refreshToken: String) {
-        if (refreshToken.isEmpty()) return
+    override suspend fun revokeSession(accessToken: String) {
+        if (accessToken.isEmpty()) return
         try {
-            remote.logout(refreshToken)
+            remote.logout(accessToken)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
@@ -198,12 +198,14 @@ private fun AuthApiException.toAuthFailure(): AuthFailure = when {
     status == 429 || code == AuthErrorCodes.TOO_MANY_REQUESTS -> AuthFailure.TOO_MANY_REQUESTS
     code == AuthErrorCodes.EMAIL_TAKEN -> AuthFailure.EMAIL_TAKEN
     code == AuthErrorCodes.PHONE_TAKEN -> AuthFailure.PHONE_TAKEN
-    code == AuthErrorCodes.INVALID_REQUEST || status == 400 -> AuthFailure.INVALID_INPUT
     status == 401 || code == AuthErrorCodes.INVALID_CREDENTIALS -> AuthFailure.INVALID_CREDENTIALS
+    code == AuthErrorCodes.INVALID_REQUEST || status == 400 -> AuthFailure.INVALID_INPUT
     else -> AuthFailure.SERVER
 }
 
 private fun UserDto.toAuthUser() = AuthUser(id, email, displayName, phone, phoneVerified, UserRoleName.fromWire(role))
+
+private fun AuthUser.toUserDto() = UserDto(id, email, displayName, phone, phoneVerified, role.wire)
 
 private const val MILLIS_PER_SECOND = 1000
 

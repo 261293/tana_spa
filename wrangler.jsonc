@@ -1,0 +1,8 @@
+{
+  "name": "tana-spa-web",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "composeApp/build/dist/wasmJs/productionExecutable",
+    "not_found_handling": "single-page-application"
+  }
+}

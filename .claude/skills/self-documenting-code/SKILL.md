@@ -82,7 +82,8 @@ not).
 - **SQL migrations** — keep a short header saying what the migration does and any constraint whose
   absence would look like an oversight (a missing foreign key, a partial unique index). Drop the
   rest.
-- **JavaScript** (`server/src/main/resources/admin/`) — same rule; extract functions.
+- **JavaScript / TypeScript** (`composeApp/src/webMain/resources/admin/`, `supabase/functions/`) —
+  same rule; extract functions.
 - **Gradle `.kts`** — comments must be `//`, never `/** */` (ktlint rejects KDoc in a block there).
 
 ## KDoc

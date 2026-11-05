@@ -22,6 +22,21 @@ class AuthValidationTest {
     }
 
     @Test
+    fun passwordsAreCappedAtSeventyTwoBytesLikeSupabaseAuth() {
+        assertNull(AuthValidation.validatePassword("a".repeat(72)))
+        assertEquals(PasswordError.TOO_LONG, AuthValidation.validatePassword("a".repeat(73)))
+        assertEquals(PasswordError.TOO_LONG, AuthValidation.validatePassword("ệ".repeat(60)))
+    }
+
+    @Test
+    fun normalize_phone_shapes() {
+        listOf("0912 345 678", "84912345678", "+84912345678").forEach {
+            assertEquals("+84912345678", AuthValidation.normalizePhone(it), "input: $it")
+        }
+        assertNull(AuthValidation.normalizePhone("12"))
+    }
+
+    @Test
     fun nameRules() {
         assertEquals(NameError.EMPTY, AuthValidation.validateName("   "))
         assertEquals(NameError.TOO_LONG, AuthValidation.validateName("a".repeat(101)))

@@ -121,17 +121,17 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
         Column(Modifier.padding(top = 20.dp)) {
             SpaSummaryRow(
                 label = stringResource(Res.string.booking_subtotal),
-                value = service?.let { formatPrice(it.priceUsd) } ?: "—",
+                value = service?.let { formatPrice(it.priceVnd) } ?: "—",
             )
             applied?.let {
                 SpaSummaryRow(
                     label = it.promo.code,
-                    value = "−${formatPrice(it.discountUsd)}",
+                    value = "−${formatPrice(it.discountVnd)}",
                 )
             }
             SpaSummaryRow(
                 label = stringResource(Res.string.booking_total_label),
-                value = service?.let { formatPrice(state.totalUsd) } ?: "—",
+                value = service?.let { formatPrice(state.totalVnd) } ?: "—",
                 total = true,
             )
         }
@@ -190,7 +190,7 @@ private fun promoError(check: PromoCheck?): String? {
         PromoRejection.BELOW_MINIMUM_SPEND -> stringResource(
             Res.string.booking_code_minimum,
             rejected.code,
-            formatPrice(rejected.promo?.minSpendUsd ?: 0),
+            formatPrice(rejected.promo?.minSpendVnd ?: 0),
         )
     }
 }

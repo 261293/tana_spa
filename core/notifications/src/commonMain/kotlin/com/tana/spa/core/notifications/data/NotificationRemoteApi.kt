@@ -2,17 +2,15 @@ package com.tana.spa.core.notifications.data
 
 import com.tana.spa.core.network.AccessTokenSource
 import com.tana.spa.core.network.NetworkClient
+import com.tana.spa.shared.SupabasePaths
 import com.tana.spa.shared.auth.ErrorResponse
 import com.tana.spa.shared.notifications.DeviceRegistrationRequest
 import com.tana.spa.shared.notifications.DeviceUnregisterRequest
-import com.tana.spa.shared.notifications.NotificationApi
 import com.tana.spa.shared.notifications.NotificationListResponse
 import com.tana.spa.shared.notifications.UnreadCountResponse
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
-import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -20,6 +18,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /** Every call needs a session; all of them throw on any non-success status. */
 interface NotificationRemoteApi {
@@ -54,33 +54,42 @@ class NotificationRemoteApiImpl(
 ) : NotificationRemoteApi {
 
     override suspend fun list(limit: Int?, before: Long?): NotificationListResponse {
-        val response = networkClient.httpClient.get(baseUrl + NotificationApi.LIST) {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("notifications_list")) {
             authorize()
-            limit?.let { parameter(NotificationApi.LIMIT_QUERY, it) }
-            before?.let { parameter(NotificationApi.BEFORE_QUERY, it) }
+            contentType(ContentType.Application.Json)
+            setBody(
+                buildJsonObject {
+                    limit?.let { put("limit", it) }
+                    before?.let { put("before", it) }
+                },
+            )
         }
         return response.requireSuccess().body()
     }
 
     override suspend fun unreadCount(): Int {
-        val response = networkClient.httpClient.get(baseUrl + NotificationApi.UNREAD_COUNT) { authorize() }
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("notifications_unread_count")) { authorize() }
         return response.requireSuccess().body<UnreadCountResponse>().unreadCount
     }
 
     override suspend fun markRead(notificationId: String): Int? {
-        val response = networkClient.httpClient.post(baseUrl + NotificationApi.read(notificationId)) { authorize() }
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("notifications_mark_read")) {
+            authorize()
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject { put("id", notificationId) })
+        }
         // Already read, or gone: the client's view is simply out of date, which is not an error.
         if (response.status == HttpStatusCode.NotFound) return null
         return response.requireSuccess().body<UnreadCountResponse>().unreadCount
     }
 
     override suspend fun markAllRead(): Int {
-        val response = networkClient.httpClient.post(baseUrl + NotificationApi.READ_ALL) { authorize() }
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("notifications_mark_all_read")) { authorize() }
         return response.requireSuccess().body<UnreadCountResponse>().unreadCount
     }
 
     override suspend fun registerDevice(request: DeviceRegistrationRequest) {
-        networkClient.httpClient.post(baseUrl + NotificationApi.DEVICES) {
+        networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("register_device")) {
             authorize()
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -88,7 +97,7 @@ class NotificationRemoteApiImpl(
     }
 
     override suspend fun unregisterDevice(token: String) {
-        networkClient.httpClient.post(baseUrl + NotificationApi.DEVICES_UNREGISTER) {
+        networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("unregister_device")) {
             authorize()
             contentType(ContentType.Application.Json)
             setBody(DeviceUnregisterRequest(token))

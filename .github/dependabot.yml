@@ -29,4 +29,3 @@ updates:
       testing-and-lint:
         patterns:
           - "org.jlleitschuh*"
-          - "io.zonky*"

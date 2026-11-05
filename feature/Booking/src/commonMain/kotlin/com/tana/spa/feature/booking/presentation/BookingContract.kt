@@ -44,8 +44,8 @@ data class BookingState(
     val therapist: Therapist? get() = therapists.firstOrNull { it.id == therapistId }
     val anyTherapist: Boolean get() = therapistId == ANY_THERAPIST
     val slot: Slot? get() = slots.firstOrNull { it.startAtEpochMillis == slotAtEpochMillis }
-    val discountUsd: Int get() = (check as? PromoCheck.Applied)?.discountUsd ?: 0
-    val totalUsd: Int get() = (service?.priceUsd ?: 0) - discountUsd
+    val discountVnd: Int get() = (check as? PromoCheck.Applied)?.discountVnd ?: 0
+    val totalVnd: Int get() = (service?.priceVnd ?: 0) - discountVnd
     val canRequest: Boolean get() = service != null && slot != null && !sending
 
     private companion object {

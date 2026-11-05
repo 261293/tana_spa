@@ -18,7 +18,7 @@ object SpaValidation {
     /** The diary is a grid of quarter hours, so a treatment has to land on one. */
     const val DURATION_STEP_MINUTES = 15
     const val MAX_DURATION_MINUTES = 480
-    const val MAX_PRICE = 100_000
+    const val MAX_PRICE = 100_000_000
 
     /** The field names the server names in a refusal, and the form matches against. */
     const val FIELD_NAME = "name"

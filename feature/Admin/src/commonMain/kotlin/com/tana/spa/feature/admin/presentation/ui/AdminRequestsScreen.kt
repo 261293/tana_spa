@@ -56,6 +56,7 @@ import com.tana.spa.core.ui.components.spaPocket
 import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.core.ui.formatFull
 import com.tana.spa.core.ui.formatHour
+import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
@@ -91,7 +92,6 @@ import com.tana.spa.feature.admin.resources.admin_detail_treatment
 import com.tana.spa.feature.admin.resources.admin_no_show
 import com.tana.spa.feature.admin.resources.admin_no_show_toast
 import com.tana.spa.feature.admin.resources.admin_overlap
-import com.tana.spa.feature.admin.resources.admin_price
 import com.tana.spa.feature.admin.resources.admin_price_code
 import com.tana.spa.feature.admin.resources.admin_queue_empty
 import com.tana.spa.feature.admin.resources.admin_refused
@@ -399,7 +399,7 @@ private fun DecisionPanel(
                         modifier = Modifier.width(96.dp),
                     )
                     Text(
-                        text = stringResource(Res.string.admin_price, request.total),
+                        text = formatPrice(request.total),
                         style = SpaTheme.textStyles.body,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
@@ -408,7 +408,7 @@ private fun DecisionPanel(
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                             SpaIconImage(SpaIcon.Percent, size = 14.dp, tint = MaterialTheme.colorScheme.secondary)
                             Text(
-                                text = stringResource(Res.string.admin_price_code, code, request.discount),
+                                text = stringResource(Res.string.admin_price_code, code, formatPrice(request.discount)),
                                 style = SpaTheme.textStyles.body,
                                 color = MaterialTheme.colorScheme.secondary,
                             )

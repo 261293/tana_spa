@@ -2,25 +2,6 @@ package com.tana.spa.shared.auth
 
 import kotlinx.serialization.Serializable
 
-/** Wire contract of the auth API, shared by the Ktor server and every client target. */
-object AuthApi {
-    const val BASE = "/api/v1/auth"
-    const val LOGIN = "$BASE/login"
-    const val REGISTER = "$BASE/register"
-    const val REFRESH = "$BASE/refresh"
-    const val LOGOUT = "$BASE/logout"
-    const val ME = "$BASE/me"
-    const val PHONE_OTP_SEND = "$BASE/phone/otp/send"
-    const val PHONE_OTP_VERIFY = "$BASE/phone/otp/verify"
-}
-
-@Serializable
-data class LoginRequest(val email: String, val password: String)
-
-/** [phone] is accepted as typed ("0333 433 969", "+84 333 433 969"); the server stores the normalised form. */
-@Serializable
-data class RegisterRequest(val displayName: String, val email: String, val phone: String, val password: String)
-
 @Serializable
 data class UserDto(
     val id: String,
@@ -46,22 +27,11 @@ data class PhoneOtpSendResponse(
 )
 
 @Serializable
-data class PhoneOtpVerifyRequest(val code: String)
-
-/** Trades [refreshToken] for a fresh pair. The one sent is spent: the answer carries its replacement. */
-@Serializable
-data class RefreshRequest(val refreshToken: String)
-
-/** Ends the session server-side, so the refresh token cannot outlive the sign-out by its 30 days. */
-@Serializable
-data class LogoutRequest(val refreshToken: String)
-
-@Serializable
 data class AuthResponse(
     val accessToken: String,
     val expiresInSeconds: Long,
     val user: UserDto,
-    /** Opaque, single-use; spending it at [AuthApi.REFRESH] returns the next one. */
+    /** Opaque, single-use; spending it at `SupabasePaths.REFRESH_GRANT` returns the next one. */
     val refreshToken: String,
     val refreshExpiresInSeconds: Long,
 )
@@ -106,7 +76,7 @@ object AuthErrorCodes {
     /** The push provider is down or misconfigured; the notification was still stored. */
     const val PUSH_UNAVAILABLE = "push_unavailable"
 
-    /** A key that is not in this server's `FeatureFlag` catalog. */
+    /** A key that is not in the `FeatureFlag` catalog. */
     const val UNKNOWN_FLAG = "unknown_flag"
     const val TOO_MANY_REQUESTS = "too_many_requests"
     const val UNAUTHORIZED = "unauthorized"

@@ -81,7 +81,7 @@ private class RecordingRepository(private val gate: CompletableDeferred<Unit>? =
 
     override fun currentSession(): Session? = current
 
-    override suspend fun revokeRefreshToken(refreshToken: String) = Unit
+    override suspend fun revokeSession(accessToken: String) = Unit
 
     override suspend fun login(email: String, password: String): AuthOutcome = AuthOutcome.Success(TestFixtures.session)
 

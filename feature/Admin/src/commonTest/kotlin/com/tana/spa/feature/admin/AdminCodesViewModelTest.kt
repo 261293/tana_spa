@@ -48,9 +48,9 @@ class AdminCodesViewModelTest {
                 vm.state.value.draft.copy(
                     code = "AUTUMNSTEAM",
                     kind = DiscountKind.AMOUNT,
-                    value = "20",
+                    value = "500000",
                     eligible = EligibleTreatments.BODY,
-                    minimumSpend = "80",
+                    minimumSpend = "2000000",
                 ),
             ),
         )
@@ -58,9 +58,9 @@ class AdminCodesViewModelTest {
 
         val published = vm.state.value.codes.first()
         assertEquals("AUTUMNSTEAM", published.code)
-        assertEquals("$20 off", published.offer)
+        assertEquals("500.000đ off", published.offer)
         assertEquals(AdminCodeState.SCHEDULED, published.state)
-        assertTrue(published.eligible.endsWith("min $80"))
+        assertTrue(published.eligible.endsWith("min 2.000.000đ"))
         assertFalse(vm.state.value.creating)
         assertIs<AdminCodesEffect.ShowPublished>(vm.effects.first())
     }

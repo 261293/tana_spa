@@ -1,7 +1,5 @@
 package com.tana.spa.core.ui
 
-import com.tana.spa.shared.helpers.VND_PER_USD
-import com.tana.spa.shared.helpers.usdToVnd
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,40 +12,32 @@ class SpaMoneyFormatTest {
     }
 
     @Test
-    fun vietnamese_prices_in_dong_with_the_thousands_grouped() {
+    fun vietnamese_shows_dong_with_the_thousands_grouped() {
         SelectedLanguage.value = AppLanguage.VIETNAMESE
-        assertEquals("2.500.000đ", formatPrice(100))
-        assertEquals("4.125.000đ", formatPrice(165))
+        assertEquals("4.125.000đ", formatPrice(4_125_000))
+        assertEquals("3.000.000đ", formatPrice(3_000_000))
     }
 
     @Test
-    fun english_prices_in_dollars() {
+    fun english_shows_dong_too() {
         SelectedLanguage.value = AppLanguage.ENGLISH
-        assertEquals("\$100", formatPrice(100))
-        assertEquals("\$165", formatPrice(165))
+        assertEquals("4.125.000đ", formatPrice(4_125_000))
+        assertEquals("2.450.000đ", formatPrice(2_450_000))
     }
 
     @Test
-    fun a_free_treatment_reads_as_free_in_both_languages_rather_than_blank() {
+    fun a_free_treatment_reads_as_zero_dong_in_both_languages() {
         SelectedLanguage.value = AppLanguage.VIETNAMESE
         assertEquals("0đ", formatPrice(0))
         SelectedLanguage.value = AppLanguage.ENGLISH
-        assertEquals("\$0", formatPrice(0))
+        assertEquals("0đ", formatPrice(0))
     }
 
     @Test
-    fun the_same_amount_is_shown_in_two_currencies_at_one_rate() {
-        assertEquals(100 * VND_PER_USD, usdToVnd(100))
-        assertEquals(0L, usdToVnd(0))
-    }
-
-    @Test
-    fun switching_language_restates_the_price_without_the_caller_doing_anything() {
+    fun switching_language_does_not_change_the_price() {
         SelectedLanguage.value = AppLanguage.ENGLISH
-        val english = formatPrice(120)
+        val english = formatPrice(3_000_000)
         SelectedLanguage.value = AppLanguage.VIETNAMESE
-        val vietnamese = formatPrice(120)
-        assertEquals("\$120", english)
-        assertEquals("3.000.000đ", vietnamese)
+        assertEquals(english, formatPrice(3_000_000))
     }
 }

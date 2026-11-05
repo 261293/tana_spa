@@ -23,11 +23,11 @@ interface AuthRepository {
     suspend fun refreshSession(): Session?
 
     /**
-     * Asks the server to revoke [refreshToken] and every token descended from the same sign-in,
-     * so it cannot outlive the sign-out by its thirty days. Best effort: clearing the session
-     * locally is the caller's job and must not wait on this.
+     * Asks Supabase Auth to end the sign-in [accessToken] belongs to, so its refresh token cannot
+     * outlive the sign-out. Best effort: clearing the session locally is the caller's job and must
+     * not wait on this.
      */
-    suspend fun revokeRefreshToken(refreshToken: String)
+    suspend fun revokeSession(accessToken: String)
 
     /** Texts a code to the signed-in user's own phone number. */
     suspend fun sendPhoneOtp(): OtpSendResult

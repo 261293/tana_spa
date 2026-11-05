@@ -44,9 +44,9 @@ val appModule: Module = module {
         // Cleared here and now, because the screen navigates to sign-in on the next line and the
         // form reads the session as it opens. Telling the server is best effort and can lag.
         SignOutAction {
-            val token = sessions.load()?.refreshToken.orEmpty()
+            val token = sessions.load()?.accessToken.orEmpty()
             sessions.clear()
-            scope.launch { repository.revokeRefreshToken(token) }
+            scope.launch { repository.revokeSession(token) }
         }
     }
 

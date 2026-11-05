@@ -41,6 +41,12 @@ class AuthRepositoryImplTest {
     }
 
     @Test
+    fun wrongPasswordAnsweredWithBadRequestIsStillInvalidCredentials() = runTest {
+        remote.error = AuthApiException(400, AuthErrorCodes.INVALID_CREDENTIALS)
+        assertEquals(AuthOutcome.Failure(AuthFailure.INVALID_CREDENTIALS), repository.login("a@b.co", "x"))
+    }
+
+    @Test
     fun rateLimitIsMapped() = runTest {
         remote.error = AuthApiException(429, null)
         assertEquals(AuthOutcome.Failure(AuthFailure.TOO_MANY_REQUESTS), repository.login("a@b.co", "x"))
@@ -127,14 +133,14 @@ class AuthRepositoryImplTest {
     }
 
     @Test
-    fun revokingTellsTheServerWhichTokenToKill() = runTest {
-        repository.revokeRefreshToken("refresh")
-        assertEquals(listOf("refresh"), remote.loggedOutWith)
+    fun revokingTellsTheServerWhichSessionToEnd() = runTest {
+        repository.revokeSession("token")
+        assertEquals(listOf("token"), remote.loggedOutWith)
     }
 
     @Test
     fun revokingNothingCallsNobody() = runTest {
-        repository.revokeRefreshToken("")
+        repository.revokeSession("")
         assertEquals(emptyList(), remote.loggedOutWith)
     }
 

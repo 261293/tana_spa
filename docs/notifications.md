@@ -10,42 +10,42 @@ Two things that are easy to confuse:
   notification.
 
 Everything below is gated by the `notifications` feature flag, which **ships off**. With the flag
-off the routes answer `503 feature_disabled`, the bell is not drawn and nothing registers.
+off the functions answer `503 feature_disabled`, the bell is not drawn and nothing registers.
 
 ## The shape of it
 
 ```
-Android ─┐                              ┌─ POST /api/v1/notifications/devices   (token, platform)
-  iOS ───┼─ core:notifications ── HTTP ──┤  GET  /api/v1/notifications           (the centre)
-  Web ───┘   PushRegistrar              └─ POST /api/v1/notifications/{id}/read
-                                                        │
-                                           NotificationService
-                                           ├── notifications table   (always)
-                                           └── PushSender ─ FCM HTTP v1 ─> the device
+Android ─┐                                        ┌─ register_device      (token, platform)
+  iOS ───┼─ core:notifications ── /rest/v1/rpc/ ──┤  notifications_list   (the centre)
+  Web ───┘   PushRegistrar                        └─ notifications_mark_read
+                                                              │
+                                    notifications table (always) ── insert trigger
+                                                                         │ pg_net
+                                                     Edge Function push ─ FCM HTTP v1 ─> the device
 ```
 
 | Piece | Where |
 |---|---|
-| Wire contract (paths, DTOs, limits, channel id) | `shared/.../notifications/` |
+| DTOs, data keys, channel id | `shared/.../notifications/` |
 | Permission, token, registration lifecycle | `core:notifications` |
 | The centre (list, badge, mark read) | `feature/Notifications`, `core:notifications` (`NotificationBadge`) |
-| Routes, storage, fan-out | `server/.../notifications/` |
-| FCM transport | `server/.../notifications/push/` |
+| Functions, storage, the trigger | `supabase/migrations/20261105004632_notifications.sql`, `20261105004700_push_webhook.sql` |
+| FCM transport | `supabase/functions/push/` |
 | Device registrations | `device_tokens` (`V8__push_notifications.sql`) |
 
-## The API
+## The functions
 
-All of it needs a signed-in account (`Authorization: Bearer <jwt>`).
+All of them need a signed-in account and are called as `POST /rest/v1/rpc/<name>`.
 
-| Method | Path | Answers |
-|---|---|---|
-| `GET` | `/api/v1/notifications?limit=&before=` | A page, newest first, plus the account's `unreadCount` and a `nextBefore` cursor |
-| `GET` | `/api/v1/notifications/unread-count` | Just the count, for the badge |
-| `POST` | `/api/v1/notifications/{id}/read` | The new count, or `404 notification_not_found` if nothing unread has that id |
-| `POST` | `/api/v1/notifications/read-all` | The new count (0) |
-| `POST` | `/api/v1/notifications/devices` | `204`; registers or moves this device's token |
-| `POST` | `/api/v1/notifications/devices/unregister` | `204`; always succeeds |
-| `POST` | `/api/v1/notifications/send` | **admin only** — stores a notification and pushes it |
+| Function | Answers |
+|---|---|
+| `notifications_list(limit?, before?)` | A page, newest first, plus the account's `unreadCount` and a `nextBefore` cursor |
+| `notifications_unread_count()` | Just the count, for the badge |
+| `notifications_mark_read(id)` | The new count, or `404 notification_not_found` if nothing unread has that id |
+| `notifications_mark_all_read()` | The new count (0) |
+| `register_device(token, platform, provider?, locale?, appVersion?)` | Registers or moves this device's token |
+| `unregister_device(token)` | Always succeeds |
+| `admin_send_notification(userId, title, type?, body?, data?)` | **`OPERATE_SYSTEM` only** — stores a notification; the trigger pushes it |
 
 Paging is keyset, not offset: `before` is the `createdAtEpochMillis` of the oldest row you have, so
 a notification arriving mid-scroll cannot shift the page under the user. A cursor comes back only
@@ -53,18 +53,21 @@ when the page was full.
 
 ### Sending one (and smoke-testing delivery)
 
-```bash
-TOKEN=$(curl -s localhost:8081/api/v1/auth/login -H 'Content-Type: application/json' \
-  -d '{"email":"ops@tana.local","password":"<admin password>"}' | jq -r .accessToken)
+With an administrator's access token (`<project>` is the project URL, `<publishable key>` the key
+in `Constants`):
 
-curl -s localhost:8081/api/v1/notifications/send -H "Authorization: Bearer $TOKEN" \
+```bash
+curl -s <project>/rest/v1/rpc/admin_send_notification \
+  -H "apikey: <publishable key>" -H "Authorization: Bearer <admin access token>" \
   -H 'Content-Type: application/json' \
   -d '{"userId":"<uuid>","type":"order","title":"Đơn hàng đã xác nhận","body":"Đơn #1234","data":{"orderId":"1234"}}'
 ```
 
-`{"notificationId":"…","devices":2,"delivered":2,"removed":0}` — `removed` counts tokens FCM
-rejected as dead, which this call deleted. `503 push_unavailable` means the row was stored but no
-device could be reached; the id is in the message.
+The answer carries the new `notificationId`, the number of registered `devices`, and
+`delivered = 0, removed = 0`: the push happens afterwards, through the trigger, so this call
+cannot know the outcome. The `push` function's log has it (`devices=… delivered=… removed=…`), and
+`notifications.sent_push_at` is stamped when at least one device took it. A recipient with the
+flag off is `503 feature_disabled`.
 
 ## Rules worth knowing before changing any of this
 
@@ -75,7 +78,7 @@ the access token changes, which is what makes the move happen.
 
 **A tap goes where the notification is about.** The centre routes on `NotificationItem.data`: a
 `booking` notification — a reminder, a confirmation or a decline — opens the guest's own visits on
-that booking (`NotificationData.BOOKING_ID`, written by the server and read by the app, so the two
+that booking (`NotificationData.BOOKING_ID`, written by the database and read by the app, so the two
 keys cannot drift). An entry already read still opens; reading it is not what the tap was for, and
 a notification with no payload to act on only marks itself read.
 
@@ -85,25 +88,30 @@ Everything else is either retryable (`UNAVAILABLE`, `QUOTA_EXCEEDED`, `INTERNAL`
 configuration mistake (`INVALID_ARGUMENT`, `PERMISSION_DENIED`, `UNAUTHENTICATED`) and is only
 logged.
 
-## Server configuration
+## Backend configuration
+
+The trigger on `notifications` reads two Vault secrets, `push_url` (the `push` function's URL) and
+`push_secret`. With either missing it posts nothing; the row is stored either way, and a failure
+to enqueue never rolls the insert back.
+
+The `push` function's secrets (Edge Function secrets, or `supabase/functions/.env` when serving
+locally):
 
 ```
-FCM_SERVICE_ACCOUNT_JSON=   # the service-account key, inline (escaped newlines are fine)
-FCM_SERVICE_ACCOUNT_FILE=   # ...or a path to it; either one is enough
+PUSH_WEBHOOK_SECRET=        # the same value as Vault's push_secret; calls without it are refused
+FCM_SERVICE_ACCOUNT_JSON=   # the service-account key, inline
 FCM_PROJECT_ID=             # optional, defaults to the key's own project_id
 ```
 
 Get the key from the Firebase console: *Project settings → Service accounts → Generate new private
-key*. It is a credential — keep it in the hosting platform's secret store, never in the repo.
+key*. It is a credential — keep it in Edge Function secrets, never in the repo.
 
-With neither variable set the server uses `DevPushSender`, which logs what it would have sent
-(title and a token prefix, never the token) and reports every send as delivered. The notification
-centre is fully usable in that mode; only the device wake-up is missing. Unlike the OTP provider
-this does **not** refuse to boot in production, because the feature flag ships off — a production
-server that does not use notifications is a legitimate state. It logs a warning instead.
+Without `FCM_SERVICE_ACCOUNT_JSON` the function only logs what it would have sent (the title and
+a token prefix, never the token) and answers `delivered = 0`. The notification centre is fully
+usable in that mode; only the device wake-up is missing.
 
-The server authenticates to FCM with a self-signed JWT exchanged for an access token
-(`FcmAccessTokens`), cached until a minute before it expires. No Google client library is needed.
+The function authenticates to FCM with a JWT it signs itself (RS256 through WebCrypto) and
+exchanges for an access token. No Google client library is needed.
 
 ## Clients
 
@@ -117,7 +125,7 @@ SDK, and the app shell owns the pieces that need a manifest or an Activity
    It is gitignored, and the build applies the `google-services` plugin **only if the file is
    there** — a clone without one still builds and runs, with push unavailable.
 2. Nothing else: the manifest already declares `POST_NOTIFICATIONS`, the messaging service and the
-   default channel (`tana_default`, which the server names in every message — Android 8+ drops a
+   default channel (`tana_default`, which the `push` function names in every message — Android 8+ drops a
    notification whose channel does not exist).
 
 The runtime permission is requested from the notification centre, never at launch: the system
@@ -146,8 +154,8 @@ as a starting point, not a tested recipe.
    token reaches Firebase through the SDK's own `didRegisterForRemoteNotificationsWithDeviceToken`
    swizzling (or forward it manually if swizzling is disabled).
 
-iOS receives the push through FCM's APNs relay, so the server still needs only the one FCM key —
-plus the APNs auth key uploaded to Firebase, which is a console step, not a server setting.
+iOS receives the push through FCM's APNs relay, so the backend still needs only the one FCM key —
+plus the APNs auth key uploaded to Firebase, which is a console step, not a backend setting.
 
 ### Web
 
@@ -164,8 +172,7 @@ on purpose: a missing `external` makes the whole wasm module fail to instantiate
 while a snippet can test for the API and answer "no push". With the block commented out,
 `PushTokens.current()` returns null and registration is skipped.
 
-**The web build keeps nothing across a reload** — `core:cache` is in-memory on wasm — so the
-session, and with it the registration, starts fresh on every refresh.
+The web build keeps the session in `localStorage`, so a reload keeps the registration too.
 
 ### Desktop
 
@@ -181,4 +188,4 @@ because it is an ordinary authenticated list.
   read, because neither has a screen to open yet.
 - No per-type preferences (mute promotions, keep order updates). The flag is all-or-nothing per
   user today.
-- No scheduled or batched sends, and no topics — `send` addresses one account at a time.
+- No batched sends and no topics — `admin_send_notification` addresses one account at a time.

@@ -1,4 +1,4 @@
-This is a modular Kotlin Multiplatform project targeting **Android, iOS, Web (Wasm), Desktop (JVM) and a Ktor Server**, organized after the layered `core` / `feature` architecture of
+This is a modular Kotlin Multiplatform project targeting **Android, iOS, Web (Wasm) and Desktop (JVM)** with a **Supabase** backend, organized after the layered `core` / `feature` architecture of
 [inassar0/kmp_instagram_clone](https://github.com/inassar0/kmp_instagram_clone).
 
 ## Module layout
@@ -9,13 +9,12 @@ composeApp/                  Compose Multiplatform app (KMP library): App UI + a
                              non-Android entry points (iosMain, jvmMain, webMain) + Koin init
 androidApp/                  Android application module (APK) that wraps composeApp
 iosApp/                      Xcode project (SwiftUI host for the ComposeApp framework)
-server/                      Ktor server (JVM)
 shared/                      Non-UI shared code: Platform expect/actual, Greeting,
                              Constants, DI (sharedModule), helpers, and the spa catalogue
                              (treatments, therapists, offers, SpaDate) the booking screens read
 core/
   cache/                     KeyValueCache abstraction (SQLDelight; in-memory on wasmJs)
-  featureflags/              FeatureFlags resolution (per-user override / DB / env / default)
+  featureflags/              FeatureFlags resolution (per-user override / DB / compiled default)
   logging/                   AppLog + platform sinks
   mvi/                       MviViewModel base (State / Event / Effect)
   navigation/                FeatureEntry / Navigator / Routes
@@ -36,6 +35,9 @@ feature/
   Likes, NewPost, Profile
   Feed/                      Full clean-arch reference: data (remote/cache/repository),
                              domain (model/mapper/repository), presentation (ui + MVI viewmodel)
+supabase/                    The backend (Supabase CLI layout): migrations/ (schema, rules and
+                             every database function), tests/database/ (pgTAP), functions/push
+                             and functions/accounts (Edge Functions, Deno tests beside them)
 ```
 
 Each `core/*` and `feature/*` module and `shared` applies the `convention.kmp.multiplatform`
@@ -53,21 +55,17 @@ plugin (androidLibrary + jvm + iosArm64 + iosSimulatorArm64 + wasmJs); UI module
 **New here?** [docs/local-development.md](docs/local-development.md) has every command in order:
 first-time setup, the daily loop, what to run before you push, and what to do when a build fails.
 
-```bash
-cp .env.example .env               # once
-docker compose up -d --wait db     # PostgreSQL 17
-./gradlew :server:run              # http://localhost:8081
-```
+The apps talk to the Supabase project named in `shared/.../Constants.kt`; nothing has to run
+locally for them. The backend in `supabase/` reaches that project only once it is deployed (see
+[docs/production-checklist.md](docs/production-checklist.md)).
 
-- Server: `./gradlew :server:run` → http://localhost:8081 (try `/`, `/demo`, and the feature-flag
-  portal at [`/admin/`](http://localhost:8081/admin/))
 - Web (dev server): `./gradlew :composeApp:wasmJsBrowserDevelopmentRun` → http://localhost:8080
 - Web (production bundle): `./gradlew :composeApp:wasmJsBrowserDistribution`
 - Android app: `./gradlew :androidApp:assembleDebug`
 - Desktop app: `./gradlew :composeApp:run`
 - iOS app: open [/iosApp](./iosApp) in Xcode and run it (requires macOS/Xcode).
-
-The backend listens on **8081**; 8080 is the web dev server.
+- Admin page (feature flags, app update config): `/admin/` of the web build, from
+  `composeApp/src/webMain/resources/admin/index.html`
 
 ## Release builds
 
@@ -87,12 +85,17 @@ What CI runs, and what to run before pushing ([all of it, in order](docs/local-d
 
 ```bash
 ./gradlew ktlintFormat && ./gradlew ktlintCheck   # style gate
-./gradlew jvmTest :server:test                    # unit tests (server uses embedded PostgreSQL)
+./gradlew jvmTest                                 # Kotlin unit tests
 ./gradlew :composeApp:compileKotlinWasmJs         # strictest target; required for commonMain changes
+
+npx supabase start -x logflare,vector,studio      # the local stack (Docker), once per session
+npx supabase test db                              # database tests (pgTAP)
 ```
 
 - One module: `./gradlew :feature:Auth:jvmTest`
-- One test: `./gradlew :server:test --tests "com.tana.spa.featureflags.FeatureFlagRoutesTest"`
+- One test: `./gradlew :feature:Auth:jvmTest --tests "com.tana.spa.feature.auth.presentation.LoginViewModelTest"`
+- Edge Functions, with the stack running (it already serves them):
+  `deno test --allow-net --allow-env --allow-run supabase/functions`
 
 ---
 

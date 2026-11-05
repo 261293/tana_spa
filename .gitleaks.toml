@@ -40,3 +40,17 @@ description = "Flag-constant name in a comment documenting flag_audit.py's own r
 condition = "AND"
 paths = ['''\.claude/skills/feature-flags-architect/scripts/flag_audit\.py''']
 regexes = ['''SIGNUP_V2_FLAG''']
+
+# The Supabase publishable key of the production project. It is public by design: it ships in every
+# app and in the web bundle, identifies the project, and grants nothing the database functions do
+# not allow an anonymous caller (see docs/adr/0007-backend-on-supabase.md). The service role key
+# never appears in the repository.
+[[allowlists]]
+description = "Supabase publishable (client) key, public by design"
+condition = "AND"
+paths = [
+    '''shared/src/commonMain/kotlin/com/tana/spa/shared/Constants\.kt''',
+    '''composeApp/src/webMain/resources/admin/index\.html''',
+    '''docs/superpowers/plans/2026-11-04-supabase-backend\.md''',
+]
+regexes = ['''sb_publishable_OH8tYugWOYtJEynk0AElHA_rB18Sy3t''']

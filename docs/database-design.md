@@ -1,9 +1,10 @@
 # Database design — Tana SPA
 
-**Engine: PostgreSQL 14+** (tested on 14.22; nothing in the schema needs a newer version).
-**Migrations: Flyway**, in `server/src/main/resources/db/migration/` (`V1`…`V4`).
-**Verified by:** `server/src/test/kotlin/com/tana/spa/db/MigrationsTest.kt` — applies every migration to a real
-PostgreSQL and checks that the constraints reject bad data (`./gradlew :server:test`).
+**Engine: PostgreSQL 17 on Supabase** (the remote project runs 17.11).
+**Migrations:** `supabase/migrations/`, applied by the Supabase CLI. The first twelve are the original
+`V1`…`V12` files (named `…_v1_foundation_and_identity.sql` and so on), followed by the Supabase ones.
+**Verified by:** the pgTAP files in `supabase/tests/database/` (`npx supabase test db`), which run
+against the local stack after every migration has been applied.
 
 ## Why PostgreSQL
 
@@ -12,7 +13,7 @@ PostgreSQL and checks that the constraints reject bad data (`./gradlew :server:t
 | Orders, payments, vouchers, stock must stay consistent | Real transactions + `CHECK` / `UNIQUE` / FK constraints, so a bug in app code can't corrupt money or stock |
 | Vietnamese search ("Tìm kiếm dịch vụ / sản phẩm") | `unaccent` + `pg_trgm`: typing `cham soc da` finds `Chăm sóc da`, indexed |
 | Flexible bits (notification payloads, gateway responses) | `jsonb`, without giving up the relational core |
-| Ktor/Kotlin stack | First-class JDBC driver, Flyway, Exposed/jOOQ, Testcontainers |
+| Business rules next to the data | Functions in SQL/PL/pgSQL run every rule inside the same transaction as the write |
 | Cost/ops | Managed everywhere (Supabase, Neon, RDS, Cloud SQL), no vendor lock-in |
 
 Rejected: **MongoDB** (this domain is highly relational — orders ↔ items ↔ products ↔ vouchers — and needs multi-row transactions);
@@ -77,7 +78,7 @@ erDiagram
 
 | Figma screen | Tables |
 |---|---|
-| **Login / Sign-up** | `users`, `auth_identities` (Google), `refresh_tokens` |
+| **Login / Sign-up** | `auth.users` (Supabase Auth), `users`, `auth_identities` (Google, unused) |
 | **Home** (greeting, tier, bell, banners, featured) | `users.membership_tier`, `notifications`, `banners`, `services.is_featured` |
 | **Dịch vụ** (categories + search) | `service_categories`, `services`, `combo_items` |
 | **Chi nhánh** | `branches`, `branch_services` |
@@ -93,7 +94,7 @@ erDiagram
 
 ## Decisions worth knowing
 
-**Auth.** `password_hash` is nullable (Google-only accounts). `refresh_tokens` stores only a SHA-256 hash and a `family_id`, enabling rotation with theft detection (a reused, already-spent token revokes the whole family). The server issues a 1-hour access JWT alongside a 30-day rotating refresh token and spends the latter at `POST /api/v1/auth/refresh`; a daily sweep drops rows past their expiry. See `docs/adr/0006-refresh-tokens.md`.
+**Auth.** Supabase Auth owns credentials and sessions (`auth.users`). `users` is the profile, with the same `id`: a trigger on `auth.users` insert creates it as a `customer` and grants the welcome voucher, and another copies a confirmed phone across. `password_hash`, `refresh_tokens` and `phone_verifications` were dropped (`20261105004153_identity_on_supabase_auth.sql`). See `docs/adr/0007-backend-on-supabase.md`.
 
 **Email/phone uniqueness.** Emails are stored lowercase (`CHECK email = lower(email)`, matching `AuthValidation.normalizeEmail`) and unique among *non-deleted* users only. Phone is stored as E.164 and is unique only among *verified* users (see V5 below): an unverified claim must not lock the real owner out.
 
@@ -116,22 +117,20 @@ erDiagram
 - **Inventory movements ledger** (only `stock_qty` today).
 - **Product categories**, **multi-currency**, **tax rates table** (tax is a stored amount, `0` in the design).
 - **Per-type notification preferences** (mute promotions, keep order updates): the `notifications` feature flag is all-or-nothing per user today.
-- **Row-level security** — authorization is done in the API layer.
+- **Row-level security policies** — RLS is enabled on every table with no policy, and table grants are revoked from `anon` and `authenticated`, so the Data API reads nothing directly. Authorization is done inside the `public` functions, each `security definer`, which are the only way in.
 
 ## Rollout plan
 
-1. Provision PostgreSQL 16/17; create two roles: a **migration role** (owns schema, used by Flyway) and an **app role** (`SELECT/INSERT/UPDATE/DELETE` only, no DDL).
-2. **Done:** Hikari + Flyway + a plain-JDBC `PostgresUserRepository` / `PostgresPhoneVerificationRepository` sit behind the `UserRepository` / `PhoneVerificationRepository` interfaces (chosen over Exposed: a handful of queries doesn't justify an ORM). Select Postgres by setting `DATABASE_URL`.
-3. Run Flyway on startup in dev; in production run it as a separate deploy step.
-4. Config via env: `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD` (never in source).
-5. Backups: enable point-in-time recovery on the managed instance; test a restore.
-6. Never edit an applied migration — add `V5__…sql`. Flyway checksums will fail the build if you do.
+1. The database is the Supabase project `jnlonvutjugxxxsfpeom` (free plan, `ap-southeast-1`). Locally, `npx supabase start` runs the same Postgres in Docker.
+2. Migrations reach the project only after `npx supabase test db` passes locally.
+3. Never edit an applied migration — add a new file with `npx supabase migration new`.
+4. Backups: check what the project's plan keeps before relying on it, and test a restore.
 
 ## Phone numbers and verification (V5)
 
-`POST /register` takes `phone` (Figma sign-up asks for it). It is validated worldwide with libphonenumber and stored as E.164 (`+84333433969`), so `0333 433 969` and `+84 333-433-969` are the same number.
+Sign-up takes `phone` (Figma sign-up asks for it) in the Auth metadata. It is normalised to E.164 (`+84333433969`) by `AuthValidation.normalizePhone` in the app and `private.normalize_phone` in SQL, so `0333 433 969` and `+84 333-433-969` are the same number.
 
-`users.phone` is **unique only among verified users** (`users_phone_verified_uq`). Otherwise anyone could register with a stranger's number and lock the real owner out. The `phone_verifications` table records each code that was sent (never the code itself) to drive cooldowns, caps and per-country fraud monitoring. Full design: [`phone-verification.md`](phone-verification.md).
+`users.phone` is **unique only among verified users** (`users_phone_verified_uq`). Otherwise anyone could register with a stranger's number and lock the real owner out. Supabase Auth sends and checks the codes; `phone_verifications`, which used to record each send, was dropped with the move. Full design: [`phone-verification.md`](phone-verification.md).
 
 ## Feature flags (V6)
 
@@ -142,9 +141,9 @@ Two tables let a feature be switched off while the system runs:
 | `feature_flags` | `key` → `enabled`: the state for everybody |
 | `feature_flag_overrides` | `(flag_key, user_id)` → `enabled`: one user's exception, cascading on user delete |
 
-A **missing row means "no opinion"**, not "off" — resolution falls through to the `FEATURE_<KEY>` environment variable and then to the state compiled into the app, so `DELETE` is an undo rather than an off switch. `flag_key` deliberately has **no** foreign key to `feature_flags`: an override must be settable for a flag with no global row, and a flag deleted from the code must not make these tables unwritable. The application validates keys against its own catalog instead. V6 seeds `phone_otp_verification = false`.
+A **missing row means "no opinion"**, not "off" — resolution falls through to the state compiled into the catalog, so clearing a row is an undo rather than an off switch. `flag_key` deliberately has **no** foreign key to `feature_flags`: an override must be settable for a flag with no global row, and a flag deleted from the code must not make these tables unwritable. The functions validate keys against `private.flag_catalog()` instead. V6 seeds `phone_otp_verification = false`.
 
-Changes are made through the `/admin` portal by an account with `role = 'admin'`; two are created on every start-up (`sanghtruong@tana.local`, `duchnguyen@tana.local`) with the password in `SEED_ADMIN_PASSWORD`. Running the spa is the `owner` role instead ([`owner-role.md`](owner-role.md)). `updated_by` holds the acting administrator's id. Full design: [`feature-flags.md`](feature-flags.md).
+Changes are made through the `/admin` portal by an account with `role = 'admin'`; none is seeded, so the first is promoted with SQL after signing up. Running the spa is the `owner` role instead ([`owner-role.md`](owner-role.md)). `updated_by` holds the acting administrator's id. Full design: [`feature-flags.md`](feature-flags.md).
 
 ## Push notifications (V8)
 
@@ -153,10 +152,10 @@ Changes are made through the `/admin` portal by an account with `role = 'admin'`
 | Column | Why it looks like that |
 |---|---|
 | `token` | The provider's registration token, **globally unique**. It identifies the *device*, not the account, so registering it moves it to the signed-in user with `ON CONFLICT (token) DO UPDATE`. Without that, the previous user of a shared phone keeps receiving the next user's notifications. |
-| `platform` / `provider` | `android` / `ios` / `web` / `desktop`, and `fcm` — both `CHECK`-constrained, so an unknown value is a `400` from the API rather than a silent row nobody can deliver to. |
+| `platform` / `provider` | `android` / `ios` / `web` / `desktop`, and `fcm` — both `CHECK`-constrained, so an unknown value is a `400` from `register_device` rather than a silent row nobody can deliver to. |
 | `last_seen_at` | Refreshed on every registration, so stale installs can be pruned. |
 
-A row here is a cache, never a source of truth: the sender deletes any token FCM reports as
+A row here is a cache, never a source of truth: the `push` function deletes any token FCM reports as
 `UNREGISTERED` or `SENDER_ID_MISMATCH`. Everything cascades on user delete.
 
 The same migration bounds `notifications.title` (1–120) and `body` (≤500) now that an API writes
@@ -166,12 +165,11 @@ state (no device, or no permission), not an error. Full design:
 
 ## Running it
 
-| Variable | Meaning |
-|---|---|
-| `DATABASE_URL` | `jdbc:postgresql://host:5432/tana_spa`. **Unset = in-memory mode** (accounts lost on restart). |
-| `DATABASE_USER`, `DATABASE_PASSWORD` | the app role |
-| `DATABASE_POOL_SIZE` | default 10 |
-| `DATABASE_MIGRATE=false` | skip Flyway at startup (when migrations run as a deploy step) |
-| `APP_ENV=production` | refuses to start without `DATABASE_URL` and `JWT_SECRET` |
+```bash
+npx supabase start -x logflare,vector,studio   # local Postgres on 127.0.0.1:54322, every migration applied
+npx supabase db reset                          # replay from empty
+npx supabase test db                           # the pgTAP suite
+```
 
-Flyway needs `CREATE EXTENSION` for `pg_trgm` and `unaccent` (both "trusted" extensions on PostgreSQL 13+, so the database owner can create them; managed hosts allow them).
+The migrations create the extensions they need (`pg_trgm`, `unaccent`, and `pg_cron` and `pg_net`
+for reminders and push); Supabase allows all of them.

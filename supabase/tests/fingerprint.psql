@@ -1,0 +1,14 @@
+select kind, count(*) as n, md5(string_agg(x, E'\n' order by x)) as hash from (
+ select 'columns', table_name||'|'||column_name||'|'||data_type||'|'||is_nullable||'|'||coalesce(column_default,'')||'|'||coalesce(generation_expression,'') from information_schema.columns where table_schema='public'
+ union all select 'constraints', conrelid::regclass::text||'|'||conname||'|'||pg_get_constraintdef(oid) from pg_constraint where connamespace='public'::regnamespace
+ union all select 'indexes', indexname||'|'||indexdef from pg_indexes where schemaname='public'
+ union all select 'triggers', c.relname||'|'||t.tgname||'|'||pg_get_triggerdef(t.oid) from pg_trigger t join pg_class c on c.oid=t.tgrelid where not t.tgisinternal and c.relnamespace='public'::regnamespace
+ union all select 'views', viewname||'|'||definition from pg_views where schemaname='public'
+ union all select 'functions', p.proname||'|'||pg_get_function_identity_arguments(p.oid)||'|'||md5(p.prosrc) from pg_proc p where p.pronamespace='public'::regnamespace and not exists (select 1 from pg_depend d where d.objid=p.oid and d.deptype='e')
+ union all select 'seed', 'svc|'||s.slug||'|'||c.slug||'|'||s.name||'|'||coalesce(s.name_vi,'')||'|'||coalesce(s.description,'')||'|'||coalesce(s.description_vi,'')||'|'||s.price_vnd||'|'||s.duration_minutes||'|'||s.is_featured||'|'||s.sort_order from services s join service_categories c on c.id=s.category_id
+ union all select 'seed', 'thr|'||slug||'|'||name||'|'||focus||'|'||coalesce(focus_vi,'')||'|'||accent||'|'||sort_order from therapists
+ union all select 'seed', 'vch|'||code||'|'||title||'|'||coalesce(title_vi,'')||'|'||coalesce(description_vi,'')||'|'||discount_type||'|'||discount_value||'|'||min_order_vnd||'|'||coalesce(usage_limit::text,'')||'|'||coalesce(array_to_string(eligible_categories,','),'') from vouchers
+ union all select 'seed', 'brn|'||name||'|'||address_line||'|'||city||'|'||opens_at||'|'||closes_at||'|'||(select count(*) from branch_services) from branches
+ union all select 'seed', 'flg|'||key||'|'||enabled||'|'||coalesce(description,'') from feature_flags
+ union all select 'seed', 'upd|'||id||'|'||minimum_version||'|'||latest_version||'|'||force_update from app_update_config
+) s(kind, x) group by kind order by kind;

@@ -14,8 +14,8 @@
     <string name="admin_menu_description_hint">Basalt stones, full-body pressure work, scalp finish</string>
     <string name="admin_menu_minutes">Minutes</string>
     <string name="admin_menu_minutes_hint">90</string>
-    <string name="admin_menu_price">Price ($)</string>
-    <string name="admin_menu_price_hint">165</string>
+    <string name="admin_menu_price">Price (đ)</string>
+    <string name="admin_menu_price_hint">4125000</string>
     <string name="admin_menu_category">Category</string>
     <string name="admin_menu_add_service">Add to the menu</string>
     <string name="admin_menu_therapist_name">Name</string>
@@ -63,8 +63,7 @@
     <string name="admin_detail_price">Price</string>
     <string name="admin_service_meta">%1$s · %2$d min</string>
     <string name="admin_time_range">%1$s – %2$s</string>
-    <string name="admin_price">$%1$d</string>
-    <string name="admin_price_code">%1$s valid · −$%2$d</string>
+      <string name="admin_price_code">%1$s valid · −%2$s</string>
 
     <string name="admin_confirm">Confirm booking</string>
     <string name="admin_confirm_anyway">Confirm anyway</string>

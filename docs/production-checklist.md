@@ -6,7 +6,7 @@ goes, because most of them are one line in a file that already exists.
 
 Deeper guides, not repeated here: `docs/release-signing.md` (keystore, certificates, IPA export),
 `docs/notifications.md` (Firebase, APNs), `docs/feature-flags.md`, `docs/phone-verification.md`,
-`docs/local-development.md`, `docs/ci.md`.
+`docs/local-development.md`, `docs/ci.md`, `docs/adr/0007-backend-on-supabase.md`.
 
 ---
 
@@ -14,118 +14,95 @@ Deeper guides, not repeated here: `docs/release-signing.md` (keystore, certifica
 
 | # | What | Where |
 |---|------|-------|
-| 0.1 | **Seed accounts need their passwords configured** | `server/.../auth/AccountSeeder.kt` |
-| 0.2 | **`JWT_SECRET` must be a real secret** | server environment |
-| 0.3 | **No backend or database is deployed** | see section 1 |
+| 0.1 | **No administrator exists** | section 1.4 |
 
-### 0.1 Seed accounts (critical)
+### Backend
 
-Two administrator accounts (`sanghtruong@tana.local`, `duchnguyen@tana.local`) are created on
-every start-up, and the spa owner with them. Their passwords come from the environment:
+The apps call the Supabase project compiled into `Constants` (`jnlonvutjugxxxsfpeom`). Every
+migration in `supabase/migrations/` and both Edge Functions are deployed there (2026-11-05), the
+Vault holds `push_url` and `push_secret`, and `PUSH_WEBHOOK_SECRET` matches it. Real pushes still
+wait on `FCM_SERVICE_ACCOUNT_JSON` and the `notifications` flag.
 
-| Variable | What it seeds |
+### 0.1 First administrator
+
+Nothing is seeded. Accounts are created by signing up (always a `customer`) or, by an owner or
+admin, through the app. The first administrator therefore has to be promoted by hand — see 1.4.
+
+---
+
+## 1. Backend (Supabase)
+
+One project, on the free plan: Auth, the database with every rule as a function, and two Edge
+Functions. There is no server to host. The free plan pauses a project that sees little activity
+for about a week.
+
+### 1.1 Database
+
+Apply `supabase/migrations/` to the project in order, after `npx supabase test db` passes
+locally. The first fourteen files are the history the project already had; the rest are the
+Supabase backend. Never edit an applied migration.
+
+### 1.2 Edge Functions and their secrets
+
+| Function | Secrets | Notes |
+|----------|---------|-------|
+| `push` | `PUSH_WEBHOOK_SECRET` (required); `FCM_SERVICE_ACCOUNT_JSON` (for real pushes); `FCM_PROJECT_ID` (only when the key is shared between projects) | `verify_jwt = false` (`supabase/config.toml`): it is called by the database, and refuses any call without the shared secret. Without the FCM key it only logs |
+| `accounts` | none of its own; it uses the project's service role key, which Supabase provides to every function | keeps JWT verification on |
+
+The service role key must never leave Edge Function secrets — not into the app, the web bundle or
+the admin page.
+
+### 1.3 Push webhook (Vault)
+
+The trigger on `notifications` reads two Vault secrets; with either missing it posts nothing and
+the notification is still stored:
+
+| Vault secret | Value |
 |---|---|
-| `SEED_ADMIN_PASSWORD` | the password of the two fixed administrators (required in production) |
-| `SEED_ADMINS` | further administrators, `email\|Name\|password` separated by `;` |
-| `SEED_OWNER` | the spa owner, `email\|Name\|password` (required in production) |
+| `push_url` | `https://<project-ref>.supabase.co/functions/v1/push` |
+| `push_secret` | the same value as the function's `PUSH_WEBHOOK_SECRET` |
 
-With `APP_ENV=production` the server refuses to start without `SEED_ADMIN_PASSWORD` and
-`SEED_OWNER`. Outside production a missing password is generated per start and logged once.
+Both are stored on the project. To set the function secret, reveal `push_secret` under
+Integrations → Vault in the dashboard, copy it, and add it as `PUSH_WEBHOOK_SECRET` under Edge
+Functions → Secrets. Rotating it means changing both to the same new value.
 
-Seeding never promotes an existing account: an address someone already registered keeps the role
-it has, and a warning is logged.
+### 1.4 Auth settings and the first administrator
 
-Any password that was ever committed to this repository is public — treat it as compromised and
-do not reuse it.
+| Setting | Value |
+|---|---|
+| Email provider, "Confirm email" | **off** — signing up signs you in |
+| Minimum password length | **8** (`minimum_password_length`; matches `AuthValidation.MIN_PASSWORD_LENGTH`) |
+| Phone provider (Twilio Verify) | **off** while `phone_otp_verification` is off; see `docs/phone-verification.md` |
 
-### 0.2 JWT secret
+Then sign up in the app with the administrator's address and run, in the SQL editor:
 
-`JWT_SECRET` is required when `APP_ENV=production` and must be 32+ random characters. Generate one
-per environment and never commit it:
-
-```bash
-openssl rand -base64 48
+```sql
+update public.users set role = 'admin' where email = '…';
 ```
 
-### 0.3 Backend and database
+Every later owner, staff or admin account can be created from the app.
 
-The app has no deployed backend. Until one exists, every client renders its UI and fails every
-request. Section 1 lists the full environment.
+### 1.5 Spa settings
+
+`spa_settings.timezone` is seeded with `Asia/Ho_Chi_Minh`; it drives availability, "today", the
+cancel window and reminder timing. The branch address is the visible placeholder `Đang cập nhật`
+until the owner supplies it.
 
 ---
 
-## 1. Backend and database
+## 2. Web (Cloudflare Workers static assets)
 
-The server is a Ktor fat jar. `server/Dockerfile` expects the jar to be **built outside the image**
-(configuring `:server` pulls in `:shared`, which applies AGP and so needs the Android SDK), so a
-host that builds from the repo Dockerfile will fail. Build the jar in CI, push an image to a
-registry, and deploy that image.
-
-```bash
-./gradlew :server:buildFatJar
-docker build -f server/Dockerfile -t tana-spa-server .
-```
-
-### Database URL format
-
-`DATABASE_URL` must be a **JDBC** URL — `Database.kt` enforces
-`require(jdbcUrl.startsWith("jdbc:postgresql:"))`. Managed Postgres providers hand out a libpq URL
-(`postgresql://user:pass@host/db`), so split it into three variables:
-
-```
-DATABASE_URL=jdbc:postgresql://<host>/<database>?sslmode=require
-DATABASE_USER=<user>
-DATABASE_PASSWORD=<password>
-```
-
-### Server environment
-
-| Variable | Required | Notes |
-|----------|----------|-------|
-| `APP_ENV` | yes | `production` — refuses the in-memory store, the dev OTP provider and a random JWT secret |
-| `PORT` | host-set | Defaults to `Constants.SERVER_PORT` (8081) |
-| `JWT_SECRET` | yes | 32+ random characters |
-| `DATABASE_URL` / `DATABASE_USER` / `DATABASE_PASSWORD` | yes | JDBC form, see above |
-| `DATABASE_POOL_SIZE` | no | Default 10 |
-| `DATABASE_MIGRATE` | no | `false` to run Flyway as a separate deploy step |
-| `CORS_ALLOWED_ORIGINS` | yes | Must include the deployed web origin, e.g. `https://tana-spa.vercel.app` |
-| `TRUST_PROXY` | yes behind a proxy | `true` so rate limiting keys on the real client IP |
-| `DEFAULT_PHONE_REGION` | no | Default `VN` |
-| `SPA_TIMEZONE` | no | The house's own zone, used to place booking slots. Default `America/Los_Angeles` |
-| `TWILIO_VERIFY_SERVICE_SID` / `TWILIO_API_KEY_SID` / `TWILIO_API_KEY_SECRET` | if OTP is on | Required when `APP_ENV=production`; unset means the dev provider that prints codes to the log |
-| `OTP_ALLOWED_COUNTRIES` / `OTP_BLOCKED_COUNTRIES` | no | Comma-separated ISO codes; blocked wins over allowed |
-| `FCM_SERVICE_ACCOUNT_JSON` *or* `FCM_SERVICE_ACCOUNT_FILE` | if push is on | Without it, notifications are stored but no device is woken |
-| `FCM_PROJECT_ID` | no | Only when the key is shared between projects |
-
-Memory note: on a 512 MB free tier, set `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75`.
-
----
-
-## 2. Web (Vercel)
-
-| Item | Where | Status |
-|------|-------|--------|
-| API base URL | `composeApp/src/webMain/resources/index.html` | **Not set** — falls back to `http://localhost:8081` |
-| CORS origin | server `CORS_ALLOWED_ORIGINS` | Must list the deployed web origin |
-
-Uncomment and fill the block in `index.html`, with no trailing slash:
-
-```html
-<script>window.TANA_API_BASE_URL = "https://your-api-host";</script>
-```
-
-Unset, the browser build uses `http://localhost:8081`, which is right for
-`wasmJsBrowserDevelopmentRun` and wrong for a deployed site. An HTTPS page calling `http://` is
-also blocked as mixed content, so the deployed API must be HTTPS.
-
-Build and deploy. Vercel cannot build this project — its build image ships Java 11 and this build
-needs 21 — so the bundle is built locally and the output directory uploaded:
+`wrangler.jsonc` serves `composeApp/build/dist/wasmJs/productionExecutable` as static assets, with
+single-page-application fallback, which also ships the admin page at `/admin/`.
 
 ```bash
 ./gradlew :composeApp:wasmJsBrowserDistribution
-vercel deploy --prod --yes --cwd composeApp/build/dist/wasmJs/productionExecutable \
-  --project tana-spa --scope tana13
+npx wrangler deploy
 ```
+
+The page needs no backend setting: it uses the project URL compiled into `Constants`, and
+`window.TANA_API_BASE_URL` in `index.html` stays commented out unless the page should talk to a
+different project.
 
 ---
 
@@ -163,7 +140,7 @@ screenshots, a privacy policy URL, a data-safety declaration and a content ratin
 | Bundle identifier | same file | `com.tana.spa.Tana_spa$(TEAM_ID)` — see the warning below |
 | `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` | same file | `1.0.0` / `1` — the build number must increase on every upload |
 | `GoogleService-Info.plist` | `iosApp/iosApp/` | **Absent** — gitignored |
-| APNs auth key | Firebase console | Uploaded to Firebase; it is not a server setting |
+| APNs auth key | Firebase console | Uploaded to Firebase; it is not a backend setting |
 | App Store link | `AppStoreLinks.IOS` | **Empty** — the update gate stays inert |
 
 **Bundle identifier warning:** `PRODUCT_BUNDLE_IDENTIFIER` appends `$(TEAM_ID)`, so filling in the
@@ -181,13 +158,12 @@ Privacy questionnaire and an export-compliance answer.
 
 ## 5. Feature flags
 
-State resolves as per-user override → global database row → `FEATURE_<KEY>` environment variable →
-compiled default. A missing row means "no opinion", not "off". Operate them at `/admin/` with an
-account whose `role` is `admin`.
+State resolves as per-user override → global database row → compiled default. A missing row means
+"no opinion", not "off". Operate them at `/admin/` with an account whose `role` is `admin`.
 
 | Flag | Compiled default | What it waits on |
 |------|------------------|------------------|
-| `phone_otp_verification` | **off** | The flow is unreliable; also needs the Twilio variables |
+| `phone_otp_verification` | **off** | The flow is unreliable; also needs the phone provider enabled in Auth |
 | `notifications` | **off** | A configured Firebase project, or the bell lists nothing |
 | `app_update_gate` | **on** | Inert anyway until `AppStoreLinks` are filled in |
 
@@ -206,6 +182,5 @@ prompt. That is deliberate — see `docs/adr/0003-app-update-gate.md`.
 
 ## 7. Incomplete content, not configuration
 
-- `FeedRemoteApiImpl` returns hardcoded placeholder banners and sections, not server data.
+- `FeedRemoteApiImpl` returns hardcoded placeholder banners and sections, not backend data.
 - The Explore, Likes, NewPost and Profile screens are placeholders.
-- The web build keeps the session in an in-memory cache, so a browser reload signs the user out.

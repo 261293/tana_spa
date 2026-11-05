@@ -7,17 +7,15 @@ import com.tana.spa.feature.booking.domain.BookingAttempt
 import com.tana.spa.feature.booking.domain.GuestBooking
 import com.tana.spa.feature.booking.domain.GuestBookingRepository
 import com.tana.spa.feature.booking.domain.Slot
+import com.tana.spa.shared.SupabasePaths
 import com.tana.spa.shared.auth.ErrorResponse
 import com.tana.spa.shared.booking.AvailabilityResponse
-import com.tana.spa.shared.booking.BookingApi
 import com.tana.spa.shared.booking.BookingDto
 import com.tana.spa.shared.booking.BookingsResponse
 import com.tana.spa.shared.booking.CreateBookingRequest
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.get
-import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -25,6 +23,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 private const val TAG = "GuestBookings"
 
@@ -35,10 +35,15 @@ class GuestBookingRepositoryImpl(
 ) : GuestBookingRepository {
 
     override suspend fun availability(dayEpochDay: Int, therapistSlug: String?, serviceSlug: String?): List<Slot> {
-        val response = networkClient.httpClient.get(baseUrl + BookingApi.AVAILABILITY) {
-            parameter(BookingApi.QUERY_DAY, dayEpochDay)
-            therapistSlug?.let { parameter(BookingApi.QUERY_THERAPIST, it) }
-            serviceSlug?.let { parameter(BookingApi.QUERY_SERVICE, it) }
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_availability")) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                buildJsonObject {
+                    put("day", dayEpochDay)
+                    therapistSlug?.let { put("therapist", it) }
+                    serviceSlug?.let { put("service", it) }
+                },
+            )
         }
         check(response.status.isSuccess()) { "Availability request failed with ${response.status.value}" }
         return response.body<AvailabilityResponse>().slots.map { Slot(it.startAtEpochMillis, it.startHour, it.available) }
@@ -46,7 +51,7 @@ class GuestBookingRepositoryImpl(
 
     override suspend fun create(serviceSlug: String, therapistSlug: String?, startAtEpochMillis: Long, code: String?): BookingAttempt =
         attempt {
-            networkClient.httpClient.post(baseUrl + BookingApi.BOOKINGS) {
+            networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_create_booking")) {
                 authorize()
                 contentType(ContentType.Application.Json)
                 setBody(CreateBookingRequest(serviceSlug, therapistSlug, startAtEpochMillis, code))
@@ -54,13 +59,17 @@ class GuestBookingRepositoryImpl(
         }
 
     override suspend fun mine(): List<GuestBooking> {
-        val response = networkClient.httpClient.get(baseUrl + BookingApi.BOOKINGS) { authorize() }
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_bookings")) { authorize() }
         check(response.status.isSuccess()) { "Bookings request failed with ${response.status.value}" }
         return response.body<BookingsResponse>().bookings.map { it.toGuestBooking() }
     }
 
     override suspend fun cancel(bookingId: String): BookingAttempt = attempt {
-        networkClient.httpClient.post(baseUrl + BookingApi.cancel(bookingId)) { authorize() }
+        networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_cancel_booking")) {
+            authorize()
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject { put("id", bookingId) })
+        }
     }
 
     /** A refusal is an answer, not a failure: only a call that never arrived is [BookingAttempt.Offline]. */

@@ -2,6 +2,7 @@ package com.tana.spa.feature.admin.presentation
 
 import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
+import com.tana.spa.shared.helpers.formatVnd
 import com.tana.spa.shared.spa.AdminCode
 import com.tana.spa.shared.spa.AdminCodeState
 
@@ -59,7 +60,9 @@ class AdminCodesViewModel : MviViewModel<AdminCodesState, AdminCodesEvent, Admin
     private fun CodeDraft.toAdminCode() = AdminCode(
         code = code,
         offer = offer,
-        eligible = eligible.label + if (minimumSpend.isNotBlank()) " - min $$minimumSpend" else "",
+        eligible =
+        eligible.label +
+            if (minimumSpend.isNotBlank()) " - min ${minimumSpend.toLongOrNull()?.let(::formatVnd) ?: minimumSpend}" else "",
         starts = starts,
         ends = ends,
         used = 0,

@@ -236,7 +236,7 @@ class BookingViewModelTest {
 
         val state = vm.state.value
         assertIs<PromoCheck.Applied>(state.check)
-        assertEquals(120 - 24, state.totalUsd)
+        assertEquals(3_000_000 - 600_000, state.totalVnd)
     }
 
     @Test
@@ -250,7 +250,7 @@ class BookingViewModelTest {
 
         // The facial-only code must not keep discounting a massage.
         assertIs<PromoCheck.Rejected>(vm.state.value.check)
-        assertEquals(165, vm.state.value.totalUsd)
+        assertEquals(4_125_000, vm.state.value.totalVnd)
     }
 
     @Test

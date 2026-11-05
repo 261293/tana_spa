@@ -16,13 +16,12 @@ import com.tana.spa.feature.auth.presentation.manipulator.LoginViewModel
 import com.tana.spa.feature.auth.presentation.manipulator.SignUpViewModel
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneViewModel
 import com.tana.spa.shared.Constants
-import com.tana.spa.shared.Platform
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val authModule: Module = module {
-    single<AuthRemoteApi> { AuthRemoteApiImpl(get(), Constants.apiBaseUrl(get<Platform>().type)) }
+    single<AuthRemoteApi> { AuthRemoteApiImpl(get(), Constants.apiBaseUrl()) }
     single<SessionStore> { SessionStoreImpl(get()) }
     single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
     single { SessionRefreshCoordinator(get()) }

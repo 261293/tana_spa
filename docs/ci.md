@@ -7,11 +7,23 @@ Workflow: `.github/workflows/ci.yml`. It runs on each pull request into `main` a
 | **Gradle wrapper validation** | A tampered `gradle-wrapper.jar` (supply-chain attack) | n/a |
 | **Secret scan (gitleaks)** | Keys, tokens and passwords committed in this PR's commits | `gitleaks git --redact -v .` |
 | **Code style (ktlint)** | Inconsistent formatting, wildcard imports, long lines | `./gradlew ktlintCheck` (fix: `./gradlew ktlintFormat`) |
-| **Unit tests** | Regressions in shared code, features and the backend (real embedded PostgreSQL) | `./gradlew jvmTest :server:test` |
-| **Build (web, Android, server)** | Code that compiles in tests but not in the shipped app; a stale `kotlin-js-store/wasm/yarn.lock`; source maps in the web bundle | `./gradlew :composeApp:verifyWebDistributionStripped :androidApp:assembleDebug :server:assemble` |
+| **Unit tests** | Regressions in shared code and every Kotlin module | `./gradlew jvmTest` |
+| **Build (web, Android)** | Code that compiles in tests but not in the shipped app; a stale `kotlin-js-store/wasm/yarn.lock`; source maps in the web bundle | `./gradlew :composeApp:verifyWebDistributionStripped :androidApp:assembleDebug` |
 | ↳ same job, release hardening | A release APK or desktop jar that ships unobfuscated — minification turned off, a keep rule grown too broad ([docs/code-hardening.md](code-hardening.md)) | `./gradlew :androidApp:verifyReleaseObfuscation :composeApp:proguardReleaseJars` |
 | **Build (iOS)** | iOS-only compile or link errors (macOS runner) | `./gradlew :composeApp:compileKotlinIosSimulatorArm64` on any host catches the Kotlin errors; only the link step needs a Mac: `./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64` |
+| **Backend tests (Supabase)** | A migration that no longer applies from empty; a database rule, permission check or error code that changed (pgTAP); a regression in the `push` or `accounts` Edge Function (Deno) | `npx supabase start -x logflare,vector,studio`, `npx supabase test db`, then `deno test --allow-net --allow-env --allow-run supabase/functions` |
 | **CI passed** | Aggregates all of the above into one check | n/a |
+
+### How the backend job runs
+
+It installs Node 22 (`actions/setup-node`) for the Supabase CLI, which it runs through `npx` at a
+pinned version (`SUPABASE_CLI` in the workflow), and Deno 2.9.8 (`denoland/setup-deno`). It starts
+the local stack in the runner's Docker, which also starts an edge runtime serving
+`supabase/functions`, and runs the pgTAP files. It then polls the `accounts` function's preflight
+until it answers, because `accounts`' `local_stack` test calls that function through the stack's
+gateway; there is no separate `functions serve` step. Only then does it run every Deno test in
+`supabase/functions`. The edge runtime's log is printed if a step fails. No secret is involved: the stack's keys are the CLI's public
+development keys, and the `push` tests stub FCM.
 
 ## Make the checks required (one-time, in GitHub)
 
@@ -31,7 +43,7 @@ Settings → Code security: turn on **Secret scanning** and **Push protection** 
 - **If a real secret is ever committed, deleting it in a later commit is not enough**: it stays in history and may already be cached or scraped. Revoke/rotate it at the provider first, then clean the history if needed.
 - Allowlist entries in `.gitleaks.toml` must be narrow (path **and** value) and carry a comment. The one entry today is a documented fake key in an agent-skill example.
 - A finding that is a false positive is best removed at the source. For a commit that is already pushed, `.gitleaksignore` clears one finding at a time by its `commit:file:rule:line` fingerprint, so an entry cannot hide anything else; each one carries a comment saying why it is safe.
-- The workflow itself needs **no secrets**. Real secrets (`JWT_SECRET`, `DATABASE_PASSWORD`, `TWILIO_API_KEY_SECRET`) belong in the hosting platform's secret store, never in the repo.
+- The workflow itself needs **no secrets**. Real secrets (the service role key, `FCM_SERVICE_ACCOUNT_JSON`, `PUSH_WEBHOOK_SECRET`, Twilio credentials) live in the Supabase project — Edge Function secrets, Vault, Auth settings — never in the repo.
 
 ## Security properties of the pipeline
 
@@ -54,6 +66,7 @@ Rules live in `.editorconfig` (IntelliJ/Android Studio read it too, so "Reformat
 ## Known limits (please read)
 
 - **This pipeline has not run on GitHub yet.** The workflow passes `actionlint`, every action input was checked against its pinned `action.yml`, and each command was run locally, but the first real run may need small adjustments (most likely the Android SDK step or the iOS job).
+- **The backend job is unverified on GitHub**: its commands were run locally on Windows, not on an Ubuntu runner, and the edge-runtime readiness poll (and its container name, `supabase_edge_runtime_tana-spa`) is the part most likely to need adjusting.
 - **The iOS job is unverified**: it needs a Mac and could not be run here. It is part of `CI passed`; if it proves flaky, remove it from `needs:` in the `ci-passed` job instead of weakening the others.
 - macOS runners cost roughly ten times Linux minutes.
 - Not included on purpose: dependency vulnerability scanning (GitHub's dependency review needs the dependency graph/Advanced Security for private repos; OWASP dependency-check is slow) and UI/instrumented tests.

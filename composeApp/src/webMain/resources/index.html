@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-    <title>Jade Bathhouse - Day Spa</title>
-    <meta name="description" content="Book massages, facials and body treatments at Jade Bathhouse Day Spa."/>
+    <title>Tana Spa</title>
+    <meta name="description" content="Book massages, facials and body treatments at Tana Spa."/>
     <meta name="theme-color" content="#F7FFF6"/>
     <meta name="color-scheme" content="light"/>
     <!-- Inline so the browser has an icon without a second request; the house mark, in moss. -->
@@ -45,10 +45,9 @@
     </script>
     -->
 
-    <!-- Backend for the browser build. Left unset the app falls back to http://localhost:8081,
-         which is right for wasmJsBrowserDevelopmentRun but wrong for a deployed site. Set it to
-         the API origin with no trailing slash, and add that same origin to the server's
-         CORS_ALLOWED_ORIGINS or the browser will refuse every response. -->
+    <!-- Backend for the browser build. Left unset the app talks to the Supabase project compiled
+         into Constants.apiBaseUrl. Set it to another origin, with no trailing slash, only for a project that accepts the
+         publishable key compiled into the app; any other project answers 401. -->
     <!--
     <script>window.TANA_API_BASE_URL = "https://REPLACE_ME";</script>
     -->
@@ -58,6 +57,6 @@
 <body>
 <!-- Shown until Compose attaches its canvas (see styles.css); a blank page for the seconds a
      wasm binary takes to arrive reads as a broken site. -->
-<div id="loading" role="status">Loading Jade Bathhouse...</div>
+<div id="loading" role="status">Loading Tana Spa...</div>
 </body>
 </html>

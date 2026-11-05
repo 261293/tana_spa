@@ -6,7 +6,6 @@ import com.tana.spa.core.notifications.PushRegistrar
 import com.tana.spa.core.notifications.data.NotificationRemoteApi
 import com.tana.spa.core.notifications.data.NotificationRemoteApiImpl
 import com.tana.spa.shared.Constants
-import com.tana.spa.shared.Platform
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -16,7 +15,7 @@ val notificationsCoreModule: Module = module {
     single<NotificationRemoteApi> {
         NotificationRemoteApiImpl(
             networkClient = get(),
-            baseUrl = Constants.apiBaseUrl(get<Platform>().type),
+            baseUrl = Constants.apiBaseUrl(),
             // Without a session bound (a test host, or before composeApp wires one) every call is
             // anonymous and the server answers 401, which the registrar reads as "not signed in".
             tokens = getOrNull<AccessTokenSource>() ?: AccessTokenSource.none,

@@ -32,13 +32,13 @@ the official skill tracks it.
 | Skill | Why it is here |
 |---|---|
 | `security-audit` | language-agnostic source audit: attack classes, web/auth, mobile/IPC, supply chain |
-| `env-secrets-manager` | this server is env-driven — `JWT_SECRET`, `DATABASE_URL`, `TWILIO_*` |
+| `env-secrets-manager` | vendored when the Ktor server was env-driven; today's secrets are Edge Function secrets and Vault |
 | `pr-review-expert` | blast-radius review for changes to `shared/`, auth and migrations |
 | `spec-driven-workflow` | requirement IDs and merge-time coverage gates |
 | `focused-fix` | scoping a minimal bugfix |
 | `doc-drift-detector` | this repo has known stale docs (README module list, server port) |
 | `feature-flags-architect` | flag taxonomy, rollout, kill switches, flag debt |
-| `migration-architect` | zero-downtime Flyway/Postgres migrations |
+| `migration-architect` | zero-downtime Postgres migrations (`supabase/migrations/`) |
 | `database-schema-designer` | Postgres schema, indexes, multi-tenancy |
 | `design-auditor` | UI review: contrast, design tokens, breakpoints |
 | `apple-hig-expert` | iOS expectations for the iOS target |

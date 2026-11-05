@@ -13,7 +13,6 @@ or a per-feature logger.
 | `MviViewModel` | `core/mvi` | Logs created/cleared, effects, and event *type names* (DEBUG). Exposes `logTag` |
 | `MutableNavigator` | `core/navigation` | Logs every navigate / replaceAll / back |
 | `RequestTracing` | `core/network` | Installed by `withDefaults()`: adds `X-Request-Id` + `X-Session-Id`, logs `METHOD path req=… -> status in Nms` |
-| Server `CallId` + `CallLogging` | `server/.../auth/AuthModule.kt` | Echoes the request id and puts `[req=… sid=…]` on every server log line |
 
 A feature that uses `NetworkClient` and `MviViewModel` already gets screen-flow, effect and HTTP
 logging for free. Your job is the **business-level** logs in between.
@@ -40,13 +39,14 @@ logging for free. Your job is the **business-level** logs in between.
 **Navigation:** nothing to add; `Navigator` logs it. If a ViewModel redirects (e.g. no session → login),
 log *why* at the point of the decision.
 
-**Server (Ktor):**
-- `private val log = LoggerFactory.getLogger("com.tana.spa.<area>")`; SLF4J placeholders (`{}`), not string templates.
-- One INFO line per route result: `log.info("thing -> {}", result::class.simpleName)` plus the user id
-  when known. Log which rule refused a request (cooldown / cap / claimed), at WARN if it looks like abuse.
-- Errors: `log.error("...", cause)` — the request id is already in the line via MDC.
-- New route plugin/handler needs no id plumbing: `CallId` + MDC are installed once in `authModule`.
-  If you add a **new custom request header** the browser client sends, add it to CORS `allowHeader`.
+**Backend (Supabase):**
+- Database functions do not log; a refusal is an error code raised with `private.fail`, which the
+  client logs through `RequestTracing` and the repository.
+- Edge Functions (`supabase/functions/`): one `console.info` line per outcome with ids, counts and
+  the outcome (see the `push` summary line), `console.warn` for a refused or failed call. Never the
+  token, the body or an email.
+- If you add a **new custom request header** the browser client sends to an Edge Function, add it
+  to that function's `access-control-allow-headers`.
 
 ## Never log
 
@@ -64,9 +64,9 @@ only. Do not log whole `Event`/`State` objects (`data class` `toString()` prints
 
 ## Tracing a production issue
 
-Ask for the session id (the 8-hex prefix on client lines). `grep "sid=<id>"` on the server log gives that
-user's whole journey; `grep "req=<id>"` gives one HTTP call end to end. Client lines then show the screens
-and ViewModel outcomes around it.
+Ask for the session id (the 8-hex prefix on client lines). The client lines show the screens, the
+ViewModel outcomes and every HTTP call with its `req=` id and status. The backend does not echo these
+ids: correlate with the Supabase project's API and Edge Function logs by time and path.
 
 ## Forwarding to crash/telemetry
 
@@ -79,5 +79,4 @@ replaced deliberately so Logcat/console output is not lost.
 
 - Don't assert on log text in feature tests. A test that proves a *privacy* rule (e.g. a body never
   reaches the log) is worth having: swap `AppLog.sink` for a capturing sink and restore it in `@AfterTest`
-  (see `core/logging/.../AppLogTest.kt`); on the server attach a logback `ListAppender`
-  (see `server/.../RequestTracingTest.kt`).
+  (see `core/logging/.../AppLogTest.kt`).

@@ -13,14 +13,14 @@ class PromoCodesTest {
     fun percentage_code_discounts_an_eligible_treatment() {
         val result = checkPromoCode(" jade20 ", facial)
         assertIs<PromoCheck.Applied>(result)
-        assertEquals(24, result.discountUsd) // 20% of $120
+        assertEquals(600_000, result.discountVnd)
     }
 
     @Test
     fun fixed_amount_code_takes_its_amount() {
         val result = checkPromoCode("MIDWEEK15", massage)
         assertIs<PromoCheck.Applied>(result)
-        assertEquals(15, result.discountUsd)
+        assertEquals(375_000, result.discountVnd)
     }
 
     @Test
@@ -32,8 +32,8 @@ class PromoCodesTest {
 
     @Test
     fun code_is_refused_below_its_minimum_spend() {
-        assertEquals(140, cheapMassage.priceUsd)
-        val result = checkPromoCode("MIDWEEK15", cheapMassage.copy(priceUsd = 110))
+        assertEquals(3_500_000, cheapMassage.priceVnd)
+        val result = checkPromoCode("MIDWEEK15", cheapMassage.copy(priceVnd = 2_750_000))
         assertIs<PromoCheck.Rejected>(result)
         assertEquals(PromoRejection.BELOW_MINIMUM_SPEND, result.reason)
     }

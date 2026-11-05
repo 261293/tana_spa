@@ -29,19 +29,19 @@ temporary by intent: it exists while something is broken or unfinished, and is d
 afterwards. A few are permanent **kill switches** for machinery that can lock users out, where
 the switch is the recovery path and so outlives the feature.
 
-**Flag catalog** — the compiled list of flags, shared by the apps and the server. The catalog is
+**Flag catalog** — the compiled list of flags, shared by the apps and the database. The catalog is
 the authority on which flags exist; anything not in it is unknown, not merely unset.
 
-**Deploy default** — what a flag falls back to in this environment when nothing is stored for it
-(`FEATURE_<KEY>`, otherwise the state compiled into the catalog).
+**Compiled default** — what a flag falls back to when nothing is stored for it: the state compiled
+into the catalog.
 
 **Global state** — the stored state of a flag for everybody. *Absent* means "no opinion", which is
-not the same as off: the deploy default decides instead. Clearing it is an undo, not an off switch.
+not the same as off: the compiled default decides instead. Clearing it is an undo, not an off switch.
 
 **Override** — one user's exception to a flag's global state. Beats the global state for that
 person only.
 
-**Resolution order** — override → global state → deploy default → catalog default. The first
+**Resolution order** — override → global state → compiled default. The first
 source with an opinion answers.
 
 **Effective state** — what resolution order produces for a given caller: what the feature actually

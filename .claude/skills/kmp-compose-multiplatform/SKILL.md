@@ -952,7 +952,7 @@ class FakeUserRepository : UserRepository {
 
 ## Logging
 
-**This project already has logging — use it; do not add Timber/Napier/`println` or a new logger.** Use `AppLog` from `core:logging` (`AppLog.i(logTag) { "..." }`), implement `handleEvent` (not `onEvent`) in `MviViewModel` subclasses, and add `implementation(projects.core.logging)` to every new feature module. HTTP calls, navigation and ViewModel effects are logged automatically; add business-outcome logs in ViewModels/repositories and SLF4J logs in server routes. Never log passwords, tokens, OTP codes, bodies or full emails/phones.
+**This project already has logging — use it; do not add Timber/Napier/`println` or a new logger.** Use `AppLog` from `core:logging` (`AppLog.i(logTag) { "..." }`), implement `handleEvent` (not `onEvent`) in `MviViewModel` subclasses, and add `implementation(projects.core.logging)` to every new feature module. HTTP calls, navigation and ViewModel effects are logged automatically; add business-outcome logs in ViewModels/repositories and outcome lines in Edge Functions. Never log passwords, tokens, OTP codes, bodies or full emails/phones.
 
 See `references/logging.md` for the per-layer checklist, levels, redaction rules, request-id tracing and tests.
 
@@ -996,7 +996,7 @@ See `references/logging.md` for the per-layer checklist, levels, redaction rules
 - `references/ios-interop.md` — Swift naming conventions, SKIE sealed class edge cases, Kotlin/Native memory model, iOS performance, nullability bridging, coroutines↔Swift Concurrency
 - `references/navigation.md` — deep links, cross-module navigation contracts, predictive back, deep link validation, nested nav, bottom navigation, back handling, transitions, `SavedStateHandle`
 - `references/build-system.md` — convention plugins, R8/ProGuard, publishing to Maven, CI Gradle daemon, KSP config, `gradle.properties`, build performance
-- `references/logging.md` — **project logging rules**: `AppLog`, per-layer checklist for new features, never-log list, request/session-id tracing, server logging, tests
+- `references/logging.md` — **project logging rules**: `AppLog`, per-layer checklist for new features, never-log list, request/session-id tracing, backend logging, tests
 - `references/i18n.md` — string resources, plurals, RTL support, dynamic locale change, locale-aware number/currency formatting
 - `references/ui-design.md` — **UI design rules**: tokens over literals, per-target rules (iOS fidelity, wasm canvas), responsive breakpoints, WCAG 2.2 checks, the four screen templates, review checklist
 - `references/libraries.md` — KMP library shortlist curated from kmp-awesome: how to vet a target set, what is already chosen and why, candidates per need (images, theming, responsive, iOS, media picking, recomposition debugging)

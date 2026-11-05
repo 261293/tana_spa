@@ -1,5 +1,6 @@
 package com.tana.spa.feature.admin.presentation
 
+import com.tana.spa.shared.helpers.formatVnd
 import com.tana.spa.shared.spa.AdminCode
 import com.tana.spa.shared.spa.AdminCodeState
 import com.tana.spa.shared.spa.SpaCatalog
@@ -20,7 +21,7 @@ data class CodeDraft(
     val minimumSpend: String = "",
 ) {
     val numericValue: Int get() = value.toIntOrNull() ?: 0
-    val offer: String get() = if (kind == DiscountKind.PERCENT) "$numericValue% off" else "$$numericValue off"
+    val offer: String get() = if (kind == DiscountKind.PERCENT) "$numericValue% off" else "${formatVnd(numericValue.toLong())} off"
 }
 
 /** [filter] null is "All". */

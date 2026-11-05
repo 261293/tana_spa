@@ -10,9 +10,9 @@ import com.tana.spa.shared.spa.Therapist
 
 /** The server's slugs, as the booking migration seeds them. */
 object ServerCatalog {
-    val stone = Service("warm-stone-massage", "Warm Stone Massage", 90, 165, ServiceCategory.MASSAGE, "Basalt stones, scalp finish")
-    val facial = Service("jade-roller-facial", "Jade Roller Facial", 60, 120, ServiceCategory.FACIAL, "Double cleanse, enzyme mask")
-    val polish = Service("matcha-body-polish", "Matcha Body Polish", 50, 98, ServiceCategory.BODY, "Green tea salt scrub")
+    val stone = Service("warm-stone-massage", "Warm Stone Massage", 90, 4_125_000, ServiceCategory.MASSAGE, "Basalt stones, scalp finish")
+    val facial = Service("jade-roller-facial", "Jade Roller Facial", 60, 3_000_000, ServiceCategory.FACIAL, "Double cleanse, enzyme mask")
+    val polish = Service("matcha-body-polish", "Matcha Body Polish", 50, 2_450_000, ServiceCategory.BODY, "Green tea salt scrub")
 
     val catalog = Catalog(
         services = listOf(stone, facial, polish),

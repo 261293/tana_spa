@@ -1,0 +1,56 @@
+-- The migration revokes PUBLIC execute by default; the test helpers are called by the API roles.
+alter default privileges for role postgres grant execute on functions to public;
+create function pg_temp.new_user(role text default 'customer', email text default null, meta jsonb default '{}') returns uuid
+language plpgsql as $$
+declare
+    uid uuid := gen_random_uuid();
+    address text := coalesce(email, 'user-' || uid || '@test.local');
+begin
+    insert into auth.users (id, email, aud, role, raw_user_meta_data) values (uid, address, 'authenticated', 'authenticated', meta);
+    if new_user.role <> 'customer' then
+        update public.users set role = new_user.role where id = uid;
+    end if;
+    return uid;
+end
+$$;
+
+create function pg_temp.as_user(uid uuid) returns void
+language plpgsql as $$
+begin
+    perform set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
+    set local role authenticated;
+end
+$$;
+
+create function pg_temp.as_anon() returns void
+language plpgsql as $$
+begin
+    perform set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
+    set local role anon;
+end
+$$;
+
+create function pg_temp.as_postgres() returns void
+language plpgsql as $$
+begin
+    reset role;
+end
+$$;
+
+create function pg_temp.api_error(statement text) returns text
+language plpgsql as $$
+declare
+    state text;
+    body text;
+    extra text;
+begin
+    execute statement;
+    return 'no error';
+exception when others then
+    get stacked diagnostics state = returned_sqlstate, body = message_text, extra = pg_exception_detail;
+    if state <> 'PGRST' then
+        return state || ' ' || body;
+    end if;
+    return state || ' ' || (extra::json ->> 'status') || ' ' || (body::json ->> 'code');
+end
+$$;

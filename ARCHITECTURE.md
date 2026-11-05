@@ -12,6 +12,10 @@ composeApp ──► feature/* ──► core/{mvi,navigation,network,cache,ui} 
 Rules: features never depend on each other; `core/*` never depends on `feature/*`;
 only `composeApp` knows every feature (via `FeaturesRegistry` and `appModules()`).
 
+The backend is Supabase (`supabase/`): Auth, database functions called over the Data API, and two
+Edge Functions. The `data` layer of a feature calls it through `core/network`; see
+`docs/adr/0007-backend-on-supabase.md`.
+
 ## Inside a feature (see `feature/Feed`)
 
 | Layer | Package | Responsibility |
@@ -51,6 +55,6 @@ Dependencies point inward: presentation -> domain <- data.
   type-safe `@Serializable` routes once screens need arguments or deep links.
 - `FeedCacheImpl` is in-memory; back it with a SQLDelight table (the `core/cache` module is ready).
   The web target has no SQLDelight driver yet.
-- `FeedRemoteApiImpl` returns stub data; call `NetworkClient.httpClient` with `Constants.BASE_URL`.
+- `FeedRemoteApiImpl` returns stub data; call `NetworkClient.httpClient` against `Constants.apiBaseUrl()` (a Supabase function).
 - Apply the Feed template (domain/data/MVI) to Auth, Explore, Likes, NewPost and Profile,
   which are still placeholder screens.

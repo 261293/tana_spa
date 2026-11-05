@@ -4,7 +4,7 @@ Date: 2026-11-01
 
 ## Status
 
-Accepted
+Superseded by [0007](0007-backend-on-supabase.md)
 
 ## Context
 

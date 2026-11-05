@@ -12,10 +12,10 @@ them:
 1. **Never ship a secret in the client.** No API keys, signing keys, OTP pepper or admin
    endpoints in `shared`, `core` or any `feature` module. Today the client holds none: the only
    credential it stores is the user's own session token (`SessionStore`), and `Constants` holds
-   nothing but URLs. Keep it that way — a string literal cannot be obfuscated away, it has to be
+   nothing but the project URL and its publishable key, which is public by design. Keep it that way — a string literal cannot be obfuscated away, it has to be
    there for the code to use it.
-2. **Enforce every rule on the server.** The client is a convenience; `server/` is the authority
-   on who may do what. Assume a modified client exists.
+2. **Enforce every rule on the server.** The client is a convenience; the database functions in
+   `supabase/migrations/` and the Edge Functions are the authority on who may do what. Assume a modified client exists.
 
 ## What each platform does
 
@@ -24,7 +24,7 @@ them:
 | **Android** | R8 in full mode: shrink, optimize, rename every class/method/field that is not an entry point | `androidApp/build.gradle.kts`, `androidApp/proguard-rules.pro` |
 | | Resource shrinking, and the git branch/commit metadata AGP embeds is turned off (`vcsInfo`) | same |
 | | `AppLog.d` calls (and their message strings) are deleted from the APK | `proguard-rules.pro` |
-| | `allowBackup=false`, `usesCleartextTraffic=false` (debug overlay re-allows HTTP for the emulator) | `androidApp/src/main/AndroidManifest.xml` |
+| | `allowBackup=false`, `usesCleartextTraffic=false` | `androidApp/src/main/AndroidManifest.xml` |
 | **iOS** | Kotlin/Native compiles to ARM machine code — there is no bytecode to decompile, only a disassembly | `composeApp/build.gradle.kts` (`isStatic = true`) |
 | | Release archives strip all local and Swift symbols, so the symbol table stops naming declarations | `iosApp/iosApp.xcodeproj` (`STRIP_INSTALLED_PRODUCT`, `STRIP_STYLE = all`, `STRIP_SWIFT_SYMBOLS`) |
 | **Desktop** | ProGuard with obfuscation on for the release distributable | `composeApp/build.gradle.kts`, `composeApp/compose-desktop.pro` |
@@ -94,9 +94,8 @@ stripped archive build, Kotlin and Swift declaration names should be gone from t
   `androidApp/keystore.properties`, and iOS signs `Release` with an Apple Distribution identity;
   with no Android credentials present the build stays unsigned instead of failing. Setup,
   verification and the CI wiring: [release-signing.md](release-signing.md).
-- **Point the client at HTTPS.** `Constants.apiBaseUrl` returns a `http://localhost`-style dev URL.
-  Cleartext is blocked outside debug builds, so a release build must be given the deployed HTTPS
-  URL or every call fails.
+- **Keep the client on HTTPS.** `Constants.apiBaseUrl()` is the Supabase project's HTTPS URL, and
+  cleartext is blocked in every Android build, so an `http://` URL fails every call.
 - **Smoke-test the obfuscated build, not the debug one.** Shrinking breaks exactly the code paths
   nobody tried: sign up, OTP verification, session restore after a restart. Android and desktop
   are the two that rewrite bytecode, so they are the two that can break this way. The first run

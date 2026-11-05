@@ -10,11 +10,15 @@ interface AuthRemoteApi {
 
     suspend fun register(displayName: String, email: String, phone: String, password: String): AuthResponse
 
-    /** Spends [refreshToken]; the answer carries its replacement. */
-    suspend fun refresh(refreshToken: String): AuthResponse
+    /**
+     * Spends [refreshToken]; the answer carries its replacement. Once the grant succeeded the answer
+     * always arrives, with [knownUser] standing in when the profile cannot be read: the spent token
+     * is gone, so failing here would strand the session.
+     */
+    suspend fun refresh(refreshToken: String, knownUser: UserDto): AuthResponse
 
-    /** Revokes [refreshToken] and every token descended from the same sign-in. */
-    suspend fun logout(refreshToken: String)
+    /** Ends the sign-in [accessToken] belongs to, and with it that sign-in's refresh token. */
+    suspend fun logout(accessToken: String)
 
     /** Asks the server to text a code to the phone number already on the account. */
     suspend fun sendPhoneOtp(accessToken: String): PhoneOtpSendResponse
