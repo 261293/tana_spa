@@ -1,5 +1,7 @@
 # 1. Feature flags resolved per request, with per-user overrides
 
+Superseded in part by [0007](0007-backend-on-supabase.md): the HTTP routes and server components named here are now Supabase functions.
+
 Date: 2026-10-10
 
 ## Status

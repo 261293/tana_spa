@@ -1,5 +1,7 @@
 # 4. The notification centre is the channel; a push is a best-effort wake-up
 
+Superseded in part by [0007](0007-backend-on-supabase.md): the HTTP routes and server components named here are now Supabase functions.
+
 Date: 2026-10-11
 
 ## Status

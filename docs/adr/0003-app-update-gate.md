@@ -1,5 +1,7 @@
 # 3. The app-update gate fails open, and its flag is a kill switch
 
+Superseded in part by [0007](0007-backend-on-supabase.md): the HTTP routes and server components named here are now Supabase functions.
+
 Date: 2026-10-11
 
 ## Status
