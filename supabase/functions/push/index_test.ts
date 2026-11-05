@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1.0.13";
-import { type Deps, handle } from "./index.ts";
+import { type Deps, handle, pushMessage } from "./index.ts";
 import { testServiceAccount } from "./test_key.ts";
 
 const SECRET = "throwaway-webhook-secret";
@@ -104,4 +104,16 @@ Deno.test("no_service_account_only_logs", async () => {
   assertEquals(calls.fetched, []);
   assertEquals(calls.deleted, []);
   assertEquals(calls.pushed, []);
+});
+
+Deno.test("pushMessage turns non-string data values into strings", () => {
+  const message = pushMessage({
+    id: NOTIFICATION_ID,
+    user_id: USER_ID,
+    type: "promotion",
+    title: "Hello",
+    body: null,
+    data: { code: "FIRSTVISIT", n: 1, nested: { a: true } },
+  });
+  assertEquals(message.data, { code: "FIRSTVISIT", n: "1", nested: '{"a":true}', type: "promotion" });
 });

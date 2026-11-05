@@ -9,7 +9,7 @@ export type PushDb = {
 
 export type Deps = { env: (key: string) => string | undefined; db: PushDb; fetchFn: typeof fetch };
 
-type NotificationRecord = { id: string; user_id: string; type: string; title: string; body: string | null; data: Record<string, string> };
+type NotificationRecord = { id: string; user_id: string; type: string; title: string; body: string | null; data: Record<string, unknown> };
 
 const encoder = new TextEncoder();
 
@@ -39,8 +39,11 @@ function serviceAccount(env: Deps["env"]): { account: ServiceAccount; projectId:
   return { account, projectId };
 }
 
-function pushMessage(record: NotificationRecord): PushMessage {
-  return { title: record.title, body: record.body, data: { ...record.data, type: record.type } };
+export function pushMessage(record: NotificationRecord): PushMessage {
+  const data = Object.fromEntries(
+    Object.entries(record.data ?? {}).map(([key, value]) => [key, typeof value === "string" ? value : JSON.stringify(value)]),
+  );
+  return { title: record.title, body: record.body, data: { ...data, type: record.type } };
 }
 
 export async function handle(req: Request, deps: Deps): Promise<Response> {
