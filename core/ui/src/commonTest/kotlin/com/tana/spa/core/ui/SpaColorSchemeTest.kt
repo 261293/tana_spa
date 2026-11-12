@@ -6,80 +6,90 @@ import kotlin.test.assertTrue
 
 /**
  * Screens read colours through `MaterialTheme.colorScheme` and [SpaTheme], never [SpaColors]
- * directly. These assertions pin each role to the design-file token it was mapped from, so a
- * change to the scheme cannot silently repaint a screen that no longer names the token.
+ * directly. These assertions pin each role to the design token it was mapped from, so a change to
+ * the scheme cannot silently repaint a screen that no longer names the token.
  */
 class SpaColorSchemeTest {
     @Test
     fun scheme_roles_match_design_tokens() {
-        assertEquals(SpaColors.Forest, SpaColorScheme.primary)
-        assertEquals(SpaColors.OnForest, SpaColorScheme.onPrimary)
-        assertEquals(SpaColors.SageTint, SpaColorScheme.primaryContainer)
-        assertEquals(SpaColors.Forest, SpaColorScheme.onPrimaryContainer)
-        assertEquals(SpaColors.Forest600, SpaColorScheme.secondary)
-        assertEquals(SpaColors.SageSoft, SpaColorScheme.secondaryContainer)
-        assertEquals(SpaColors.Clay, SpaColorScheme.tertiary)
-        assertEquals(SpaColors.ClaySoft, SpaColorScheme.tertiaryContainer)
-        assertEquals(SpaColors.Ground, SpaColorScheme.background)
+        assertEquals(SpaColors.Slate, SpaColorScheme.primary)
+        assertEquals(SpaColors.OnSlate, SpaColorScheme.onPrimary)
+        assertEquals(SpaColors.SlateTint, SpaColorScheme.primaryContainer)
+        assertEquals(SpaColors.SlateDeep, SpaColorScheme.onPrimaryContainer)
+        assertEquals(SpaColors.Umber, SpaColorScheme.secondary)
+        assertEquals(SpaColors.UmberTint, SpaColorScheme.secondaryContainer)
+        assertEquals(SpaColors.Ink, SpaColorScheme.onSecondaryContainer)
+        assertEquals(SpaColors.Umber, SpaColorScheme.tertiary)
+        assertEquals(SpaColors.UmberTint, SpaColorScheme.tertiaryContainer)
+        assertEquals(SpaColors.Paper, SpaColorScheme.background)
         assertEquals(SpaColors.Ink, SpaColorScheme.onBackground)
-        assertEquals(SpaColors.Surface, SpaColorScheme.surface)
+        assertEquals(SpaColors.Card, SpaColorScheme.surface)
         assertEquals(SpaColors.Ink, SpaColorScheme.onSurface)
-        assertEquals(SpaColors.SurfaceAlt, SpaColorScheme.surfaceVariant)
+        assertEquals(SpaColors.Paper2, SpaColorScheme.surfaceVariant)
         assertEquals(SpaColors.Muted, SpaColorScheme.onSurfaceVariant)
-        assertEquals(SpaColors.Surface, SpaColorScheme.surfaceContainerLowest)
-        assertEquals(SpaColors.Ground, SpaColorScheme.surfaceContainerLow)
-        assertEquals(SpaColors.SurfaceAlt, SpaColorScheme.surfaceContainer)
-        assertEquals(SpaColors.SageSoft, SpaColorScheme.surfaceContainerHigh)
-        assertEquals(SpaColors.SageTint, SpaColorScheme.surfaceContainerHighest)
-        assertEquals(SpaColors.LineStrong, SpaColorScheme.outline)
-        assertEquals(SpaColors.Line, SpaColorScheme.outlineVariant)
+        assertEquals(SpaColors.Card, SpaColorScheme.surfaceContainerLowest)
+        assertEquals(SpaColors.Paper, SpaColorScheme.surfaceContainerLow)
+        assertEquals(SpaColors.Paper2, SpaColorScheme.surfaceContainer)
+        assertEquals(SpaColors.Paper3, SpaColorScheme.surfaceContainerHigh)
+        assertEquals(SpaColors.UmberTint, SpaColorScheme.surfaceContainerHighest)
+        assertEquals(SpaColors.Outline, SpaColorScheme.outline)
+        assertEquals(SpaColors.Rule, SpaColorScheme.outlineVariant)
         assertEquals(SpaColors.Danger, SpaColorScheme.error)
-        assertEquals(SpaColors.ClaySoft, SpaColorScheme.errorContainer)
+        assertEquals(SpaColors.DangerTint, SpaColorScheme.errorContainer)
+        assertEquals(SpaColors.DangerDeep, SpaColorScheme.onErrorContainer)
     }
 
     @Test
     fun extra_colors_match_design_tokens() {
-        assertEquals(SpaColors.Forest600, LightExtraColors.link)
-        assertEquals(SpaColors.Forest600, LightExtraColors.success)
-        assertEquals(SpaColors.Clay, LightExtraColors.warning)
-        assertEquals(SpaColors.ClaySoft, LightExtraColors.warningContainer)
-        assertEquals(SpaColors.ForestDeep, LightExtraColors.pocket)
-        assertEquals(SpaColors.OnForest, LightExtraColors.onPocket)
-        assertEquals(SpaColors.OnForestMuted, LightExtraColors.onPocketMuted)
-        assertEquals(SpaColors.OnForest, LightExtraColors.pocketAction)
-        assertEquals(SpaColors.ForestDeep, LightExtraColors.onPocketAction)
-        assertEquals(SpaColors.SurfaceAlt, LightExtraColors.felt)
+        assertEquals(SpaColors.Slate, LightExtraColors.link)
+        assertEquals(SpaColors.Moss, LightExtraColors.success)
+        assertEquals(SpaColors.Ochre, LightExtraColors.warning)
+        assertEquals(SpaColors.OchreTint, LightExtraColors.warningContainer)
+        assertEquals(SpaColors.Ink, LightExtraColors.pocket)
+        assertEquals(SpaColors.Paper, LightExtraColors.onPocket)
+        assertEquals(SpaColors.Paper3, LightExtraColors.onPocketMuted)
+        assertEquals(SpaColors.Card, LightExtraColors.pocketAction)
+        assertEquals(SpaColors.Ink, LightExtraColors.onPocketAction)
+        assertEquals(SpaColors.Paper2, LightExtraColors.felt)
         assertEquals(SpaColors.Shadow, LightExtraColors.shadow)
-        assertEquals(SpaColors.Moss, LightExtraColors.eyebrow)
+        assertEquals(SpaColors.Muted, LightExtraColors.tag)
         assertEquals(SpaColors.InkSoft, LightExtraColors.inkSoft)
     }
 
     /** WCAG 2.2 1.4.3 for every pairing the screens actually use. */
     @Test
     fun text_pairs_are_readable() {
-        assertTrue(contrastRatio(SpaColors.OnForest, SpaColors.Forest) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Ink, SpaColors.Ground) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Ink, SpaColors.Surface) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Muted, SpaColors.Ground) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Muted, SpaColors.Surface) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Forest, SpaColors.Ground) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Forest, SpaColors.SageTint) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Moss, SpaColors.Ground) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Forest600, SpaColors.Surface) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.OnForest, SpaColors.ForestDeep) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.OnForestMuted, SpaColors.ForestDeep) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.ForestDeep, SpaColors.OnForest) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.DangerDeep, SpaColors.ClaySoft) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Danger, SpaColors.Surface) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Forest600, SpaColors.SageSoft) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.Forest600, SpaColors.SageTint) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.InkSoft, SpaColors.Ground) >= 4.5)
-        assertTrue(contrastRatio(SpaColors.InkSoft, SpaColors.SurfaceAlt) >= 4.5)
+        val pairs = listOf(
+            SpaColors.OnSlate to SpaColors.Slate,
+            SpaColors.Slate to SpaColors.Paper,
+            SpaColors.Slate to SpaColors.Card,
+            SpaColors.SlateDeep to SpaColors.SlateTint,
+            SpaColors.Ink to SpaColors.Paper,
+            SpaColors.Ink to SpaColors.Card,
+            SpaColors.Ink to SpaColors.UmberTint,
+            SpaColors.InkSoft to SpaColors.Paper,
+            SpaColors.InkSoft to SpaColors.Paper2,
+            SpaColors.InkSoft to SpaColors.Paper3,
+            SpaColors.Muted to SpaColors.Paper,
+            SpaColors.Muted to SpaColors.Card,
+            SpaColors.Muted to SpaColors.Paper2,
+            SpaColors.Umber to SpaColors.Card,
+            SpaColors.Ochre to SpaColors.Card,
+            SpaColors.Ochre to SpaColors.OchreTint,
+            SpaColors.Moss to SpaColors.Card,
+            SpaColors.Danger to SpaColors.Card,
+            SpaColors.DangerDeep to SpaColors.DangerTint,
+            SpaColors.Paper to SpaColors.Ink,
+            SpaColors.Paper3 to SpaColors.Ink,
+            SpaColors.Ink to SpaColors.Card,
+        )
+        for ((text, ground) in pairs) assertTrue(contrastRatio(text, ground) >= 4.5, "$text on $ground")
     }
 
     @Test
     fun a_control_boundary_can_be_seen() {
-        assertTrue(contrastRatio(SpaColors.LineStrong, SpaColors.Surface) >= 3.0)
-        assertTrue(contrastRatio(SpaColors.LineStrong, SpaColors.Ground) >= 3.0)
+        assertTrue(contrastRatio(SpaColors.Outline, SpaColors.Card) >= 3.0)
+        assertTrue(contrastRatio(SpaColors.Outline, SpaColors.Paper) >= 3.0)
+        assertTrue(contrastRatio(SpaColors.Focus, SpaColors.Paper) >= 3.0)
     }
 }

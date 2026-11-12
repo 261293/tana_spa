@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaCtaPanel
 import com.tana.spa.core.ui.components.SpaDisplayTitle
-import com.tana.spa.core.ui.components.SpaEyebrow
 import com.tana.spa.core.ui.components.SpaFacts
 import com.tana.spa.core.ui.components.SpaFilterChip
 import com.tana.spa.core.ui.components.SpaFloatingActionButton
@@ -37,6 +36,7 @@ import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSectionHead
+import com.tana.spa.core.ui.components.SpaTag
 import com.tana.spa.core.ui.rememberSpaLazyListState
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.feed.presentation.manipulator.FeedEffect
@@ -218,7 +218,7 @@ private fun Hero(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SpaEyebrow(
+        SpaTag(
             if (greetingName.isNullOrBlank()) {
                 stringResource(Res.string.home_greeting)
             } else {

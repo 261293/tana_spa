@@ -24,11 +24,11 @@ import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaBackLink
-import com.tana.spa.core.ui.components.SpaEyebrow
 import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.SpaIncludeRow
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.components.SpaTag
 import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.localizedLabel
 import com.tana.spa.core.ui.rememberSpaScrollState
@@ -95,7 +95,7 @@ private fun Treatment(service: Service, onBook: () -> Unit) {
     )
 
     Column(Modifier.revealOnScroll(order = 2), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        SpaEyebrow(
+        SpaTag(
             stringResource(
                 Res.string.service_eyebrow,
                 service.category.localizedLabel(),

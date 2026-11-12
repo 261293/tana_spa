@@ -43,13 +43,13 @@ import com.tana.spa.core.ui.SpaWindowSize
 import com.tana.spa.core.ui.components.SpaAvatar
 import com.tana.spa.core.ui.components.SpaChoiceRow
 import com.tana.spa.core.ui.components.SpaDateCell
-import com.tana.spa.core.ui.components.SpaEyebrow
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
 import com.tana.spa.core.ui.components.SpaSlotButton
+import com.tana.spa.core.ui.components.SpaTag
 import com.tana.spa.core.ui.formatHour
 import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.formatRelativeDayAndTime
@@ -367,7 +367,7 @@ internal fun SlotGrid(state: BookingState, onSelect: (Long) -> Unit, modifier: M
 @Composable
 private fun SlotGroup(label: String, slots: List<Slot>, chosen: Long?, onSelect: (Long) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SpaEyebrow(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        SpaTag(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
         slots.chunked(SLOT_COLUMNS).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { slot ->

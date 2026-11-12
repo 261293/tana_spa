@@ -29,11 +29,11 @@ import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindow
 import com.tana.spa.core.ui.components.SpaDisplayTitle
-import com.tana.spa.core.ui.components.SpaEyebrow
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPanel
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaStepTrail
+import com.tana.spa.core.ui.components.SpaTag
 import com.tana.spa.core.ui.components.spaPocket
 import com.tana.spa.core.ui.formatHour
 import com.tana.spa.core.ui.formatPrice
@@ -46,7 +46,6 @@ import com.tana.spa.feature.booking.presentation.BookingState
 import com.tana.spa.feature.booking.resources.Res
 import com.tana.spa.feature.booking.resources.booking_back
 import com.tana.spa.feature.booking.resources.booking_continue
-import com.tana.spa.feature.booking.resources.booking_eyebrow
 import com.tana.spa.feature.booking.resources.booking_open_times
 import com.tana.spa.feature.booking.resources.booking_service_details
 import com.tana.spa.feature.booking.resources.booking_step_review
@@ -233,7 +232,6 @@ private fun BookingStepPage(
 @Composable
 private fun BookingHeader(modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SpaEyebrow(stringResource(Res.string.booking_eyebrow))
         SpaDisplayTitle(
             lead = stringResource(Res.string.booking_title),
             accent = stringResource(Res.string.booking_title_accent),

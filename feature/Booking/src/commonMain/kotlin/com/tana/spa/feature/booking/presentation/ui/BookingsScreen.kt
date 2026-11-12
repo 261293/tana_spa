@@ -61,7 +61,6 @@ import com.tana.spa.feature.booking.resources.bookings_decline_overlap
 import com.tana.spa.feature.booking.resources.bookings_decline_room
 import com.tana.spa.feature.booking.resources.bookings_decline_therapist
 import com.tana.spa.feature.booking.resources.bookings_empty
-import com.tana.spa.feature.booking.resources.bookings_eyebrow
 import com.tana.spa.feature.booking.resources.bookings_failed
 import com.tana.spa.feature.booking.resources.bookings_instead
 import com.tana.spa.feature.booking.resources.bookings_meta
@@ -114,7 +113,6 @@ fun BookingsScreen(
         ) {
             SpaBackLink(stringResource(Res.string.booking_back), onBack, Modifier.revealOnScroll())
             SpaScreenHeader(
-                eyebrow = stringResource(Res.string.bookings_eyebrow),
                 title = stringResource(Res.string.bookings_title),
                 accent = stringResource(Res.string.bookings_title_accent),
                 subtitle = stringResource(Res.string.bookings_subtitle),

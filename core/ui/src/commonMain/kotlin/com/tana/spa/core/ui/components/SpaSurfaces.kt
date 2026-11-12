@@ -41,18 +41,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tana.spa.core.ui.SpaPebbleShape
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.resources.Res
-import com.tana.spa.core.ui.resources.bg_topo
 import com.tana.spa.core.ui.resources.brand_name
 import com.tana.spa.core.ui.spaPointer
 import org.jetbrains.compose.resources.DrawableResource
@@ -97,14 +91,6 @@ fun Modifier.spaPocket(shape: Shape = MaterialTheme.shapes.large): Modifier {
             )
         }
 }
-
-/**
- * The contour-map texture from the design file, anchored (never tiled) behind a panel. It is
- * decorative; [alignment] places the 480x360 plate the way the screen wants it.
- */
-@Composable
-fun Modifier.spaTopo(alignment: Alignment = Alignment.BottomEnd): Modifier =
-    paint(painterResource(Res.drawable.bg_topo), alignment = alignment, contentScale = ContentScale.None)
 
 /** Cork-pebble bevel: the raised chips, slots and quiet buttons. */
 @Composable
@@ -184,40 +170,21 @@ fun SpaCard(
     }
 }
 
-/**
- * The display title that opens every screen. [accent] is the tail of the headline the design sets
- * in clay italic serif ("Space to *exhale.*").
- */
+/** The display title that opens every screen; [accent] is the rest of the sentence, set the same way. */
 @Composable
 fun SpaDisplayTitle(lead: String, accent: String? = null, modifier: Modifier = Modifier) {
-    val text = buildAnnotatedString {
-        append(lead)
-        if (accent != null) {
-            append(" ")
-            withStyle(SpanStyle(color = MaterialTheme.colorScheme.tertiary, fontStyle = FontStyle.Italic)) {
-                append(accent)
-            }
-        }
-    }
     Text(
-        text = text,
+        text = listOfNotNull(lead, accent).joinToString(" "),
         style = SpaTheme.textStyles.displayTitle,
         color = MaterialTheme.colorScheme.onBackground,
         modifier = modifier.semantics { heading() },
     )
 }
 
-/** The design's page head: an uppercase [eyebrow], the display title, then the line under it. */
+/** The page head: the display title, then the line under it. */
 @Composable
-fun SpaScreenHeader(
-    title: String,
-    accent: String? = null,
-    subtitle: String? = null,
-    modifier: Modifier = Modifier,
-    eyebrow: String? = null,
-) {
+fun SpaScreenHeader(title: String, accent: String? = null, subtitle: String? = null, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        eyebrow?.let { SpaEyebrow(it) }
         SpaDisplayTitle(title, accent)
         subtitle?.let {
             Text(text = it, style = SpaTheme.textStyles.sectionLead, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -273,7 +240,7 @@ fun SpaAvatar(
 @Composable
 fun SpaImageTile(
     modifier: Modifier = Modifier,
-    shape: Shape = SpaPebbleShape,
+    shape: Shape = MaterialTheme.shapes.large,
     icon: SpaIcon = SpaIcon.Leaf,
     photo: DrawableResource? = null,
     contentDescription: String? = null,

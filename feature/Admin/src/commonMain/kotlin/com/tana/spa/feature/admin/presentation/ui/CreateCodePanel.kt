@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.tana.spa.core.ui.SpaPebbleShape
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaCodeChip
 import com.tana.spa.core.ui.components.SpaFilterChip
@@ -34,7 +33,6 @@ import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaTextField
-import com.tana.spa.core.ui.components.spaTopo
 import com.tana.spa.feature.admin.presentation.AdminCodesEvent
 import com.tana.spa.feature.admin.presentation.AdminCodesState
 import com.tana.spa.feature.admin.presentation.DiscountKind
@@ -264,12 +262,8 @@ private fun GuestPreview(state: AdminCodesState) {
             style = SpaTheme.textStyles.label,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .spaTopo(Alignment.TopEnd),
-        ) {
-            Surface(shape = SpaPebbleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+        Box(Modifier.fillMaxWidth()) {
+            Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.primaryContainer) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = stringResource(

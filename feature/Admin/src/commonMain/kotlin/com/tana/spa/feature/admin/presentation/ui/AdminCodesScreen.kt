@@ -53,7 +53,6 @@ import com.tana.spa.feature.admin.presentation.AdminCodesState
 import com.tana.spa.feature.admin.resources.Res
 import com.tana.spa.feature.admin.resources.admin_codes_create
 import com.tana.spa.feature.admin.resources.admin_codes_empty
-import com.tana.spa.feature.admin.resources.admin_codes_eyebrow
 import com.tana.spa.feature.admin.resources.admin_codes_subtitle
 import com.tana.spa.feature.admin.resources.admin_codes_title
 import com.tana.spa.feature.admin.resources.admin_codes_title_accent
@@ -132,7 +131,6 @@ fun AdminCodesScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 SpaScreenHeader(
-                    eyebrow = stringResource(Res.string.admin_codes_eyebrow),
                     title = stringResource(Res.string.admin_codes_title),
                     accent = stringResource(Res.string.admin_codes_title_accent),
                     subtitle = stringResource(

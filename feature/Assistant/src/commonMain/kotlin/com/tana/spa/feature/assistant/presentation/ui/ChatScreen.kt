@@ -180,7 +180,7 @@ private fun ProgressStrip(progress: Float) {
         Column(Modifier.weight(1f)) {
             Text(
                 text = stringResource(Res.string.chat_progress_label),
-                style = SpaTheme.textStyles.overline,
+                style = SpaTheme.textStyles.tag,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Box(

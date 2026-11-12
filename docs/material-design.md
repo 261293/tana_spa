@@ -1,6 +1,6 @@
 # Material 3 in this app
 
-The app is a Material 3 app wearing the "Moss & Linen" design. **Reach for the Material component
+The app is a Material 3 app wearing the limewash system in `DESIGN.md` (ADR 0008). **Reach for the Material component
 first**; only draw something by hand when Material has no component for it, and say so in a comment.
 
 A Material component brings behaviour we would otherwise have to write and get wrong: focus order,
@@ -39,7 +39,7 @@ at <https://developer.android.com/develop/ui/compose/components>.
 Three things in this design have no Material equivalent; they live in `core:ui` and are documented
 where they are defined:
 
-- **The moss pocket** (`Modifier.spaPocket`) — the one dark area per screen that holds the primary
+- **The pocket** (`Modifier.spaPocket`) — the one dark area per screen that holds the primary
   action.
 - **The felt tray** (`Modifier.spaFelt`) and the **cork bevel** (`Modifier.spaCork`) — recessed and
   raised surfaces. CSS inset shadows have no Compose equivalent, so both are drawn as short

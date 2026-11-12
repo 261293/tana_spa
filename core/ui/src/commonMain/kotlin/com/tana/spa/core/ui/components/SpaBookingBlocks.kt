@@ -175,7 +175,7 @@ fun SpaDateCell(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
-        Text(weekday.uppercase(), style = SpaTheme.textStyles.overline, color = muted, textAlign = TextAlign.Center)
+        Text(weekday, style = SpaTheme.textStyles.tag, color = muted, textAlign = TextAlign.Center)
         Text(day, style = SpaTheme.textStyles.cardTitle, color = label)
         Text(month, style = SpaTheme.textStyles.label, color = muted, textAlign = TextAlign.Center)
     }

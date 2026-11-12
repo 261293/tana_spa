@@ -163,7 +163,7 @@ private fun CompactTabs(section: AdminSection, pendingCount: Int, onSelect: (Adm
                                 containerColor = MaterialTheme.colorScheme.secondary,
                                 contentColor = MaterialTheme.colorScheme.onSecondary,
                             ) {
-                                Text(pendingCount.toString(), style = SpaTheme.textStyles.overline)
+                                Text(pendingCount.toString(), style = SpaTheme.textStyles.tag)
                             }
                         }
                     }
@@ -202,7 +202,7 @@ private fun QueueIcon(icon: SpaIcon, count: Int) {
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary,
                 ) {
-                    Text(count.toString(), style = SpaTheme.textStyles.overline)
+                    Text(count.toString(), style = SpaTheme.textStyles.tag)
                 }
             }
         },

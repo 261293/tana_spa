@@ -14,7 +14,7 @@ class SpaTextStylesTest {
     private val styles = spaTextStyles(typography, display)
 
     @Test
-    fun sizes_match_the_design_file() {
+    fun sizes_match_the_design_tokens() {
         assertEquals(24.sp, styles.brandTitle.fontSize)
         assertEquals(36.sp, styles.displayTitle.fontSize)
         assertEquals(26.sp, styles.screenTitle.fontSize)
@@ -22,12 +22,12 @@ class SpaTextStylesTest {
         assertEquals(17.sp, styles.prompt.fontSize)
         assertEquals(16.sp, styles.sectionLead.fontSize)
         assertEquals(15.sp, styles.chatInput.fontSize)
-        assertEquals(15.sp, styles.body.fontSize)
-        assertEquals(15.sp, styles.bodyRelaxed.fontSize)
-        assertEquals(15.sp, styles.bodyLoose.fontSize)
+        assertEquals(16.sp, styles.body.fontSize)
+        assertEquals(16.sp, styles.bodyRelaxed.fontSize)
+        assertEquals(16.sp, styles.bodyLoose.fontSize)
         assertEquals(13.sp, styles.caption.fontSize)
         assertEquals(12.sp, styles.label.fontSize)
-        assertEquals(11.sp, styles.overline.fontSize)
+        assertEquals(13.sp, styles.tag.fontSize)
         assertEquals(15.sp, styles.buttonLabel.fontSize)
         assertEquals(15.sp, styles.fieldText.fontSize)
         assertEquals(13.sp, styles.fieldError.fontSize)
@@ -35,12 +35,12 @@ class SpaTextStylesTest {
     }
 
     @Test
-    fun weights_match_the_design_file() {
-        assertEquals(FontWeight.Medium, styles.brandTitle.fontWeight)
-        assertEquals(FontWeight.Normal, styles.screenTitle.fontWeight)
-        assertEquals(FontWeight.Normal, styles.displayTitle.fontWeight)
-        assertEquals(FontWeight.Medium, styles.cardTitle.fontWeight)
-        assertEquals(FontWeight.SemiBold, styles.overline.fontWeight)
+    fun weights_match_the_design_tokens() {
+        assertEquals(FontWeight.Normal, styles.brandTitle.fontWeight)
+        assertEquals(FontWeight.Light, styles.screenTitle.fontWeight)
+        assertEquals(FontWeight.Light, styles.displayTitle.fontWeight)
+        assertEquals(FontWeight.Normal, styles.cardTitle.fontWeight)
+        assertEquals(FontWeight.Medium, styles.tag.fontWeight)
         assertEquals(FontWeight.SemiBold, styles.buttonLabel.fontWeight)
         assertEquals(FontWeight.SemiBold, styles.otpDigit.fontWeight)
         assertEquals(FontWeight.Normal, styles.fieldText.fontWeight)
@@ -48,10 +48,10 @@ class SpaTextStylesTest {
 
     @Test
     fun explicit_line_heights_are_kept() {
-        assertEquals(39.sp, styles.displayTitle.lineHeight)
+        assertEquals(40.sp, styles.displayTitle.lineHeight)
         assertEquals(30.sp, styles.screenTitle.lineHeight)
-        assertEquals(24.sp, styles.cardTitle.lineHeight)
-        assertEquals(22.sp, styles.bodyRelaxed.lineHeight)
+        assertEquals(26.sp, styles.cardTitle.lineHeight)
+        assertEquals(24.sp, styles.bodyRelaxed.lineHeight)
         assertEquals(26.sp, styles.bodyLoose.lineHeight)
     }
 
@@ -83,7 +83,7 @@ class SpaTextStylesTest {
         val body = typography.bodyLarge.fontFamily
         val rest = with(styles) {
             listOf(
-                prompt, sectionLead, this.body, bodyRelaxed, bodyLoose, caption, label, overline,
+                prompt, sectionLead, this.body, bodyRelaxed, bodyLoose, caption, label, tag,
                 buttonLabel, fieldText, fieldError, otpDigit, chatInput,
             )
         }

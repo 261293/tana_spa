@@ -45,7 +45,6 @@ import com.tana.spa.feature.booking.resources.treatments_count
 import com.tana.spa.feature.booking.resources.treatments_empty_action
 import com.tana.spa.feature.booking.resources.treatments_empty_body
 import com.tana.spa.feature.booking.resources.treatments_empty_title
-import com.tana.spa.feature.booking.resources.treatments_eyebrow
 import com.tana.spa.feature.booking.resources.treatments_filter_all
 import com.tana.spa.feature.booking.resources.treatments_note
 import com.tana.spa.feature.booking.resources.treatments_search_label
@@ -83,7 +82,6 @@ fun TreatmentsScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         SpaScreenHeader(
-            eyebrow = stringResource(Res.string.treatments_eyebrow),
             title = stringResource(Res.string.treatments_title),
             subtitle = stringResource(Res.string.treatments_note),
             modifier = Modifier.revealOnScroll(),

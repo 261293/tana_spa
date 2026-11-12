@@ -60,7 +60,6 @@ import com.tana.spa.feature.settings.resources.settings_confirmations
 import com.tana.spa.feature.settings.resources.settings_confirmations_help
 import com.tana.spa.feature.settings.resources.settings_edit
 import com.tana.spa.feature.settings.resources.settings_email
-import com.tana.spa.feature.settings.resources.settings_eyebrow
 import com.tana.spa.feature.settings.resources.settings_group_account
 import com.tana.spa.feature.settings.resources.settings_group_booking
 import com.tana.spa.feature.settings.resources.settings_group_payment
@@ -98,7 +97,6 @@ fun SettingsScreen(state: SettingsState, effects: Flow<SettingsEffect>, onEvent:
         maxWidth = SpaPageWidth.Reading,
     ) {
         SpaScreenHeader(
-            eyebrow = stringResource(Res.string.settings_eyebrow),
             title = stringResource(Res.string.settings_title),
             accent = stringResource(Res.string.settings_title_accent),
             modifier = Modifier.revealOnScroll(),
