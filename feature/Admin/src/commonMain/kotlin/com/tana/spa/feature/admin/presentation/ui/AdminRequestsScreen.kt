@@ -49,12 +49,11 @@ import com.tana.spa.core.ui.components.SpaFilterChip
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPage
-import com.tana.spa.core.ui.components.SpaPocketButton
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaStatusPill
-import com.tana.spa.core.ui.components.spaPocket
+import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.core.ui.formatFull
 import com.tana.spa.core.ui.formatHour
@@ -66,7 +65,6 @@ import com.tana.spa.feature.admin.domain.DeskTherapist
 import com.tana.spa.feature.admin.presentation.AdminRequestsEffect
 import com.tana.spa.feature.admin.presentation.AdminRequestsEvent
 import com.tana.spa.feature.admin.presentation.AdminRequestsState
-import com.tana.spa.feature.admin.presentation.AlternativeOffer
 import com.tana.spa.feature.admin.resources.Res
 import com.tana.spa.feature.admin.resources.admin_assigned_toast
 import com.tana.spa.feature.admin.resources.admin_confirm
@@ -80,10 +78,8 @@ import com.tana.spa.feature.admin.resources.admin_decline_reason_overlap
 import com.tana.spa.feature.admin.resources.admin_decline_reason_room
 import com.tana.spa.feature.admin.resources.admin_decline_reason_therapist
 import com.tana.spa.feature.admin.resources.admin_decline_suggest
-import com.tana.spa.feature.admin.resources.admin_decline_suggest_mai
-import com.tana.spa.feature.admin.resources.admin_decline_suggest_none
-import com.tana.spa.feature.admin.resources.admin_decline_suggest_same_midday
-import com.tana.spa.feature.admin.resources.admin_decline_suggest_tomorrow
+import com.tana.spa.feature.admin.resources.admin_decline_suggest_help
+import com.tana.spa.feature.admin.resources.admin_decline_suggest_placeholder
 import com.tana.spa.feature.admin.resources.admin_decline_title
 import com.tana.spa.feature.admin.resources.admin_declined_toast
 import com.tana.spa.feature.admin.resources.admin_declined_toast_alternative
@@ -467,16 +463,12 @@ private fun DecisionPanel(
             }
 
             if (request.status == DeskStatus.PENDING) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().spaPocket().padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     val clash = request.conflict != null
-                    SpaPocketButton(
+                    SpaPrimaryButton(
                         text = stringResource(if (clash) Res.string.admin_confirm_anyway else Res.string.admin_confirm),
                         // A clash is confirmed deliberately: the first press is the owner saying so.
                         onClick = { onEvent(AdminRequestsEvent.Confirmed(request.id, force = clash)) },
-                        icon = SpaIcon.Check,
                         enabled = state.therapistToConfirm != null,
                     )
                     SpaSecondaryButton(
@@ -599,12 +591,7 @@ private fun ScheduleSection(state: AdminRequestsState, modifier: Modifier = Modi
 }
 
 @Composable
-private fun DeclineDialog(
-    request: DeskRequest,
-    reason: DeclineReasonDto,
-    alternative: AlternativeOffer,
-    onEvent: (AdminRequestsEvent) -> Unit,
-) {
+private fun DeclineDialog(request: DeskRequest, reason: DeclineReasonDto, alternative: String, onEvent: (AdminRequestsEvent) -> Unit) {
     AlertDialog(
         onDismissRequest = { onEvent(AdminRequestsEvent.DeclineDismissed) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -633,13 +620,14 @@ private fun DeclineDialog(
                     onEvent(AdminRequestsEvent.ReasonChosen(DeclineReasonDto.NO_ROOM))
                 }
 
-                Text(
-                    text = stringResource(Res.string.admin_decline_suggest),
-                    style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
+                SpaTextField(
+                    label = stringResource(Res.string.admin_decline_suggest),
+                    value = alternative,
+                    onValueChange = { onEvent(AdminRequestsEvent.AlternativeChanged(it)) },
+                    placeholder = stringResource(Res.string.admin_decline_suggest_placeholder),
+                    helper = stringResource(Res.string.admin_decline_suggest_help),
                     modifier = Modifier.padding(top = 8.dp),
                 )
-                AlternativeMenu(alternative) { onEvent(AdminRequestsEvent.AlternativeChosen(it)) }
             }
         },
         confirmButton = {
@@ -661,44 +649,6 @@ private fun DeclineDialog(
             }
         },
     )
-}
-
-/** Material menu anchored to a tonal button — the equivalent of the design's select. */
-@Composable
-private fun AlternativeMenu(selected: AlternativeOffer, onChoose: (AlternativeOffer) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        FilledTonalButton(
-            onClick = { expanded = true },
-            shape = MaterialTheme.shapes.small,
-            colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
-        ) {
-            Text(alternativeLabel(selected), style = SpaTheme.textStyles.body, modifier = Modifier.weight(1f))
-            SpaIconImage(SpaIcon.ChevronDown, size = 16.dp)
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            AlternativeOffer.entries.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(alternativeLabel(option), style = SpaTheme.textStyles.body) },
-                    onClick = {
-                        onChoose(option)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun alternativeLabel(option: AlternativeOffer): String = when (option) {
-    AlternativeOffer.NONE -> stringResource(Res.string.admin_decline_suggest_none)
-    AlternativeOffer.TODAY_MIDDAY -> stringResource(Res.string.admin_decline_suggest_same_midday)
-    AlternativeOffer.TODAY_WITH_MAI -> stringResource(Res.string.admin_decline_suggest_mai)
-    AlternativeOffer.TOMORROW_MORNING -> stringResource(Res.string.admin_decline_suggest_tomorrow)
 }
 
 @Composable

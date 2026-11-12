@@ -98,10 +98,8 @@
     <string name="admin_decline_reason_therapist">Kỹ thuật viên bận</string>
     <string name="admin_decline_reason_room">Không còn phòng trị liệu trống</string>
     <string name="admin_decline_suggest">Gợi ý giờ khác (không bắt buộc)</string>
-    <string name="admin_decline_suggest_none">Không gợi ý giờ</string>
-    <string name="admin_decline_suggest_same_midday">Hôm nay 12:30 · cùng kỹ thuật viên</string>
-    <string name="admin_decline_suggest_mai">Hôm nay 13:00 · Trần Mai</string>
-    <string name="admin_decline_suggest_tomorrow">Ngày mai 11:00 · cùng kỹ thuật viên</string>
+    <string name="admin_decline_suggest_placeholder">Ví dụ: Thứ 7, 15:00</string>
+    <string name="admin_decline_suggest_help">Khách sẽ đọc đúng dòng này trong lịch hẹn của họ.</string>
     <string name="admin_decline_keep">Giữ yêu cầu</string>
 
     <string name="admin_codes_title">Mã</string>

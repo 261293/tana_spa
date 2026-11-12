@@ -98,10 +98,8 @@
     <string name="admin_decline_reason_therapist">Therapist unavailable</string>
     <string name="admin_decline_reason_room">No treatment room free</string>
     <string name="admin_decline_suggest">Suggest another time (optional)</string>
-    <string name="admin_decline_suggest_none">Don’t suggest a time</string>
-    <string name="admin_decline_suggest_same_midday">Today 12:30 PM · same therapist</string>
-    <string name="admin_decline_suggest_mai">Today 1:00 PM · Mai Tran</string>
-    <string name="admin_decline_suggest_tomorrow">Tomorrow 11:00 AM · same therapist</string>
+    <string name="admin_decline_suggest_placeholder">For example: Saturday, 3:00 PM</string>
+    <string name="admin_decline_suggest_help">The guest reads exactly this line on their visit.</string>
     <string name="admin_decline_keep">Keep request</string>
 
     <string name="admin_codes_title">Discount</string>

@@ -42,13 +42,13 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
                 copy(
                     declining = request,
                     reason = if (request?.conflict != null) DeclineReasonDto.OVERLAP else DeclineReasonDto.THERAPIST_UNAVAILABLE,
-                    alternative = AlternativeOffer.NONE,
+                    alternative = "",
                 )
             }
 
             is AdminRequestsEvent.ReasonChosen -> setState { copy(reason = event.reason) }
 
-            is AdminRequestsEvent.AlternativeChosen -> setState { copy(alternative = event.alternative) }
+            is AdminRequestsEvent.AlternativeChanged -> setState { copy(alternative = event.alternative.take(ALTERNATIVE_MAX_LENGTH)) }
 
             AdminRequestsEvent.DeclineConfirmed -> declineSelected()
 
@@ -131,17 +131,17 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
 
     private fun declineSelected() {
         val declining = state.value.declining ?: return
-        val alternative = state.value.alternative.takeIf { it != AlternativeOffer.NONE }
+        val alternative = state.value.alternative.trim().ifEmpty { null }
         val reason = state.value.reason
         setState { copy(declining = null) }
-        decide(declining.id) { desk.decline(declining.id, reason, alternative?.name) }
+        decide(declining.id) { desk.decline(declining.id, reason, alternative) }
     }
 
     private fun announce(decided: DeskRequest, guest: String) = when (decided.status) {
         DeskStatus.CONFIRMED -> sendEffect(AdminRequestsEffect.ShowConfirmed(guest))
 
         DeskStatus.DECLINED -> sendEffect(
-            AdminRequestsEffect.ShowDeclined(guest, withAlternative = state.value.alternative != AlternativeOffer.NONE),
+            AdminRequestsEffect.ShowDeclined(guest, withAlternative = state.value.alternative.isNotBlank()),
         )
 
         DeskStatus.COMPLETED -> sendEffect(AdminRequestsEffect.ShowVisitRecorded(guest, attended = true))
@@ -169,3 +169,6 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
         Result.failure(e)
     }
 }
+
+/** One line on the guest's visit card. */
+internal const val ALTERNATIVE_MAX_LENGTH = 80

@@ -36,11 +36,9 @@ at <https://developer.android.com/develop/ui/compose/components>.
 
 ### What is deliberately not a Material component
 
-Three things in this design have no Material equivalent; they live in `core:ui` and are documented
+Two things in this design have no Material equivalent; they live in `core:ui` and are documented
 where they are defined:
 
-- **The pocket** (`Modifier.spaPocket`) — the one dark area per screen that holds the primary
-  action.
 - **The felt tray** (`Modifier.spaFelt`) and the **cork bevel** (`Modifier.spaCork`) — recessed and
   raised surfaces. CSS inset shadows have no Compose equivalent, so both are drawn as short
   gradients.

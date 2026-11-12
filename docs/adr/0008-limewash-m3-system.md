@@ -32,9 +32,10 @@ colour and text style from `MaterialTheme` and `SpaTheme` (ADR 0002).
 - **Removed:** the italic accent span in `SpaDisplayTitle`, page-head eyebrows (`SpaScreenHeader`
   no longer takes one), uppercase transforms on labels (`SpaEyebrow` became `SpaTag`), the
   contour texture (`spaTopo`, `bg_topo.xml`) and `SpaPebbleShape`.
-- **Kept for now:** the dark pocket, the felt tray and the cork bevel are retoned to the new
-  palette. They belong to layouts the next phases of the redesign replace (the booking bar becomes
-  an appointment card), and they go with those layouts.
+- **Kept for now:** the felt tray and the cork bevel are retoned to the new palette. The dark
+  pocket went with the layouts that used it (2026-11-12): the booking bar became a light
+  appointment card, and the visit strip, the desk's decision and the closing panel sit on
+  `primaryContainer`.
 
 ## Consequences
 

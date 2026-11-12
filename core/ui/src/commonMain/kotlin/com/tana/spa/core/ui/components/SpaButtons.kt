@@ -33,7 +33,6 @@ private val ButtonHeight = 40.dp
 // Material 3's disabled tokens: the container at 12% and the label at 38% of onSurface.
 private const val DISABLED_CONTAINER_ALPHA = 0.12f
 private const val DISABLED_ALPHA = 0.38f
-private const val POCKET_DISABLED_ALPHA = 0.25f
 
 /** Full-width forest call-to-action. While [loading] it shows a spinner and ignores taps. */
 @Composable
@@ -58,38 +57,6 @@ fun SpaPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
             )
         } else {
             Text(text = text, style = SpaTheme.textStyles.buttonLabel)
-        }
-    }
-}
-
-/**
- * The action inside a dark [spaPocket]: near-white on deep forest, with the trailing arrow the
- * design puts on the booking request.
- */
-@Composable
-fun SpaPocketButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    icon: SpaIcon? = SpaIcon.ArrowRight,
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        shape = ButtonShape,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = SpaTheme.extraColors.pocketAction,
-            contentColor = SpaTheme.extraColors.onPocketAction,
-            disabledContainerColor = SpaTheme.extraColors.pocketAction.copy(alpha = POCKET_DISABLED_ALPHA),
-            disabledContentColor = SpaTheme.extraColors.onPocket.copy(alpha = DISABLED_ALPHA),
-        ),
-        contentPadding = PaddingValues(horizontal = 22.dp),
-        modifier = modifier.spaPointer(enabled).fillMaxWidth().height(ButtonHeight),
-    ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(text = text, style = SpaTheme.textStyles.buttonLabel)
-            icon?.let { SpaIconImage(it, size = 18.dp) }
         }
     }
 }

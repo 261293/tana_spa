@@ -74,24 +74,6 @@ fun Modifier.spaFelt(shape: Shape = MaterialTheme.shapes.medium): Modifier {
         }
 }
 
-/** The single darkened moss pocket per screen, holding that screen's primary action. */
-@Composable
-fun Modifier.spaPocket(shape: Shape = MaterialTheme.shapes.large): Modifier {
-    val glow = SpaTheme.extraColors.pocketAction.copy(alpha = 0.16f)
-    return background(SpaTheme.extraColors.pocket, shape)
-        .clip(shape)
-        .drawWithContent {
-            drawContent()
-            drawRect(
-                Brush.radialGradient(
-                    listOf(glow, Color.Transparent),
-                    center = Offset(size.width / 2f, 0f),
-                    radius = size.width * 0.8f,
-                ),
-            )
-        }
-}
-
 /** Cork-pebble bevel: the raised chips, slots and quiet buttons. */
 @Composable
 fun Modifier.spaCork(shape: Shape = MaterialTheme.shapes.extraSmall, color: Color = MaterialTheme.colorScheme.surfaceVariant): Modifier {

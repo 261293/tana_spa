@@ -153,14 +153,14 @@ fun SpaFacts(facts: List<Pair<String, String>>, modifier: Modifier = Modifier) {
     }
 }
 
-/** The dark forest panel the design closes a page with, holding one light action. */
+/** The tinted panel a page closes with, holding one action. */
 @Composable
 fun SpaCtaPanel(eyebrow: String, title: String, actionLabel: String, onAction: () -> Unit, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().spaPocket(MaterialTheme.shapes.extraLarge).padding(24.dp)) {
+    Box(modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.extraLarge).padding(24.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            SpaTag(eyebrow, color = SpaTheme.extraColors.onPocketMuted)
-            Text(text = title, style = SpaTheme.textStyles.screenTitle, color = SpaTheme.extraColors.onPocket)
-            SpaPocketButton(text = actionLabel, onClick = onAction, modifier = Modifier.padding(top = 2.dp))
+            SpaTag(eyebrow, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = title, style = SpaTheme.textStyles.screenTitle, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            SpaPrimaryButton(text = actionLabel, onClick = onAction, modifier = Modifier.padding(top = 2.dp))
         }
     }
 }

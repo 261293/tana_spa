@@ -9,7 +9,6 @@ import com.tana.spa.feature.admin.domain.DeskTherapist
 import com.tana.spa.feature.admin.presentation.AdminRequestsEffect
 import com.tana.spa.feature.admin.presentation.AdminRequestsEvent
 import com.tana.spa.feature.admin.presentation.AdminRequestsViewModel
-import com.tana.spa.feature.admin.presentation.AlternativeOffer
 import com.tana.spa.shared.auth.CreateAccountRequest
 import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.booking.BookingErrorCodes
@@ -252,11 +251,15 @@ class AdminRequestsViewModelTest {
 
         vm.onEvent(AdminRequestsEvent.DeclineStarted("a"))
         vm.onEvent(AdminRequestsEvent.ReasonChosen(DeclineReasonDto.NO_ROOM))
-        vm.onEvent(AdminRequestsEvent.AlternativeChosen(AlternativeOffer.TOMORROW_MORNING))
+        vm.onEvent(AdminRequestsEvent.AlternativeChanged("  Thứ 7, 15:00 "))
         vm.onEvent(AdminRequestsEvent.DeclineConfirmed)
         testScheduler.advanceUntilIdle()
 
-        assertEquals(listOf(Triple("a", DeclineReasonDto.NO_ROOM, "TOMORROW_MORNING")), desk.declined.toList())
+        assertEquals(
+            listOf(Triple("a", DeclineReasonDto.NO_ROOM, "Thứ 7, 15:00")),
+            desk.declined.toList(),
+            "the guest reads the owner's words",
+        )
         assertEquals(DeskStatus.DECLINED, vm.state.value.requests.first().status)
         assertEquals(AdminRequestsEffect.ShowDeclined("Hannah Pham", withAlternative = true), vm.effects.first())
     }
