@@ -82,6 +82,7 @@
     <string name="booking_code_applied">Đã áp dụng %1$s — %2$s</string>
     <string name="booking_code_empty">Bạn hãy nhập mã.</string>
     <string name="booking_code_unknown">“%1$s” không phải mã hợp lệ.</string>
+    <string name="booking_code_expired">“%1$s” đã hết hạn.</string>
     <string name="booking_code_no_service">Bạn hãy chọn dịch vụ trước.</string>
     <string name="booking_code_wrong_category">%1$s chỉ áp dụng cho dịch vụ %2$s.</string>
     <string name="booking_code_minimum">%1$s cần hóa đơn tối thiểu %2$s.</string>

@@ -221,6 +221,11 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
     // Keeps each screen's saveable state (scroll position above all) while it is off screen, so
     // coming back from a detail page lands where the guest left the list.
     val screenState = rememberSaveableStateHolder()
+    // shortcut: on a first launch with no cached flags this reads the compiled default; once an
+    // install has fetched flags it is exact. Upgrade if notifications ship on by default.
+    LaunchedEffect(route, notificationsEnabled) {
+        if (route == Routes.NOTIFICATIONS && !notificationsEnabled) navigator.replaceAll(Routes.BOOKING)
+    }
     if (route in FULL_SCREEN_ROUTES) {
         RouteContent(navigator, route, screenState)
         return

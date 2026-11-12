@@ -82,6 +82,7 @@
     <string name="booking_code_applied">%1$s applied — %2$s</string>
     <string name="booking_code_empty">Enter a code.</string>
     <string name="booking_code_unknown">“%1$s” isn’t a valid code.</string>
+    <string name="booking_code_expired">“%1$s” has expired.</string>
     <string name="booking_code_no_service">Choose a treatment first.</string>
     <string name="booking_code_wrong_category">%1$s applies to %2$s treatments only.</string>
     <string name="booking_code_minimum">%1$s needs a minimum spend of %2$s.</string>

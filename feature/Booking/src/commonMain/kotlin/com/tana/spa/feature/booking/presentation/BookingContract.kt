@@ -7,7 +7,6 @@ import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.Service
 import com.tana.spa.shared.spa.ServiceCategory
 import com.tana.spa.shared.spa.SpaDate
-import kotlin.time.Clock
 
 /**
  * [check] is null until the guest applies a code; a null that follows an edit means "not checked
@@ -55,13 +54,7 @@ data class BookingState(
     }
 }
 
-/**
- * What the screen counts from before the catalogue names the spa's own day. UTC, not the
- * device's zone, so it can be a day out until the catalogue answers and corrects it.
- */
-private fun deviceToday(): Int = (Clock.System.now().toEpochMilliseconds() / MILLIS_PER_DAY).toInt()
-
-private const val MILLIS_PER_DAY = 86_400_000L
+private fun deviceToday(): Int = SpaDate.deviceToday().epochDay
 
 private fun Service.matches(term: String): Boolean = listOf(name, category.label, category.localizedLabel(), includes).any {
     it.contains(term, ignoreCase = true)

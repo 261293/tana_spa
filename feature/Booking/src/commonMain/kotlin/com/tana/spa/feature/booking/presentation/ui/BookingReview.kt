@@ -45,6 +45,7 @@ import com.tana.spa.feature.booking.resources.Res
 import com.tana.spa.feature.booking.resources.booking_code_applied
 import com.tana.spa.feature.booking.resources.booking_code_apply
 import com.tana.spa.feature.booking.resources.booking_code_empty
+import com.tana.spa.feature.booking.resources.booking_code_expired
 import com.tana.spa.feature.booking.resources.booking_code_helper
 import com.tana.spa.feature.booking.resources.booking_code_label
 import com.tana.spa.feature.booking.resources.booking_code_minimum
@@ -183,6 +184,8 @@ private fun promoError(check: PromoCheck?): String? {
         PromoRejection.EMPTY -> stringResource(Res.string.booking_code_empty)
 
         PromoRejection.UNKNOWN_CODE -> stringResource(Res.string.booking_code_unknown, rejected.code)
+
+        PromoRejection.EXPIRED -> stringResource(Res.string.booking_code_expired, rejected.code)
 
         PromoRejection.NO_SERVICE_CHOSEN -> stringResource(Res.string.booking_code_no_service)
 

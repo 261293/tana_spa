@@ -3,6 +3,7 @@ package com.tana.spa.core.ui
 import com.tana.spa.shared.spa.Promo
 import com.tana.spa.shared.spa.ServiceCategory
 import com.tana.spa.shared.spa.SpaCatalog
+import com.tana.spa.shared.spa.SpaDate
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -66,6 +67,7 @@ class SpaPromoTextTest {
         val untranslated = Promo(
             code = "GIFT50",
             title = "Gift card credit",
+            lastDay = SpaDate(2030, 1, 1),
             validUntil = "Jan 1, 2030",
             terms = "Redeemable once.",
         )

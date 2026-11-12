@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -48,21 +49,20 @@ import com.tana.spa.core.ui.components.spaFelt
 import com.tana.spa.core.ui.rememberSpaScrollState
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.core.ui.spaClickable
+import com.tana.spa.core.ui.spaPointer
 import com.tana.spa.feature.settings.presentation.NotificationPref
 import com.tana.spa.feature.settings.presentation.SettingsEffect
 import com.tana.spa.feature.settings.presentation.SettingsEvent
 import com.tana.spa.feature.settings.presentation.SettingsState
 import com.tana.spa.feature.settings.resources.Res
 import com.tana.spa.feature.settings.resources.settings_cancel
-import com.tana.spa.feature.settings.resources.settings_card
-import com.tana.spa.feature.settings.resources.settings_card_help
 import com.tana.spa.feature.settings.resources.settings_confirmations
 import com.tana.spa.feature.settings.resources.settings_confirmations_help
 import com.tana.spa.feature.settings.resources.settings_edit
 import com.tana.spa.feature.settings.resources.settings_email
 import com.tana.spa.feature.settings.resources.settings_group_account
 import com.tana.spa.feature.settings.resources.settings_group_booking
-import com.tana.spa.feature.settings.resources.settings_group_payment
+import com.tana.spa.feature.settings.resources.settings_group_language
 import com.tana.spa.feature.settings.resources.settings_group_promotions
 import com.tana.spa.feature.settings.resources.settings_language
 import com.tana.spa.feature.settings.resources.settings_name
@@ -136,8 +136,7 @@ fun SettingsScreen(state: SettingsState, effects: Flow<SettingsEffect>, onEvent:
             )
         }
 
-        Group(stringResource(Res.string.settings_group_payment), Modifier.revealOnScroll(order = 4)) {
-            PaymentRow()
+        Group(stringResource(Res.string.settings_group_language), Modifier.revealOnScroll(order = 4)) {
             LanguageRow(state.language) { onEvent(SettingsEvent.LanguageChanged(it)) }
         }
 
@@ -191,13 +190,9 @@ private fun ProfileRow(state: SettingsState, onEvent: (SettingsEvent) -> Unit) {
             )
         },
         trailingContent = {
-            FilledTonalButton(onClick = { onEvent(SettingsEvent.EditProfile) }, shape = MaterialTheme.shapes.small) {
-                SpaIconImage(SpaIcon.Pencil, size = 16.dp)
-                Text(
-                    text = stringResource(Res.string.settings_edit),
-                    style = SpaTheme.textStyles.body,
-                    modifier = Modifier.padding(start = 6.dp),
-                )
+            // An icon button rather than a labelled one, so a long email keeps the row's width.
+            FilledTonalIconButton(onClick = { onEvent(SettingsEvent.EditProfile) }, modifier = Modifier.spaPointer()) {
+                SpaIconImage(SpaIcon.Pencil, size = 20.dp, contentDescription = stringResource(Res.string.settings_edit))
             }
         },
         colors = rowColors(),
@@ -264,22 +259,6 @@ private fun ToggleRow(label: String, help: String, checked: Boolean, onChange: (
         },
         colors = rowColors(),
         modifier = Modifier.toggleable(value = checked, role = Role.Switch, onValueChange = onChange),
-    )
-}
-
-@Composable
-private fun PaymentRow() {
-    ListItem(
-        headlineContent = {
-            Text(
-                text = stringResource(Res.string.settings_card),
-                style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
-            )
-        },
-        supportingContent = { Text(stringResource(Res.string.settings_card_help), style = SpaTheme.textStyles.body) },
-        leadingContent = { SpaIconImage(SpaIcon.CreditCard, size = 22.dp) },
-        trailingContent = { SpaIconImage(SpaIcon.ChevronRight, size = 18.dp) },
-        colors = rowColors(),
     )
 }
 

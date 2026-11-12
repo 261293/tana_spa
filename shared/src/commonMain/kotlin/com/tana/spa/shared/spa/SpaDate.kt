@@ -1,5 +1,9 @@
 package com.tana.spa.shared.spa
 
+import kotlin.time.Clock
+
+private const val MILLIS_PER_DAY = 86_400_000L
+
 /**
  * A plain civil date. The booking screens need day arithmetic, weekday names and month lengths,
  * and the project has no date library; conversions use Howard Hinnant's days-from-civil algorithm,
@@ -27,6 +31,9 @@ data class SpaDate(val year: Int, val month: Int, val day: Int) : Comparable<Spa
 
     companion object {
         fun fromEpochDay(epochDay: Int): SpaDate = civilFromDays(epochDay)
+
+        /** The device's day in UTC, so it can be a day out from the spa's own until a server answers. */
+        fun deviceToday(): SpaDate = fromEpochDay((Clock.System.now().toEpochMilliseconds() / MILLIS_PER_DAY).toInt())
 
         fun daysInMonth(year: Int, month: Int): Int = when (month) {
             2 -> if (isLeapYear(year)) 29 else 28

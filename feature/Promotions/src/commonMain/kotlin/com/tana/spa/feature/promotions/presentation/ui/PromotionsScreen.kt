@@ -119,7 +119,7 @@ fun PromotionsScreen(
                 modifier = Modifier.revealOnScroll(),
             )
 
-            FeaturedOffer(state.featured, wide, onEvent, Modifier.revealOnScroll(order = 1))
+            state.featured?.let { FeaturedOffer(it, wide, onEvent, Modifier.revealOnScroll(order = 1)) }
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(

@@ -35,7 +35,7 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
             setState {
                 val chosen = copy(serviceId = event.id)
                 // The code was checked against the old treatment; eligibility may no longer hold.
-                chosen.copy(check = check?.let { checkPromoCode(code, chosen.service) })
+                chosen.copy(check = check?.let { checkPromoCode(code, chosen.service, chosen.today) })
             }
             // A longer treatment needs more of the diary, so it is offered fewer times.
             reloadSlots()
@@ -51,7 +51,7 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         is BookingEvent.CodeChanged -> setState { copy(code = event.value.uppercase(), check = null) }
 
         BookingEvent.ApplyCode -> setState {
-            val result = checkPromoCode(code, service)
+            val result = checkPromoCode(code, service, today)
             AppLog.i(logTag) { "promo code ${if (result is PromoCheck.Applied) "applied" else "refused"}" }
             copy(check = result)
         }
@@ -174,7 +174,7 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         return copy(
             serviceId = treatment?.id ?: serviceId,
             code = code,
-            check = treatment?.let { checkPromoCode(code, it) },
+            check = treatment?.let { checkPromoCode(code, it, today) },
         )
     }
 

@@ -11,6 +11,7 @@ sealed interface PromoCheck {
 enum class PromoRejection {
     EMPTY,
     UNKNOWN_CODE,
+    EXPIRED,
     NO_SERVICE_CHOSEN,
     WRONG_CATEGORY,
     BELOW_MINIMUM_SPEND,
@@ -20,11 +21,12 @@ enum class PromoRejection {
  * Checks [raw] against the live offers. A code is only ever accepted together with the treatment
  * it is being spent on, because eligibility and the minimum spend are properties of that pairing.
  */
-fun checkPromoCode(raw: String, service: Service?): PromoCheck {
+fun checkPromoCode(raw: String, service: Service?, today: SpaDate): PromoCheck {
     val code = raw.trim().uppercase()
     if (code.isEmpty()) return PromoCheck.Rejected(PromoRejection.EMPTY, code)
     val promo = SpaCatalog.promos.firstOrNull { it.code == code }
         ?: return PromoCheck.Rejected(PromoRejection.UNKNOWN_CODE, code)
+    if (today > promo.lastDay) return PromoCheck.Rejected(PromoRejection.EXPIRED, code, promo)
     if (service == null) return PromoCheck.Rejected(PromoRejection.NO_SERVICE_CHOSEN, code, promo)
     if (promo.eligible.isNotEmpty() && service.category !in promo.eligible) {
         return PromoCheck.Rejected(PromoRejection.WRONG_CATEGORY, code, promo)
