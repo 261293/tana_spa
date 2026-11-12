@@ -111,12 +111,9 @@
     <string name="booking_slots_morning">Buổi sáng</string>
     <string name="booking_slots_afternoon">Buổi chiều</string>
     <string name="booking_slots_evening">Buổi tối</string>
-    <string name="treatments_title">Tìm liệu trình của bạn</string>
-    <string name="treatments_note">Mỗi liệu trình đều có thời gian để bạn lắng lại.</string>
     <string name="treatments_search_label">Tìm liệu trình</string>
     <string name="treatments_search_placeholder">Massage, chăm sóc da, xông thảo mộc…</string>
     <string name="treatments_filter_all">Tất cả</string>
-    <string name="treatments_count">%1$d liệu trình</string>
     <string name="treatments_empty_title">Không có liệu trình nào khớp</string>
     <string name="treatments_empty_body">Thử từ khoá khác, hoặc xem lại toàn bộ liệu trình.</string>
     <string name="treatments_empty_action">Xem tất cả liệu trình</string>

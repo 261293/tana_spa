@@ -1,9 +1,11 @@
 package com.tana.spa.feature.booking.presentation
 
+import com.tana.spa.core.ui.localizedLabel
 import com.tana.spa.feature.booking.domain.GuestBooking
 import com.tana.spa.feature.booking.domain.Slot
 import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.Service
+import com.tana.spa.shared.spa.ServiceCategory
 import com.tana.spa.shared.spa.SpaDate
 import kotlin.time.Clock
 
@@ -18,6 +20,9 @@ data class BookingState(
     val catalogLoading: Boolean = true,
     val catalogFailed: Boolean = false,
     val serviceId: String? = null,
+    val query: String = "",
+    /** Null is every category. */
+    val category: ServiceCategory? = null,
     /** The spa's own day, from the catalogue; the device's until it answers. */
     val todayEpochDay: Int = deviceToday(),
     /** Null until the guest picks one, so the offered day follows [today] when it is corrected. */
@@ -34,6 +39,11 @@ data class BookingState(
     val today: SpaDate get() = SpaDate.fromEpochDay(todayEpochDay)
     val day: SpaDate get() = chosenDay ?: today.plusDays(DEFAULT_DAYS_AHEAD)
     val service: Service? get() = services.firstOrNull { it.id == serviceId }
+    val visibleServices: List<Service>
+        get() {
+            val term = query.trim()
+            return services.filter { (category == null || it.category == category) && (term.isEmpty() || it.matches(term)) }
+        }
     val slot: Slot? get() = slots.firstOrNull { it.startAtEpochMillis == slotAtEpochMillis }
     val discountVnd: Int get() = (check as? PromoCheck.Applied)?.discountVnd ?: 0
     val totalVnd: Int get() = (service?.priceVnd ?: 0) - discountVnd
@@ -53,6 +63,10 @@ private fun deviceToday(): Int = (Clock.System.now().toEpochMilliseconds() / MIL
 
 private const val MILLIS_PER_DAY = 86_400_000L
 
+private fun Service.matches(term: String): Boolean = listOf(name, category.label, category.localizedLabel(), includes).any {
+    it.contains(term, ignoreCase = true)
+}
+
 sealed interface BookingEvent {
     /** A code carried in from the offers screen: it also picks a treatment it is valid for. */
     data class CodeOffered(val code: String) : BookingEvent
@@ -62,6 +76,9 @@ sealed interface BookingEvent {
     data class CodeChanged(val value: String) : BookingEvent
     data object ApplyCode : BookingEvent
     data object RetryCatalog : BookingEvent
+    data class QueryChanged(val query: String) : BookingEvent
+    data class CategoryChosen(val category: ServiceCategory?) : BookingEvent
+    data object FiltersCleared : BookingEvent
     data object Submit : BookingEvent
     data object DismissSent : BookingEvent
     data object OpenNotifications : BookingEvent

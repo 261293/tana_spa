@@ -15,7 +15,6 @@ import com.tana.spa.feature.booking.BookingEntry
 import com.tana.spa.feature.booking.BookingWhenEntry
 import com.tana.spa.feature.booking.BookingsEntry
 import com.tana.spa.feature.booking.ServiceDetailEntry
-import com.tana.spa.feature.booking.TreatmentsEntry
 import com.tana.spa.feature.explore.ExploreEntry
 import com.tana.spa.feature.feed.FeedEntry
 import com.tana.spa.feature.likes.LikesEntry
@@ -33,7 +32,6 @@ object FeaturesRegistry {
         BookingConfirmEntry,
         BookingsEntry,
         ServiceDetailEntry,
-        TreatmentsEntry,
         PromotionsEntry,
         SettingsEntry,
         AdminRequestsEntry,

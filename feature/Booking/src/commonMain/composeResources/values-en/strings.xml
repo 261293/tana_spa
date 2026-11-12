@@ -111,12 +111,9 @@
     <string name="booking_slots_morning">Morning</string>
     <string name="booking_slots_afternoon">Afternoon</string>
     <string name="booking_slots_evening">Evening</string>
-    <string name="treatments_title">Find your ritual</string>
-    <string name="treatments_note">Every treatment includes time to settle in.</string>
     <string name="treatments_search_label">Search treatments</string>
     <string name="treatments_search_placeholder">Massage, facial, aromatherapy…</string>
     <string name="treatments_filter_all">All</string>
-    <string name="treatments_count">%1$d treatments</string>
     <string name="treatments_empty_title">No treatments match that search</string>
     <string name="treatments_empty_body">Try a different word, or browse every ritual.</string>
     <string name="treatments_empty_action">Show all treatments</string>

@@ -58,6 +58,12 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
 
         BookingEvent.RetryCatalog -> loadCatalog()
 
+        is BookingEvent.QueryChanged -> setState { copy(query = event.query) }
+
+        is BookingEvent.CategoryChosen -> setState { copy(category = event.category) }
+
+        BookingEvent.FiltersCleared -> setState { copy(query = "", category = null) }
+
         BookingEvent.Submit -> submit()
 
         BookingEvent.DismissSent -> setState { copy(sent = null) }

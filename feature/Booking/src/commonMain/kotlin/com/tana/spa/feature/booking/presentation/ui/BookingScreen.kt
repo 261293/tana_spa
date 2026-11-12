@@ -99,10 +99,12 @@ fun BookingTreatmentScreen(
         },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            CatalogueFilters(state, onEvent)
             ServiceList(
                 state = state,
                 onSelect = { onEvent(BookingEvent.ServiceSelected(it)) },
                 onRetry = { onEvent(BookingEvent.RetryCatalog) },
+                onClearFilters = { onEvent(BookingEvent.FiltersCleared) },
                 columns = catalogueColumns(SpaWindow.size),
             )
             // Picking a row only picks it now, so the detail page needs a target of its own.

@@ -20,9 +20,6 @@ object Routes {
     const val BOOKING_WHEN = "bookingWhen"
     const val BOOKING_CONFIRM = "bookingConfirm"
 
-    /** The whole treatment menu, searchable and filtered by category. */
-    const val TREATMENTS = "treatments"
-
     /** One treatment from the booking menu, named by [ARG_SERVICE]. */
     const val SERVICE_DETAIL = "serviceDetail"
 

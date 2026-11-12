@@ -28,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaTheme
-import com.tana.spa.core.ui.components.SpaBackLink
 import com.tana.spa.core.ui.components.SpaDateBlock
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaPage
@@ -50,7 +49,6 @@ import com.tana.spa.feature.booking.presentation.BookingsEffect
 import com.tana.spa.feature.booking.presentation.BookingsEvent
 import com.tana.spa.feature.booking.presentation.BookingsState
 import com.tana.spa.feature.booking.resources.Res
-import com.tana.spa.feature.booking.resources.booking_back
 import com.tana.spa.feature.booking.resources.bookings_book_now
 import com.tana.spa.feature.booking.resources.bookings_cancel
 import com.tana.spa.feature.booking.resources.bookings_cancel_body
@@ -86,13 +84,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
 @Composable
-fun BookingsScreen(
-    state: BookingsState,
-    effects: Flow<BookingsEffect>,
-    onEvent: (BookingsEvent) -> Unit,
-    onBack: () -> Unit,
-    onBook: () -> Unit,
-) {
+fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent: (BookingsEvent) -> Unit, onBook: () -> Unit) {
     val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(effects) {
         effects.collect { effect ->
@@ -111,7 +103,6 @@ fun BookingsScreen(
             maxWidth = SpaPageWidth.Reading,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            SpaBackLink(stringResource(Res.string.booking_back), onBack, Modifier.revealOnScroll())
             SpaScreenHeader(
                 title = stringResource(Res.string.bookings_title),
                 accent = stringResource(Res.string.bookings_title_accent),

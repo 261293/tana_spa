@@ -57,7 +57,6 @@ import com.tana.spa.core.ui.resources.nav_book
 import com.tana.spa.core.ui.resources.nav_desk
 import com.tana.spa.core.ui.resources.nav_offers
 import com.tana.spa.core.ui.resources.nav_settings
-import com.tana.spa.core.ui.resources.nav_treatments
 import com.tana.spa.core.ui.resources.nav_visits
 import com.tana.spa.core.ui.scafold.AppScaffold
 import com.tana.spa.core.ui.spaClickable
@@ -94,7 +93,6 @@ private val BOOKING_FLOW_ROUTES = setOf(
     Routes.BOOKING_WHEN,
     Routes.BOOKING_CONFIRM,
     Routes.SERVICE_DETAIL,
-    Routes.MY_BOOKINGS,
 )
 
 /** The console screens and what an account must be allowed to do to be given one; the server checks again. */
@@ -120,8 +118,8 @@ internal fun restoredRoute(urlRoute: String, role: String?): String {
 private val NO_VISIT_STRIP_ROUTES = setOf(Routes.BOOKING, Routes.MY_BOOKINGS)
 
 internal val TOP_LEVEL_ROUTES = setOf(
-    Routes.TREATMENTS,
     Routes.BOOKING,
+    Routes.MY_BOOKINGS,
     Routes.NOTIFICATIONS,
     Routes.PROMOTIONS,
     Routes.ADMIN_REQUESTS,
@@ -242,16 +240,15 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
             notificationsEnabled = notificationsEnabled,
             unread = unread,
             labels = NavLabels(
-                treatments = stringResource(Res.string.nav_treatments),
                 book = stringResource(Res.string.nav_book),
+                visits = stringResource(Res.string.nav_visits),
                 alerts = stringResource(Res.string.nav_alerts),
                 offers = stringResource(Res.string.nav_offers),
                 desk = stringResource(Res.string.nav_desk),
                 settings = stringResource(Res.string.nav_settings),
             ),
         ),
-        // A treatment's detail page and the guest's own visits belong to the booking flow, so
-        // Book stays the lit destination on both.
+        // A treatment's detail page belongs to the booking flow, so Book stays lit on it.
         selectedRoute = if (route in BOOKING_FLOW_ROUTES) Routes.BOOKING else route,
         onSelect = { navigator.navigate(it) },
         bottomStrip = {
@@ -262,15 +259,16 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
             }
         },
         topBarActions = {
-            // The only other way into the visits list is the sheet shown right after booking, so
-            // without this a guest who reopens the app cannot see or cancel what they booked.
-            IconButton(onClick = { navigator.navigate(Routes.MY_BOOKINGS) }, modifier = Modifier.spaPointer()) {
-                SpaIconImage(
-                    icon = SpaIcon.CalendarCheck,
-                    size = 22.dp,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    contentDescription = stringResource(Res.string.nav_visits),
-                )
+            // The desk takes the visits' place in the bar, so whoever works it reaches their own here.
+            if (worksTheDesk) {
+                IconButton(onClick = { navigator.navigate(Routes.MY_BOOKINGS) }, modifier = Modifier.spaPointer()) {
+                    SpaIconImage(
+                        icon = SpaIcon.CalendarCheck,
+                        size = 22.dp,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        contentDescription = stringResource(Res.string.nav_visits),
+                    )
+                }
             }
             SpaAvatar(
                 initials = initialsOf(account?.displayName.orEmpty()),
@@ -328,25 +326,18 @@ private fun sharedAxisX(forward: Boolean, motion: SpaMotion): ContentTransform {
 }
 
 /** The words on the destinations, read from resources so they follow the chosen language. */
-data class NavLabels(
-    val treatments: String,
-    val book: String,
-    val alerts: String,
-    val offers: String,
-    val desk: String,
-    val settings: String,
-)
+data class NavLabels(val book: String, val visits: String, val alerts: String, val offers: String, val desk: String, val settings: String)
 
 /**
  * The destinations the signed-in account sees. Desk is the spa's own console: the server refuses
  * its calls for every other role, so leaving it out only keeps it out of a guest's way.
  *
- * Whoever works the desk books through that console rather than the guest menu, and Material's bar
- * holds five destinations: the menu stands down so the desk can take its place.
+ * Material's bar holds five destinations, so for whoever works the desk the desk takes the place
+ * of their own visits, which stay one tap away in the app bar.
  */
 internal fun navDestinations(desk: Boolean, notificationsEnabled: Boolean, unread: Int, labels: NavLabels): List<NavConfig> = buildList {
-    if (!desk) add(NavConfig(Routes.TREATMENTS, labels.treatments, SpaIcon.Lotus))
     add(NavConfig(Routes.BOOKING, labels.book, SpaIcon.CalendarPlus))
+    if (!desk) add(NavConfig(Routes.MY_BOOKINGS, labels.visits, SpaIcon.CalendarCheck))
     if (notificationsEnabled) add(NavConfig(Routes.NOTIFICATIONS, labels.alerts, SpaIcon.Bell, badgeCount = unread))
     add(NavConfig(Routes.PROMOTIONS, labels.offers, SpaIcon.Tag))
     if (desk) add(NavConfig(Routes.ADMIN_REQUESTS, labels.desk, SpaIcon.Calendar))

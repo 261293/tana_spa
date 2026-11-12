@@ -53,6 +53,21 @@ class BookingViewModelTest {
     }
 
     @Test
+    fun the_menu_narrows_by_search_and_category_without_dropping_the_choice() = runTest(dispatcher) {
+        val vm = loadedViewModel()
+        val stone = ServerCatalog.stone
+
+        vm.onEvent(BookingEvent.CategoryChosen(stone.category))
+        assertTrue(vm.state.value.visibleServices.all { it.category == stone.category })
+        vm.onEvent(BookingEvent.QueryChanged("no treatment is called this"))
+        assertTrue(vm.state.value.visibleServices.isEmpty())
+        assertEquals(stone.id, vm.state.value.service?.id, "a hidden treatment stays chosen")
+
+        vm.onEvent(BookingEvent.FiltersCleared)
+        assertEquals(ServerCatalog.catalog.services, vm.state.value.visibleServices)
+    }
+
+    @Test
     fun the_offered_day_follows_the_spa_s_own_today() = runTest(dispatcher) {
         val spaToday = SpaCatalog.today.plusDays(9)
         val vm = BookingViewModel(

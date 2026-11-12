@@ -99,6 +99,7 @@ internal fun ServiceList(
     state: BookingState,
     onSelect: (String) -> Unit,
     onRetry: () -> Unit,
+    onClearFilters: () -> Unit,
     columns: Int = 1,
     modifier: Modifier = Modifier,
 ) {
@@ -107,8 +108,10 @@ internal fun ServiceList(
 
         state.catalogFailed -> Column(modifier) { MenuUnavailable(onRetry) }
 
+        state.visibleServices.isEmpty() -> NoMatches(onClearFilters)
+
         else -> Row(modifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            staggeredColumns(state.services, columns).forEach { column ->
+            staggeredColumns(state.visibleServices, columns).forEach { column ->
                 Column(Modifier.weight(1f)) {
                     column.forEachIndexed { index, service ->
                         if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
