@@ -54,6 +54,8 @@ import com.tana.spa.feature.booking.resources.booking_code_unknown
 import com.tana.spa.feature.booking.resources.booking_code_wrong_category
 import com.tana.spa.feature.booking.resources.booking_disclaimer
 import com.tana.spa.feature.booking.resources.booking_request
+import com.tana.spa.feature.booking.resources.booking_request_need_service
+import com.tana.spa.feature.booking.resources.booking_request_need_time
 import com.tana.spa.feature.booking.resources.booking_review_not_chosen
 import com.tana.spa.feature.booking.resources.booking_review_pick_time
 import com.tana.spa.feature.booking.resources.booking_review_treatment
@@ -68,6 +70,7 @@ import com.tana.spa.feature.booking.resources.booking_subtotal
 import com.tana.spa.feature.booking.resources.booking_total_label
 import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.PromoRejection
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /** Summary, discount code and the moss pocket that closes the booking. */
@@ -130,6 +133,14 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
             )
         }
 
+        missingForRequest(state)?.let { missing ->
+            Text(
+                text = stringResource(missing),
+                style = SpaTheme.textStyles.caption,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+        }
         SpaPrimaryButton(
             text = stringResource(Res.string.booking_request),
             onClick = { onEvent(BookingEvent.Submit) },
@@ -242,4 +253,11 @@ internal fun RequestSentDialog(sent: GuestBooking, onEvent: (BookingEvent) -> Un
             }
         },
     )
+}
+
+/** Why the request cannot be sent yet, so the disabled button is never left unexplained. */
+private fun missingForRequest(state: BookingState): StringResource? = when {
+    state.service == null -> Res.string.booking_request_need_service
+    state.slot == null -> Res.string.booking_request_need_time
+    else -> null
 }

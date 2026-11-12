@@ -27,6 +27,8 @@ fun SpaPage(
     modifier: Modifier = Modifier,
     maxWidth: Dp = SpaPageWidth.Wide,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(24.dp),
+    top: Dp = 16.dp,
+    bottom: Dp = 32.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val gutter = when (SpaWindow.size) {
@@ -41,7 +43,7 @@ fun SpaPage(
                 .widthIn(max = maxWidth)
                 .fillMaxWidth()
                 .padding(horizontal = gutter)
-                .padding(top = 16.dp, bottom = 32.dp),
+                .padding(top = top, bottom = bottom),
             verticalArrangement = verticalArrangement,
             content = content,
         )

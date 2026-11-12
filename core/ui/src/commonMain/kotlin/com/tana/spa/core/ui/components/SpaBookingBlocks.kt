@@ -40,7 +40,6 @@ private val DateCellWidth = 72.dp
 private val SlotHeight = 46.dp
 private val ChoiceShape = RoundedCornerShape(14.dp)
 private const val DISABLED_ALPHA = 0.55f
-private const val STEP_LABEL_LINES = 2
 
 /**
  * The numbered trail across the top of the booking flow. Each step is underlined; the one in hand
@@ -54,10 +53,9 @@ fun SpaStepTrail(steps: List<String>, current: Int, modifier: Modifier = Modifie
             val done = index < current
             val isCurrent = index == current
             Column(Modifier.weight(1f).fillMaxHeight()) {
-                Row(
+                Column(
                     Modifier.fillMaxWidth().weight(1f).padding(bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(9.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     StepNumber(index + 1, done, isCurrent)
                     Text(
@@ -69,8 +67,6 @@ fun SpaStepTrail(steps: List<String>, current: Int, modifier: Modifier = Modifie
                             done -> MaterialTheme.colorScheme.onSurface
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
                         },
-                        maxLines = STEP_LABEL_LINES,
-                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 HorizontalDivider(

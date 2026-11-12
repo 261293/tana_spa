@@ -148,7 +148,7 @@ private fun MenuUnavailable(onRetry: () -> Unit) {
     }
 }
 
-/** The design's pick row: a square thumb, the treatment and its length, then the price. */
+/** The design's pick row: a square thumb, then the treatment, its length and its price stacked. */
 @Composable
 private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
     val shape = MaterialTheme.shapes.extraSmall
@@ -172,20 +172,18 @@ private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
                 style = SpaTheme.textStyles.body,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = stringResource(Res.string.booking_service_meta, service.minutes, service.category.localizedLabel()),
                 style = SpaTheme.textStyles.label,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Text(
+                text = formatPrice(service.priceVnd),
+                style = SpaTheme.textStyles.cardTitle,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
         }
-        Text(
-            text = formatPrice(service.priceVnd),
-            style = SpaTheme.textStyles.cardTitle,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
         if (selected) {
             SpaIconImage(SpaIcon.Check, size = 16.dp, tint = MaterialTheme.colorScheme.primary)
         }

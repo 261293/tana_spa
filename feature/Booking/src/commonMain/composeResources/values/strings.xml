@@ -1,7 +1,7 @@
 <resources>
     <string name="booking_title">Hôm nay cơ thể bạn</string>
     <string name="booking_title_accent">cần điều gì?</string>
-    <string name="booking_subtitle">Chọn dịch vụ bạn thích, người bạn muốn và thời gian phù hợp. Spa sẽ xác nhận giờ hẹn cho bạn.</string>
+    <string name="booking_subtitle">Chọn dịch vụ bạn thích và thời gian phù hợp. Spa sẽ sắp xếp kỹ thuật viên và xác nhận giờ hẹn cho bạn.</string>
 
     <string name="booking_step_treatment">Dịch vụ</string>
     <string name="booking_step_when">Ngày &amp; giờ</string>
@@ -88,10 +88,16 @@
 
     <string name="booking_total_label">tổng thanh toán tại spa</string>
     <string name="booking_request">Gửi yêu cầu đặt lịch</string>
+    <string name="booking_request_need_service">Chọn một dịch vụ ở bước 1 để gửi yêu cầu.</string>
+    <string name="booking_request_need_time">Chọn giờ ở bước 2 để gửi yêu cầu.</string>
     <string name="booking_disclaimer">Spa sẽ xác nhận giờ hẹn, thường trong vòng 30 phút. Bạn chỉ thanh toán khi đến spa.</string>
 
     <string name="booking_strip_choose">Chọn một dịch vụ</string>
-    <string name="booking_strip_pick_time">chọn giờ</string>
+    <string name="booking_card_title">Buổi hẹn của bạn</string>
+    <string name="booking_card_no_time">chưa chọn giờ</string>
+    <string name="booking_card_minutes">%1$d phút</string>
+    <string name="booking_card_need_service">Chọn một dịch vụ để tiếp tục</string>
+    <string name="booking_card_need_time">Chọn giờ để tiếp tục</string>
 
     <string name="booking_sent_title">Đã gửi yêu cầu</string>
     <string name="booking_sent_body">%1$s, %2$s. Spa sẽ sắp xếp kỹ thuật viên và báo cho bạn ngay khi xác nhận.</string>
