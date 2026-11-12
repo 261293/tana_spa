@@ -179,7 +179,6 @@ private fun BookingRow(
                         text = stringResource(
                             Res.string.bookings_meta,
                             formatDayAndTime(booking.startDayEpochDay, booking.startHour),
-                            booking.therapistName,
                             formatPrice(booking.total),
                         ),
                         style = SpaTheme.textStyles.label,

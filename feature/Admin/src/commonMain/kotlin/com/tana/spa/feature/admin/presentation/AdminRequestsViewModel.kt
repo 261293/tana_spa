@@ -28,9 +28,14 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
         when (event) {
             AdminRequestsEvent.Refresh -> refresh()
 
-            is AdminRequestsEvent.RequestSelected -> setState { copy(selectedId = event.id) }
+            is AdminRequestsEvent.RequestSelected -> setState { copy(selectedId = event.id, chosenTherapist = null) }
 
-            is AdminRequestsEvent.Confirmed -> decide(event.id) { desk.confirm(event.id, event.force) }
+            is AdminRequestsEvent.Confirmed -> {
+                val therapist = state.value.therapistToConfirm
+                decide(event.id) { desk.confirm(event.id, event.force, therapist) }
+            }
+
+            is AdminRequestsEvent.TherapistChosen -> chooseTherapist(event.id, event.slug)
 
             is AdminRequestsEvent.DeclineStarted -> setState {
                 val request = requests.firstOrNull { it.id == event.id }
@@ -70,10 +75,14 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
                             failed = false,
                             nowEpochMillis = Clock.System.now().toEpochMilliseconds(),
                             dayEpochDay = queue.dayEpochDay,
+                            team = queue.team,
                         )
                     }
                 }
                 .onFailure { setState { copy(loading = false, failed = true) } }
+        }
+        viewModelScope.launch {
+            runCatchingCancellable { desk.myShifts() }.onSuccess { shifts -> setState { copy(myShifts = shifts) } }
         }
     }
 
@@ -86,8 +95,32 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
             runCatchingCancellable { call() }
                 .onSuccess { decided ->
                     AppLog.i(logTag) { "booking ${decided.reference} is now ${decided.status}" }
-                    setState { copy(requests = replace(decided), working = false, selectedId = nextToAnswer(decided.id)) }
+                    setState {
+                        copy(requests = replace(decided), working = false, selectedId = nextToAnswer(decided.id), chosenTherapist = null)
+                    }
                     announce(decided, guest)
+                }
+                .onFailure { failure ->
+                    setState { copy(working = false) }
+                    sendEffect(AdminRequestsEffect.ShowRefused(overlap = failure.isOverlap()))
+                }
+        }
+    }
+
+    private fun chooseTherapist(id: String, slug: String) {
+        val request = state.value.requests.firstOrNull { it.id == id } ?: return
+        if (request.status != DeskStatus.CONFIRMED) {
+            setState { copy(chosenTherapist = slug) }
+            return
+        }
+        if (state.value.working || request.therapistSlug == slug) return
+        setState { copy(working = true) }
+        viewModelScope.launch {
+            runCatchingCancellable { desk.assign(id, slug) }
+                .onSuccess { moved ->
+                    AppLog.i(logTag) { "booking ${moved.reference} moved to $slug" }
+                    setState { copy(requests = replace(moved), working = false) }
+                    sendEffect(AdminRequestsEffect.ShowAssigned(moved.guest, moved.therapistName))
                 }
                 .onFailure { failure ->
                     setState { copy(working = false) }

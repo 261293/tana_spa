@@ -16,8 +16,14 @@ import com.tana.spa.shared.booking.TherapistDto
 interface DeskRepository {
     suspend fun queue(): DeskQueue
 
-    /** [force] confirms a booking that overlaps another; without it the server refuses the clash. */
-    suspend fun confirm(id: String, force: Boolean = false): DeskRequest
+    /**
+     * [force] confirms a booking that overlaps another; without it the server refuses the clash.
+     * A non-null [therapistSlug] assigns that therapist first.
+     */
+    suspend fun confirm(id: String, force: Boolean = false, therapistSlug: String? = null): DeskRequest
+
+    /** Moves a waiting or confirmed booking to another therapist, who must be free then. */
+    suspend fun assign(id: String, therapistSlug: String): DeskRequest
 
     suspend fun decline(id: String, reason: DeclineReasonDto, alternative: String?): DeskRequest
 
@@ -27,6 +33,14 @@ interface DeskRepository {
     suspend fun createService(request: CreateServiceRequest): ServiceDto
 
     suspend fun createTherapist(request: CreateTherapistRequest): TherapistDto
+
+    suspend fun team(): List<DeskTherapist>
+
+    /** The signed-in account's own confirmed visits that have not ended, soonest first. */
+    suspend fun myShifts(): List<DeskRequest>
+
+    /** Links the account with [email] to the therapist, so their shifts reach it; a null [email] unlinks. */
+    suspend fun link(therapistSlug: String, email: String?): DeskTherapist
 
     suspend fun createAccount(request: CreateAccountRequest): CreatedAccountDto
 }

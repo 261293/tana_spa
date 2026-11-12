@@ -91,7 +91,6 @@ private val FULL_SCREEN_ROUTES = setOf(
 
 /** Screens the Book destination owns: reaching one does not leave the booking flow. */
 private val BOOKING_FLOW_ROUTES = setOf(
-    Routes.BOOKING_THERAPIST,
     Routes.BOOKING_WHEN,
     Routes.BOOKING_CONFIRM,
     Routes.SERVICE_DETAIL,

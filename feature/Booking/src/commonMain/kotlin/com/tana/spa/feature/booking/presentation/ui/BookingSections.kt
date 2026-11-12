@@ -58,11 +58,8 @@ import com.tana.spa.core.ui.monthShort
 import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.core.ui.weekdayShort
 import com.tana.spa.feature.booking.domain.Slot
-import com.tana.spa.feature.booking.presentation.ANY_THERAPIST
 import com.tana.spa.feature.booking.presentation.BookingState
 import com.tana.spa.feature.booking.resources.Res
-import com.tana.spa.feature.booking.resources.booking_any_therapist
-import com.tana.spa.feature.booking.resources.booking_any_therapist_focus
 import com.tana.spa.feature.booking.resources.booking_day_full
 import com.tana.spa.feature.booking.resources.booking_menu_failed
 import com.tana.spa.feature.booking.resources.booking_menu_retry
@@ -72,7 +69,6 @@ import com.tana.spa.feature.booking.resources.booking_slot_taken
 import com.tana.spa.feature.booking.resources.booking_slots_afternoon
 import com.tana.spa.feature.booking.resources.booking_slots_evening
 import com.tana.spa.feature.booking.resources.booking_slots_morning
-import com.tana.spa.feature.booking.resources.booking_therapist_next
 import com.tana.spa.feature.booking.resources.booking_today
 import com.tana.spa.shared.spa.Service
 import com.tana.spa.shared.spa.SpaCatalog
@@ -84,10 +80,8 @@ import org.jetbrains.compose.resources.stringResource
 private val PickThumbShape = RoundedCornerShape(10.dp)
 private val PICK_THUMB_SIZE = 56.dp
 private val SERVICE_ROW_HEIGHT = 80.dp
-private val THERAPIST_ROW_HEIGHT = 72.dp
 private val SLOT_ROW_HEIGHT = 46.dp
 private const val SERVICE_PLACEHOLDERS = 4
-private const val THERAPIST_PLACEHOLDER_ROWS = 2
 private const val SLOT_PLACEHOLDER_ROWS = 3
 private const val DAYS_ON_RAIL = 14
 private const val BOOKING_HORIZON_DAYS = 60
@@ -197,62 +191,6 @@ private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
         }
     }
 }
-
-/**
- * "First available" leads, because it is the fastest way to a confirmed time; it is a scheduling
- * choice rather than a person, so it carries no slug and the spa assigns whoever is free.
- *
- * Empty after a failed load: one request fetches both halves of the menu, and its retry sits with
- * the treatments.
- */
-@Composable
-internal fun TherapistPicker(state: BookingState, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        if (state.catalogLoading) {
-            repeat(THERAPIST_PLACEHOLDER_ROWS) { SpaSkeleton(THERAPIST_ROW_HEIGHT) }
-            return@Column
-        }
-        (listOf(anyTherapist()) + state.therapists).forEach { therapist ->
-            SpaChoiceRow(
-                title = therapist.name,
-                subtitle = therapistSubtitle(therapist, state.today),
-                selected = therapist.id == state.therapistId,
-                onClick = { onSelect(therapist.id) },
-                leading = { TherapistBadge(therapist) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun therapistSubtitle(therapist: Therapist, today: SpaDate): String {
-    val next = therapist.nextSlot ?: return therapist.focus
-    val nextAt = formatRelativeDayAndTime(next.dayEpochDay, next.hour, today)
-    return "${therapist.focus} · ${stringResource(Res.string.booking_therapist_next, nextAt)}"
-}
-
-@Composable
-private fun TherapistBadge(therapist: Therapist) {
-    if (therapist.anyAvailable) {
-        Box(
-            modifier = Modifier.size(44.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            SpaIconImage(SpaIcon.Clock, size = 20.dp, tint = MaterialTheme.colorScheme.primary)
-        }
-    } else {
-        SpaAvatar(initialsOf(therapist.name), size = 44.dp, container = MaterialTheme.colorScheme.secondaryContainer)
-    }
-}
-
-@Composable
-private fun anyTherapist() = Therapist(
-    id = ANY_THERAPIST,
-    name = stringResource(Res.string.booking_any_therapist),
-    focus = stringResource(Res.string.booking_any_therapist_focus),
-    nextSlot = null,
-    anyAvailable = true,
-)
 
 /** Two weeks of days as the design's date cells; a day the spa is full cannot be chosen. */
 @Composable

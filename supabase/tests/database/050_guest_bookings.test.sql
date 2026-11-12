@@ -21,9 +21,9 @@ $$;
 
 select pg_temp.as_user((select lan from ctx));
 
-select is(pg_temp.book('jade-roller-facial', 2, '10:00', 'mai') -> 'therapist' ->> 'slug', 'mai', 'create_named_therapist');
-select is(pg_temp.book('jade-roller-facial', 3, '10:00') -> 'therapist' ->> 'slug', 'mai', 'create_any_takes_first_by_sort_order');
-select is(pg_temp.book('jade-roller-facial', 3, '10:00') -> 'therapist' ->> 'slug', 'lena', 'create_any_assigns_free_therapist');
+select is(pg_temp.book('jade-roller-facial', 2, '10:00', 'mai') -> 'therapist' ->> 'slug', '', 'guest_never_sees_a_named_therapist');
+select is(pg_temp.book('jade-roller-facial', 3, '10:00') -> 'therapist' ->> 'slug', '', 'create_any_leaves_the_therapist_to_the_owner');
+select is(pg_temp.book('jade-roller-facial', 3, '10:00') ->> 'status', 'PENDING', 'create_any_while_a_therapist_is_left');
 select is(pg_temp.api_error($$select pg_temp.book('jade-roller-facial', 2, '10:00', 'mai')$$), 'PGRST 409 slot_taken',
   'second_booking_same_slot_is_slot_taken');
 select pg_temp.book('jade-roller-facial', 3, '10:00');
@@ -79,7 +79,7 @@ select is(
   'booking_dto_serialises_every_field');
 select is((select (b -> 'service' ->> 'slug') || ' ' || (b -> 'therapist' ->> 'accent') || ' ' || (b -> 'therapist' -> 'nextSlot')
            from shaped),
-  'jade-roller-facial AMBER null', 'booking_carries_service_and_therapist');
+  'jade-roller-facial MOSS null', 'booking_carries_service_and_hides_therapist');
 
 select pg_temp.as_user((select binh from ctx));
 select is(pg_temp.book('jade-roller-facial', 7, '09:00', 'mai') ->> 'guestPhone', '+10000000000', 'guest_without_phone_gets_placeholder');
@@ -102,7 +102,7 @@ select is(jsonb_array_length(public.spa_bookings() -> 'bookings'), 7, 'bookings_
 select is((select public.spa_cancel_booking((b ->> 'id')::uuid) ->> 'status' from shaped), 'CANCELLED', 'cancel_own');
 select is(pg_temp.api_error(format('select public.spa_cancel_booking(%L)', (select b ->> 'id' from shaped))), 'PGRST 409 invalid_transition',
   'cancel_twice_is_invalid_transition');
-select is(pg_temp.book('jade-roller-facial', 6, '14:30', 'tomas') -> 'therapist' ->> 'slug', 'tomas', 'cancelled_slot_is_free_again');
+select is(pg_temp.book('jade-roller-facial', 6, '14:30', 'tomas') ->> 'status', 'PENDING', 'cancelled_slot_is_free_again');
 
 select pg_temp.as_postgres();
 select is(

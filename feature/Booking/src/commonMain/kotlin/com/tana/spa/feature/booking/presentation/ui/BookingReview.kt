@@ -54,10 +54,8 @@ import com.tana.spa.feature.booking.resources.booking_code_unknown
 import com.tana.spa.feature.booking.resources.booking_code_wrong_category
 import com.tana.spa.feature.booking.resources.booking_disclaimer
 import com.tana.spa.feature.booking.resources.booking_request
-import com.tana.spa.feature.booking.resources.booking_review_any_therapist
 import com.tana.spa.feature.booking.resources.booking_review_not_chosen
 import com.tana.spa.feature.booking.resources.booking_review_pick_time
-import com.tana.spa.feature.booking.resources.booking_review_therapist
 import com.tana.spa.feature.booking.resources.booking_review_treatment
 import com.tana.spa.feature.booking.resources.booking_review_when
 import com.tana.spa.feature.booking.resources.booking_sent_another
@@ -83,10 +81,6 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
             value =
             service?.let { "${it.name} · ${stringResource(Res.string.booking_service_meta, it.minutes, it.category.localizedLabel())}" }
                 ?: notChosen,
-        )
-        SpaSummaryRow(
-            label = stringResource(Res.string.booking_review_therapist),
-            value = state.therapist?.name ?: stringResource(Res.string.booking_review_any_therapist),
         )
         SpaSummaryRow(
             label = stringResource(Res.string.booking_review_when),
@@ -219,11 +213,9 @@ internal fun RequestSentDialog(sent: GuestBooking, onEvent: (BookingEvent) -> Un
         },
         text = {
             Text(
-                // The spa's own words for it: with "any therapist" the guest learns here who took them.
                 text = stringResource(
                     Res.string.booking_sent_body,
                     sent.serviceName,
-                    sent.therapistName,
                     formatDayAndTime(sent.startDayEpochDay, sent.startHour),
                 ),
                 style = SpaTheme.textStyles.bodyRelaxed,

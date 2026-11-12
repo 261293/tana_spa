@@ -32,7 +32,7 @@ object BookingEntry : FeatureEntry {
             onOpenNotifications = { navigator.navigate(Routes.NOTIFICATIONS) },
             onOpenBookings = { navigator.navigate(Routes.MY_BOOKINGS) },
             onOpenService = { navigator.navigate(Routes.SERVICE_DETAIL.withArg(Routes.ARG_SERVICE, it)) },
-            onContinue = { navigator.navigate(Routes.BOOKING_THERAPIST) },
+            onContinue = { navigator.navigate(Routes.BOOKING_WHEN) },
         )
     }
 }

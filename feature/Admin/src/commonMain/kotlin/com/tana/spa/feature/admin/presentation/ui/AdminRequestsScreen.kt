@@ -3,6 +3,7 @@ package com.tana.spa.feature.admin.presentation.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +45,7 @@ import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaRevealFrom
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaCard
+import com.tana.spa.core.ui.components.SpaFilterChip
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPage
@@ -60,11 +62,13 @@ import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
+import com.tana.spa.feature.admin.domain.DeskTherapist
 import com.tana.spa.feature.admin.presentation.AdminRequestsEffect
 import com.tana.spa.feature.admin.presentation.AdminRequestsEvent
 import com.tana.spa.feature.admin.presentation.AdminRequestsState
 import com.tana.spa.feature.admin.presentation.AlternativeOffer
 import com.tana.spa.feature.admin.resources.Res
+import com.tana.spa.feature.admin.resources.admin_assigned_toast
 import com.tana.spa.feature.admin.resources.admin_confirm
 import com.tana.spa.feature.admin.resources.admin_confirm_anyway
 import com.tana.spa.feature.admin.resources.admin_confirmed_toast
@@ -89,6 +93,9 @@ import com.tana.spa.feature.admin.resources.admin_detail_price
 import com.tana.spa.feature.admin.resources.admin_detail_therapist
 import com.tana.spa.feature.admin.resources.admin_detail_time
 import com.tana.spa.feature.admin.resources.admin_detail_treatment
+import com.tana.spa.feature.admin.resources.admin_my_shift_line
+import com.tana.spa.feature.admin.resources.admin_my_shifts_title
+import com.tana.spa.feature.admin.resources.admin_no_one_free
 import com.tana.spa.feature.admin.resources.admin_no_show
 import com.tana.spa.feature.admin.resources.admin_no_show_toast
 import com.tana.spa.feature.admin.resources.admin_overlap
@@ -146,6 +153,8 @@ fun AdminRequestsScreen(
                     effect.guest,
                 )
 
+                is AdminRequestsEffect.ShowAssigned -> getString(Res.string.admin_assigned_toast, effect.guest, effect.therapist)
+
                 is AdminRequestsEffect.ShowRefused ->
                     getString(if (effect.overlap) Res.string.admin_refused_overlap else Res.string.admin_refused)
             }
@@ -181,10 +190,13 @@ fun AdminRequestsScreen(
                             state.selected?.let {
                                 DecisionPanel(
                                     it,
-                                    state.nowEpochMillis,
+                                    state,
                                     onEvent,
                                     Modifier.revealOnScroll(order = 1, from = SpaRevealFrom.End),
                                 )
+                            }
+                            if (state.myShifts.isNotEmpty()) {
+                                MyShifts(state.myShifts, Modifier.revealOnScroll(order = 2, from = SpaRevealFrom.End))
                             }
                             ScheduleSection(state, Modifier.revealOnScroll(order = 2, from = SpaRevealFrom.End))
                         }
@@ -197,8 +209,9 @@ fun AdminRequestsScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     Header(state, Modifier.revealOnScroll())
+                    if (state.myShifts.isNotEmpty()) MyShifts(state.myShifts, Modifier.revealOnScroll(order = 1))
                     Queue(state, onEvent, Modifier.revealOnScroll(order = 1))
-                    state.selected?.let { DecisionPanel(it, state.nowEpochMillis, onEvent, Modifier.revealOnScroll(order = 2)) }
+                    state.selected?.let { DecisionPanel(it, state, onEvent, Modifier.revealOnScroll(order = 2)) }
                     ScheduleSection(state, Modifier.revealOnScroll(order = 3))
                 }
             }
@@ -358,10 +371,11 @@ private fun StatusPill(status: DeskStatus) {
 @Composable
 private fun DecisionPanel(
     request: DeskRequest,
-    nowEpochMillis: Long,
+    state: AdminRequestsState,
     onEvent: (AdminRequestsEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val nowEpochMillis = state.nowEpochMillis
     SpaCard(modifier.fillMaxWidth(), padding = PaddingValues(20.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -379,7 +393,23 @@ private fun DecisionPanel(
                     stringResource(Res.string.admin_detail_treatment),
                     stringResource(Res.string.admin_service_meta, request.serviceName, request.minutes),
                 )
-                DetailRow(stringResource(Res.string.admin_detail_therapist), request.therapistName)
+                when (request.status) {
+                    DeskStatus.PENDING -> TherapistPicker(
+                        team = state.team,
+                        chosen = state.therapistToConfirm,
+                        isFree = { it in request.freeTherapists },
+                        onChoose = { onEvent(AdminRequestsEvent.TherapistChosen(request.id, it)) },
+                    )
+
+                    DeskStatus.CONFIRMED -> TherapistPicker(
+                        team = state.team,
+                        chosen = request.therapistSlug,
+                        isFree = { !state.working },
+                        onChoose = { onEvent(AdminRequestsEvent.TherapistChosen(request.id, it)) },
+                    )
+
+                    else -> DetailRow(stringResource(Res.string.admin_detail_therapist), request.therapistName)
+                }
                 DetailRow(
                     stringResource(Res.string.admin_detail_time),
                     stringResource(
@@ -447,6 +477,7 @@ private fun DecisionPanel(
                         // A clash is confirmed deliberately: the first press is the owner saying so.
                         onClick = { onEvent(AdminRequestsEvent.Confirmed(request.id, force = clash)) },
                         icon = SpaIcon.Check,
+                        enabled = state.therapistToConfirm != null,
                     )
                     SpaSecondaryButton(
                         text = stringResource(Res.string.admin_decline),
@@ -473,6 +504,34 @@ private fun DecisionPanel(
 }
 
 @Composable
+private fun TherapistPicker(team: List<DeskTherapist>, chosen: String?, isFree: (String) -> Boolean, onChoose: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = stringResource(Res.string.admin_detail_therapist),
+            style = SpaTheme.textStyles.body,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            team.forEach { therapist ->
+                SpaFilterChip(
+                    label = therapist.name,
+                    selected = therapist.slug == chosen,
+                    onClick = { onChoose(therapist.slug) },
+                    enabled = therapist.slug == chosen || isFree(therapist.slug),
+                )
+            }
+        }
+        if (team.none { isFree(it.slug) } && chosen == null) {
+            Text(
+                text = stringResource(Res.string.admin_no_one_free),
+                style = SpaTheme.textStyles.caption,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
 private fun DetailRow(label: String, value: String) {
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(
@@ -494,6 +553,35 @@ private fun NoteBox(icon: SpaIcon, text: String, container: Color, content: Colo
         ) {
             SpaIconImage(icon, size = 16.dp, tint = content)
             Text(text, style = SpaTheme.textStyles.body, color = content)
+        }
+    }
+}
+
+@Composable
+private fun MyShifts(shifts: List<DeskRequest>, modifier: Modifier = Modifier) {
+    SpaCard(modifier.fillMaxWidth(), padding = PaddingValues(6.dp)) {
+        Column {
+            Text(
+                text = stringResource(Res.string.admin_my_shifts_title),
+                style = SpaTheme.textStyles.cardTitle,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(start = 14.dp, top = 12.dp, end = 14.dp, bottom = 4.dp),
+            )
+            shifts.forEach { shift ->
+                ListItem(
+                    headlineContent = { Text(stringResource(Res.string.admin_service_meta, shift.serviceName, shift.minutes)) },
+                    supportingContent = {
+                        Text(
+                            stringResource(
+                                Res.string.admin_my_shift_line,
+                                formatDayAndTime(shift.startDayEpochDay, shift.startHour),
+                                shift.guest,
+                            ),
+                        )
+                    },
+                    colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+                )
+            }
         }
     }
 }

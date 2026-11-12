@@ -73,8 +73,22 @@ which only the account that made the booking may call.
   `BookingRules.CANCEL_WINDOW_MINUTES` (two hours) before the start; after that the function
   answers `too_late_to_cancel` and the app says to phone the spa. Another guest's booking reads
   as absent (`404`), not as forbidden.
-- **Any therapist**: a request with no `therapistSlug` is given whoever is free at that time when
-  it is created, so the no-overlap rule still holds; if nobody is free it is `slot_taken`.
+- **The owner assigns the therapist.** A guest's request carries no therapist and stays
+  unassigned until an account with `MANAGE_THERAPISTS` gives it one, through
+  `spa_confirm_booking(id, force, therapistSlug)` or `spa_assign_therapist(id, therapistSlug)`;
+  confirming an unassigned request is `therapist_required`, and assigning someone already busy
+  then is `overlaps_another` without `force`. A time is offered to guests only while the held
+  bookings at that moment, assigned or not, are fewer than the active therapists
+  (`private.capacity_free`), so unassigned requests cannot overbook the team; past that it is
+  `slot_taken`. The staff queue lists who is free for each request (`freeTherapists`).
+- **The guest never sees the therapist.** The guest's functions return an empty therapist, and
+  the guest's confirmation names none.
+- **Shifts reach the therapist's account.** `spa_link_therapist(therapistSlug, email)` links a
+  therapist to one `staff` or `owner` account (`null` unlinks); the linked account reads its
+  upcoming confirmed visits with `spa_my_shifts()` and is notified, in Vietnamese, when a visit is
+  confirmed to it ("Ca mới"), moved to someone else ("Ca đã chuyển") or cancelled by the guest
+  ("Ca đã huỷ"). Those
+  notifications follow the usual rules, so with the `notifications` flag off they are not stored.
 - **New treatments and therapists** are validated against the same limits as `SpaValidation` in
   the app, and the function generates the slug from the name (`warm-stone-massage`, then `-2` if
   it is taken).

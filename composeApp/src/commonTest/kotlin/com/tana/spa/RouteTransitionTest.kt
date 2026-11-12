@@ -21,7 +21,7 @@ class RouteTransitionTest {
 
     @Test
     fun a_screen_reached_from_another_screen_slides_along_the_shared_axis() {
-        for (route in listOf(Routes.SERVICE_DETAIL, Routes.BOOKING_THERAPIST, Routes.BOOKING_WHEN, Routes.MY_BOOKINGS)) {
+        for (route in listOf(Routes.SERVICE_DETAIL, Routes.BOOKING_WHEN, Routes.MY_BOOKINGS)) {
             assertFalse(route in TOP_LEVEL_ROUTES, route)
         }
     }

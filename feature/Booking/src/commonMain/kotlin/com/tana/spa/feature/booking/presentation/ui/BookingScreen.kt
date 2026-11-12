@@ -49,7 +49,6 @@ import com.tana.spa.feature.booking.resources.booking_continue
 import com.tana.spa.feature.booking.resources.booking_open_times
 import com.tana.spa.feature.booking.resources.booking_service_details
 import com.tana.spa.feature.booking.resources.booking_step_review
-import com.tana.spa.feature.booking.resources.booking_step_therapist
 import com.tana.spa.feature.booking.resources.booking_step_treatment
 import com.tana.spa.feature.booking.resources.booking_step_when
 import com.tana.spa.feature.booking.resources.booking_strip_choose
@@ -62,7 +61,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * The booking flow is four screens, one to a step. They share a single view model, so a choice
+ * The booking flow is three screens, one to a step. They share a single view model, so a choice
  * made on one is still there whichever way the guest moves between them, and the step the guest
  * is on is the route — which is also what the browser's address bar and Back button follow.
  */
@@ -103,28 +102,6 @@ fun BookingTreatmentScreen(
 }
 
 @Composable
-fun BookingTherapistScreen(
-    state: BookingState,
-    effects: Flow<BookingEffect>,
-    onEvent: (BookingEvent) -> Unit,
-    onOpenNotifications: () -> Unit,
-    onOpenBookings: () -> Unit,
-    onBack: () -> Unit,
-    onContinue: () -> Unit,
-) {
-    BookingStepPage(
-        step = 2,
-        effects = effects,
-        onOpenNotifications = onOpenNotifications,
-        onOpenBookings = onOpenBookings,
-        // "First available" is a choice of its own, so this step is answered as soon as it opens.
-        footer = { StepFooter(state, canContinue = true, onBack = onBack, onContinue = onContinue) },
-    ) {
-        TherapistPicker(state, onSelect = { onEvent(BookingEvent.TherapistSelected(it)) })
-    }
-}
-
-@Composable
 fun BookingWhenScreen(
     state: BookingState,
     effects: Flow<BookingEffect>,
@@ -135,7 +112,7 @@ fun BookingWhenScreen(
     onContinue: () -> Unit,
 ) {
     BookingStepPage(
-        step = 3,
+        step = 2,
         effects = effects,
         onOpenNotifications = onOpenNotifications,
         onOpenBookings = onOpenBookings,
@@ -168,7 +145,7 @@ fun BookingConfirmScreen(
     onBack: () -> Unit,
 ) {
     BookingStepPage(
-        step = 4,
+        step = 3,
         effects = effects,
         onOpenNotifications = onOpenNotifications,
         onOpenBookings = onOpenBookings,
@@ -256,7 +233,6 @@ private const val STRIP_SEPARATOR = " · "
 @Composable
 private fun stepLabels(): List<String> = listOf(
     stringResource(Res.string.booking_step_treatment),
-    stringResource(Res.string.booking_step_therapist),
     stringResource(Res.string.booking_step_when),
     stringResource(Res.string.booking_step_review),
 )

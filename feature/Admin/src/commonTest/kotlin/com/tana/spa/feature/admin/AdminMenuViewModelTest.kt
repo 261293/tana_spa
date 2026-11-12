@@ -5,9 +5,11 @@ import com.tana.spa.feature.admin.domain.DeskQueue
 import com.tana.spa.feature.admin.domain.DeskRefused
 import com.tana.spa.feature.admin.domain.DeskRepository
 import com.tana.spa.feature.admin.domain.DeskRequest
+import com.tana.spa.feature.admin.domain.DeskTherapist
 import com.tana.spa.feature.admin.presentation.AdminMenuEffect
 import com.tana.spa.feature.admin.presentation.AdminMenuEvent
 import com.tana.spa.feature.admin.presentation.AdminMenuViewModel
+import com.tana.spa.shared.auth.AccountErrorCodes
 import com.tana.spa.shared.auth.CreateAccountRequest
 import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.auth.SpaPermission
@@ -48,7 +50,19 @@ class AdminMenuViewModelTest {
         var refusal: DeskRefused? = null
 
         override suspend fun queue() = DeskQueue(emptyList(), emptyList(), 0)
-        override suspend fun confirm(id: String, force: Boolean): DeskRequest = error("not used")
+        override suspend fun confirm(id: String, force: Boolean, therapistSlug: String?): DeskRequest = error("not used")
+        override suspend fun assign(id: String, therapistSlug: String): DeskRequest = error("not used")
+
+        var team = listOf(DeskTherapist("mai", "Mai Tran"), DeskTherapist("lena", "Lena", "lena@tana.test"))
+        val links = mutableListOf<Pair<String, String?>>()
+        override suspend fun team() = team
+        override suspend fun myShifts(): List<DeskRequest> = emptyList()
+
+        override suspend fun link(therapistSlug: String, email: String?): DeskTherapist {
+            links += therapistSlug to email
+            refusal?.let { throw it }
+            return team.first { it.slug == therapistSlug }.copy(account = email)
+        }
         override suspend fun decline(id: String, reason: DeclineReasonDto, alternative: String?): DeskRequest = error("not used")
         override suspend fun recordVisit(id: String, attended: Boolean): DeskRequest = error("not used")
 
@@ -256,5 +270,37 @@ class AdminMenuViewModelTest {
         testScheduler.advanceUntilIdle()
 
         assertTrue(desk.accounts.isEmpty())
+    }
+
+    @Test
+    fun linking_sends_the_trimmed_email_and_an_empty_field_unlinks() = runTest(dispatcher) {
+        val vm = viewModel()
+        testScheduler.advanceUntilIdle()
+        assertEquals("lena@tana.test", vm.state.value.accountDraft(vm.state.value.team[1]), "the field starts on the linked account")
+
+        vm.onEvent(AdminMenuEvent.AccountDraftChanged("mai", "  mai@tana.test "))
+        vm.onEvent(AdminMenuEvent.LinkAccount("mai"))
+        testScheduler.advanceUntilIdle()
+        vm.onEvent(AdminMenuEvent.AccountDraftChanged("lena", " "))
+        vm.onEvent(AdminMenuEvent.LinkAccount("lena"))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(listOf<Pair<String, String?>>("mai" to "mai@tana.test", "lena" to null), desk.links.toList())
+        assertEquals(listOf("mai@tana.test", null), vm.state.value.team.map { it.account })
+        assertEquals(AdminMenuEffect.ShowLinked("Mai Tran", "mai@tana.test"), vm.effects.first())
+    }
+
+    @Test
+    fun a_refused_link_says_why_and_keeps_what_was_typed() = runTest(dispatcher) {
+        val vm = viewModel()
+        testScheduler.advanceUntilIdle()
+        desk.refusal = DeskRefused(400, AccountErrorCodes.ROLE_NOT_ALLOWED)
+
+        vm.onEvent(AdminMenuEvent.AccountDraftChanged("mai", "guest@tana.test"))
+        vm.onEvent(AdminMenuEvent.LinkAccount("mai"))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(AdminMenuEffect.ShowLinkRefused(AccountErrorCodes.ROLE_NOT_ALLOWED), vm.effects.first())
+        assertEquals("guest@tana.test", vm.state.value.accountDraft(vm.state.value.team[0]))
     }
 }

@@ -25,6 +25,14 @@
     <string name="admin_menu_add_therapist">Thêm vào đội ngũ</string>
     <string name="admin_menu_service_added">Đã thêm %1$s vào danh sách</string>
     <string name="admin_menu_therapist_added">%1$s đã vào đội ngũ</string>
+    <string name="admin_menu_team_title">Tài khoản nhận ca</string>
+    <string name="admin_menu_team_help">Gắn email tài khoản nhân viên cho từng kỹ thuật viên để họ nhận thông báo và xem ca của mình. Để trống rồi lưu để bỏ gắn.</string>
+    <string name="admin_menu_team_hint">ten@tanaspa.vn</string>
+    <string name="admin_menu_team_save">Lưu</string>
+    <string name="admin_menu_team_linked">%1$s nhận ca qua %2$s</string>
+    <string name="admin_menu_team_unlinked">%1$s không còn gắn tài khoản</string>
+    <string name="admin_menu_team_unknown">Không có tài khoản nào dùng email này</string>
+    <string name="admin_menu_team_not_staff">Chỉ tài khoản nhân viên hoặc chủ spa mới nhận ca được</string>
     <string name="admin_menu_error_empty">Mục này không được để trống.</string>
     <string name="admin_menu_error_long">Nội dung quá dài.</string>
     <string name="admin_menu_error_duration_zero">Dịch vụ cần có thời lượng.</string>
@@ -50,6 +58,10 @@
     <string name="admin_desk_failed">Không tải được quầy lễ tân. Kiểm tra kết nối và thử lại.</string>
     <string name="admin_desk_retry">Thử lại</string>
     <string name="admin_refused">Spa chưa ghi nhận được thao tác này. Bạn thử lại nhé.</string>
+    <string name="admin_my_shifts_title">Ca của tôi</string>
+    <string name="admin_my_shift_line">%1$s · Khách: %2$s</string>
+    <string name="admin_assigned_toast">Đã chuyển lịch của %1$s cho %2$s</string>
+    <string name="admin_no_one_free">Không ai rảnh giờ này. Hãy từ chối và gợi ý giờ khác.</string>
     <string name="admin_refused_overlap">Giờ này đã có khách. Nhấn xác nhận lần nữa nếu vẫn muốn nhận.</string>
 
     <string name="admin_visit_completed">Ghi nhận đã đến</string>

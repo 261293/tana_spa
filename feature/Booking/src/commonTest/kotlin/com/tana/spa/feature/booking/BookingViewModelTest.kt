@@ -2,7 +2,6 @@ package com.tana.spa.feature.booking
 
 import com.tana.spa.feature.booking.domain.BookingAttempt
 import com.tana.spa.feature.booking.domain.Slot
-import com.tana.spa.feature.booking.presentation.ANY_THERAPIST
 import com.tana.spa.feature.booking.presentation.BookingEffect
 import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingViewModel
@@ -48,7 +47,6 @@ class BookingViewModelTest {
 
         val state = vm.state.value
         assertEquals(ServerCatalog.catalog.services, state.services)
-        assertEquals(ServerCatalog.catalog.therapists, state.therapists)
         assertEquals(ServerCatalog.stone.id, state.serviceId)
         assertEquals(bookings.slots, state.slots)
         assertTrue(!state.catalogLoading && !state.catalogFailed && !state.slotsLoading)
@@ -70,10 +68,8 @@ class BookingViewModelTest {
     }
 
     @Test
-    fun the_flow_opens_on_any_therapist_and_sends_no_therapist_with_it() = runTest(dispatcher) {
+    fun a_guest_never_names_a_therapist_because_the_owner_assigns_one() = runTest(dispatcher) {
         val vm = loadedViewModel()
-        assertEquals(ANY_THERAPIST, vm.state.value.therapistId)
-        assertTrue(vm.state.value.anyTherapist)
 
         vm.chooseFirstFreeSlot()
         vm.onEvent(BookingEvent.Submit)
@@ -82,7 +78,7 @@ class BookingViewModelTest {
         assertEquals(
             listOf(SentBooking(ServerCatalog.stone.id, null, 1_000, null)),
             bookings.sent.toList(),
-            "the sample \"any\" id must never reach the server",
+            "the request carries no therapist",
         )
         val day = SpaCatalog.today.plusDays(2).epochDay
         assertEquals(
@@ -90,22 +86,6 @@ class BookingViewModelTest {
             bookings.availabilityAsked.toList(),
             "the diary is asked for the treatment being chosen, since its length decides what fits",
         )
-    }
-
-    @Test
-    fun choosing_a_therapist_asks_the_diary_again_for_their_own_times() = runTest(dispatcher) {
-        val vm = loadedViewModel()
-
-        vm.onEvent(BookingEvent.TherapistSelected("mai"))
-        testScheduler.advanceUntilIdle()
-
-        assertEquals("mai", bookings.availabilityAsked.last().second)
-
-        vm.chooseFirstFreeSlot()
-        vm.onEvent(BookingEvent.Submit)
-        testScheduler.advanceUntilIdle()
-
-        assertEquals("mai", bookings.sent.single().therapistSlug)
     }
 
     @Test
@@ -120,8 +100,8 @@ class BookingViewModelTest {
     }
 
     @Test
-    fun a_booking_the_spa_took_is_confirmed_on_screen_with_the_therapist_it_assigned() = runTest(dispatcher) {
-        bookings.createAnswer = BookingAttempt.Done(guestBooking(therapistName = "Lena Okafor"))
+    fun a_booking_the_spa_took_is_confirmed_on_screen() = runTest(dispatcher) {
+        bookings.createAnswer = BookingAttempt.Done(guestBooking(id = "b9"))
         val vm = loadedViewModel()
         vm.chooseFirstFreeSlot()
 
@@ -129,7 +109,7 @@ class BookingViewModelTest {
         testScheduler.advanceUntilIdle()
 
         val sent = vm.state.value.sent
-        assertEquals("Lena Okafor", sent?.therapistName)
+        assertEquals("b9", sent?.id)
         assertTrue(!vm.state.value.sending)
     }
 

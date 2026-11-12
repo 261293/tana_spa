@@ -2,6 +2,7 @@ package com.tana.spa.feature.admin.presentation
 
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
+import com.tana.spa.feature.admin.domain.DeskTherapist
 import com.tana.spa.shared.booking.DeclineReasonDto
 
 enum class AlternativeOffer { NONE, TODAY_MIDDAY, TODAY_WITH_MAI, TOMORROW_MORNING }
@@ -22,8 +23,17 @@ data class AdminRequestsState(
     val declining: DeskRequest? = null,
     val reason: DeclineReasonDto = DeclineReasonDto.THERAPIST_UNAVAILABLE,
     val alternative: AlternativeOffer = AlternativeOffer.NONE,
+    val team: List<DeskTherapist> = emptyList(),
+    /** The signed-in account's own upcoming shifts, when it is linked to a therapist. */
+    val myShifts: List<DeskRequest> = emptyList(),
+    /** The therapist the owner picked for the selected waiting request, before confirming it. */
+    val chosenTherapist: String? = null,
 ) {
     val selected: DeskRequest? get() = requests.firstOrNull { it.id == selectedId }
+
+    /** Who the selected request goes to on confirm: the owner's pick, else whoever it already has, else the first free. */
+    val therapistToConfirm: String?
+        get() = selected?.let { chosenTherapist ?: it.therapistSlug.ifEmpty { null } ?: it.freeTherapists.firstOrNull() }
     val pending: List<DeskRequest> get() = requests.filter { it.status == DeskStatus.PENDING }
     val confirmed: List<DeskRequest> get() = requests.filter { it.status == DeskStatus.CONFIRMED }
     val stale: List<DeskRequest> get() = pending.filter { it.stale }
@@ -35,6 +45,9 @@ sealed interface AdminRequestsEvent {
 
     /** [force] is the second press, on a request the server refused as an overlap. */
     data class Confirmed(val id: String, val force: Boolean = false) : AdminRequestsEvent
+
+    /** On a waiting request this only picks; on a confirmed one it moves the shift at once. */
+    data class TherapistChosen(val id: String, val slug: String) : AdminRequestsEvent
     data class DeclineStarted(val id: String) : AdminRequestsEvent
     data class ReasonChosen(val reason: DeclineReasonDto) : AdminRequestsEvent
     data class AlternativeChosen(val alternative: AlternativeOffer) : AdminRequestsEvent
@@ -50,4 +63,5 @@ sealed interface AdminRequestsEffect {
 
     /** The server refused the action; [overlap] asks the owner to confirm the clash deliberately. */
     data class ShowRefused(val overlap: Boolean) : AdminRequestsEffect
+    data class ShowAssigned(val guest: String, val therapist: String) : AdminRequestsEffect
 }

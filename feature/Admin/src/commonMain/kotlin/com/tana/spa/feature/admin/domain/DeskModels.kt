@@ -33,7 +33,11 @@ data class DeskRequest(
     val note: String?,
     val conflict: String?,
     val declineReason: DeclineReasonDto?,
+    /** Slugs of the therapists free at this time; only a waiting request carries them. */
+    val freeTherapists: List<String> = emptyList(),
 ) {
+    val assigned: Boolean get() = therapistSlug.isNotEmpty()
+
     /** The desk is asked to chase anything a guest has waited this long for. */
     val stale: Boolean get() = status == DeskStatus.PENDING && waitedMinutes >= STALE_AFTER_MINUTES
 
@@ -46,4 +50,12 @@ data class DeskRequest(
 }
 
 /** The queue and the day behind it, as one read: they always belong to the same moment. */
-data class DeskQueue(val pending: List<DeskRequest>, val scheduled: List<DeskRequest>, val dayEpochDay: Int)
+data class DeskQueue(
+    val pending: List<DeskRequest>,
+    val scheduled: List<DeskRequest>,
+    val dayEpochDay: Int,
+    val team: List<DeskTherapist> = emptyList(),
+)
+
+/** [account] is the email of the account that takes this therapist's shifts, when one is linked. */
+data class DeskTherapist(val slug: String, val name: String, val account: String? = null)
