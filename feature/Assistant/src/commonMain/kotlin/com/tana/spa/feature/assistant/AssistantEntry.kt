@@ -9,10 +9,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tana.spa.core.navigation.FeatureEntry
 import com.tana.spa.core.navigation.Navigator
 import com.tana.spa.core.navigation.Routes
+import com.tana.spa.feature.assistant.data.AssistantConsent
 import com.tana.spa.feature.assistant.presentation.manipulator.ChatViewModel
 import com.tana.spa.feature.assistant.presentation.ui.ChatScreen
 import com.tana.spa.feature.assistant.presentation.ui.ConsentScreen
 import com.tana.spa.feature.assistant.presentation.ui.WelcomeScreen
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 object WelcomeEntry : FeatureEntry {
@@ -20,12 +22,9 @@ object WelcomeEntry : FeatureEntry {
 
     @Composable
     override fun Content(navigator: Navigator) {
-        // Pure UI state (a tick box), so it lives here rather than in a ViewModel.
-        var accepted by rememberSaveable { mutableStateOf(false) }
+        val consent: AssistantConsent = koinInject()
         WelcomeScreen(
-            accepted = accepted,
-            onAcceptedChange = { accepted = it },
-            onContinue = { navigator.navigate(Routes.CONSENT) },
+            onContinue = { if (consent.given) navigator.replaceAll(Routes.ASSISTANT) else navigator.navigate(Routes.CONSENT) },
             onClose = { navigator.replaceAll(Routes.FEED) },
         )
     }
@@ -36,13 +35,17 @@ object ConsentEntry : FeatureEntry {
 
     @Composable
     override fun Content(navigator: Navigator) {
+        val consent: AssistantConsent = koinInject()
         var agreed by rememberSaveable { mutableStateOf(false) }
         ConsentScreen(
             agreed = agreed,
             onAgreedChange = { agreed = it },
             onBack = { navigator.back() },
             // Consent given: the chat replaces the stack so Back cannot return to the consent form.
-            onContinue = { navigator.replaceAll(Routes.ASSISTANT) },
+            onContinue = {
+                consent.give()
+                navigator.replaceAll(Routes.ASSISTANT)
+            },
         )
     }
 }

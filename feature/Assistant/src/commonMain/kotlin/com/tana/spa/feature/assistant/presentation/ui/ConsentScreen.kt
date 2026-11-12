@@ -14,7 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaTheme
@@ -27,6 +31,8 @@ import com.tana.spa.feature.assistant.resources.consent_body
 import com.tana.spa.feature.assistant.resources.consent_button
 import com.tana.spa.feature.assistant.resources.consent_title
 import com.tana.spa.feature.assistant.resources.ic_arrow_back
+import com.tana.spa.feature.assistant.resources.welcome_privacy
+import com.tana.spa.feature.assistant.resources.welcome_terms
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -69,11 +75,7 @@ fun ConsentScreen(agreed: Boolean, onAgreedChange: (Boolean) -> Unit, onBack: ()
             Box(Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 20.dp), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     ConsentCheckRow(checked = agreed, onCheckedChange = onAgreedChange) {
-                        Text(
-                            text = stringResource(Res.string.consent_agree),
-                            style = SpaTheme.textStyles.body,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
+                        Text(text = acceptText(), style = SpaTheme.textStyles.body, color = MaterialTheme.colorScheme.onSurface)
                     }
                     SpaPrimaryButton(
                         text = stringResource(Res.string.consent_button),
@@ -82,6 +84,35 @@ fun ConsentScreen(agreed: Boolean, onAgreedChange: (Boolean) -> Unit, onBack: ()
                         modifier = Modifier.padding(top = 14.dp),
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * The one consent sentence, with the two document names styled
+ * as links. They are not tappable yet: there are no published documents to open. The words are
+ * found inside the translated sentence, so the styling survives any word order.
+ */
+@Composable
+private fun acceptText(): AnnotatedString {
+    val terms = stringResource(Res.string.welcome_terms)
+    val privacy = stringResource(Res.string.welcome_privacy)
+    val sentence = stringResource(Res.string.consent_agree, terms, privacy)
+    return buildAnnotatedString {
+        append(sentence)
+        listOf(terms, privacy).forEach { name ->
+            val start = sentence.indexOf(name)
+            if (start >= 0) {
+                addStyle(
+                    SpanStyle(
+                        color = SpaTheme.extraColors.link,
+                        fontWeight = FontWeight.SemiBold,
+                        textDecoration = TextDecoration.Underline,
+                    ),
+                    start,
+                    start + name.length,
+                )
             }
         }
     }

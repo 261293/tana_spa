@@ -1,5 +1,6 @@
 package com.tana.spa.feature.assistant.di
 
+import com.tana.spa.feature.assistant.data.AssistantConsent
 import com.tana.spa.feature.assistant.data.ScriptedAssistantGateway
 import com.tana.spa.feature.assistant.domain.gateway.AssistantGateway
 import com.tana.spa.feature.assistant.domain.usecase.SendChatMessageUseCase
@@ -12,6 +13,7 @@ import org.koin.dsl.module
 val assistantModule: Module = module {
     // TODO: bind the real AI here. ScriptedAssistantGateway is a stand-in that asks fixed questions.
     single<AssistantGateway> { ScriptedAssistantGateway() }
+    factory { AssistantConsent(get()) }
     factory { StartChatUseCase(get()) }
     factory { SendChatMessageUseCase(get()) }
     viewModelOf(::ChatViewModel)
