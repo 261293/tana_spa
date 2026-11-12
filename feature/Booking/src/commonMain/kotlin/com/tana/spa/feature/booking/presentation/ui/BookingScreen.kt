@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +43,7 @@ import com.tana.spa.core.ui.formatRelative
 import com.tana.spa.core.ui.monthShort
 import com.tana.spa.core.ui.rememberSpaScrollState
 import com.tana.spa.core.ui.revealOnScroll
+import com.tana.spa.core.ui.spaPointer
 import com.tana.spa.core.ui.weekdayShort
 import com.tana.spa.feature.booking.presentation.BookingEffect
 import com.tana.spa.feature.booking.presentation.BookingEvent
@@ -93,7 +95,6 @@ fun BookingTreatmentScreen(
                 state,
                 canContinue = state.service != null,
                 hint = stringResource(Res.string.booking_card_need_service),
-                onBack = null,
                 onContinue = onContinue,
             )
         },
@@ -133,12 +134,12 @@ fun BookingWhenScreen(
         effects = effects,
         onOpenNotifications = onOpenNotifications,
         onOpenBookings = onOpenBookings,
+        header = { SpaBackLink(stringResource(Res.string.booking_back), onClick = onBack) },
         footer = {
             AppointmentCard(
                 state,
                 canContinue = state.slot != null,
                 hint = stringResource(Res.string.booking_card_need_time),
-                onBack = onBack,
                 onContinue = onContinue,
             )
         },
@@ -240,11 +241,14 @@ private fun BookingHeader(modifier: Modifier = Modifier) {
             lead = stringResource(Res.string.booking_title),
             accent = stringResource(Res.string.booking_title_accent),
         )
-        Text(
-            text = stringResource(Res.string.booking_subtitle),
-            style = SpaTheme.textStyles.sectionLead,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        // A phone spends its first screen on the menu; the subtitle only explains it.
+        if (!SpaWindow.size.isCompact) {
+            Text(
+                text = stringResource(Res.string.booking_subtitle),
+                style = SpaTheme.textStyles.sectionLead,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -267,30 +271,33 @@ private fun stepLabels(): List<String> = listOf(
 
 /**
  * The appointment as it stands, shaped like the card it becomes under My bookings: the day, the
- * treatment, then time, length and price. When the way on is closed, [hint] says what is missing.
- * A phone stacks the actions under the appointment; anything wider keeps it to one row.
+ * treatment, then time, length and price, with the way on beside it. When that way is closed,
+ * [hint] says what is missing. The way back is the link at the top of the page, as on every
+ * other screen.
  */
 @Composable
-private fun AppointmentCard(state: BookingState, canContinue: Boolean, hint: String, onBack: (() -> Unit)?, onContinue: () -> Unit) {
+private fun AppointmentCard(state: BookingState, canContinue: Boolean, hint: String, onContinue: () -> Unit) {
     Surface(
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        if (SpaWindow.size.isCompact) {
-            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                AppointmentSummary(state)
-                AppointmentActions(canContinue, hint, onBack, onContinue)
-            }
-        } else {
-            Row(
-                Modifier.padding(10.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 AppointmentSummary(state, Modifier.weight(1f))
-                AppointmentActions(canContinue, hint, onBack, onContinue, hintFills = false)
+                Button(onClick = onContinue, enabled = canContinue, shape = CircleShape, modifier = Modifier.spaPointer(canContinue)) {
+                    Text(stringResource(Res.string.booking_continue), style = SpaTheme.textStyles.buttonLabel)
+                }
+            }
+            if (!canContinue) {
+                Text(
+                    text = hint,
+                    style = SpaTheme.textStyles.caption,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
@@ -312,31 +319,6 @@ private fun AppointmentSummary(state: BookingState, modifier: Modifier = Modifie
                 style = SpaTheme.textStyles.label,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-        }
-    }
-}
-
-@Composable
-private fun AppointmentActions(
-    canContinue: Boolean,
-    hint: String,
-    onBack: (() -> Unit)?,
-    onContinue: () -> Unit,
-    hintFills: Boolean = true,
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        onBack?.let {
-            TextButton(onClick = it) { Text(stringResource(Res.string.booking_back), style = SpaTheme.textStyles.body) }
-        }
-        Text(
-            text = if (canContinue) "" else hint,
-            style = SpaTheme.textStyles.caption,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.End,
-            modifier = if (hintFills) Modifier.weight(1f) else Modifier,
-        )
-        Button(onClick = onContinue, enabled = canContinue, shape = MaterialTheme.shapes.small, modifier = Modifier.height(40.dp)) {
-            Text(stringResource(Res.string.booking_continue), style = SpaTheme.textStyles.body)
         }
     }
 }

@@ -46,6 +46,7 @@ import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaTag
+import com.tana.spa.core.ui.components.SpaTextButton
 import com.tana.spa.core.ui.rememberSpaLazyListState
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.core.ui.spaClickable
@@ -204,14 +205,9 @@ private fun Header(state: NotificationsState, onEvent: (NotificationsEvent) -> U
             )
         }
         if (state.unreadCount > 0) {
-            Text(
+            SpaTextButton(
                 text = stringResource(Res.string.notifications_mark_all_read),
-                style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .spaClickable { onEvent(NotificationsEvent.MarkAllRead) }
-                    .minimumInteractiveComponentSize()
-                    .padding(8.dp),
+                onClick = { onEvent(NotificationsEvent.MarkAllRead) },
             )
         }
     }

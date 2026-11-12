@@ -28,7 +28,7 @@ data class SpaExtraColors(
 )
 
 internal val LightExtraColors = SpaExtraColors(
-    link = SpaColors.Slate,
+    link = SpaColors.Eucalyptus,
     success = SpaColors.Moss,
     warning = SpaColors.Ochre,
     warningContainer = SpaColors.OchreTint,

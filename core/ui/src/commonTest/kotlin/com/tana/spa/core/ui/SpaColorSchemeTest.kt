@@ -12,10 +12,10 @@ import kotlin.test.assertTrue
 class SpaColorSchemeTest {
     @Test
     fun scheme_roles_match_design_tokens() {
-        assertEquals(SpaColors.Slate, SpaColorScheme.primary)
-        assertEquals(SpaColors.OnSlate, SpaColorScheme.onPrimary)
-        assertEquals(SpaColors.SlateTint, SpaColorScheme.primaryContainer)
-        assertEquals(SpaColors.SlateDeep, SpaColorScheme.onPrimaryContainer)
+        assertEquals(SpaColors.Eucalyptus, SpaColorScheme.primary)
+        assertEquals(SpaColors.OnEucalyptus, SpaColorScheme.onPrimary)
+        assertEquals(SpaColors.EucalyptusTint, SpaColorScheme.primaryContainer)
+        assertEquals(SpaColors.EucalyptusDeep, SpaColorScheme.onPrimaryContainer)
         assertEquals(SpaColors.Umber, SpaColorScheme.secondary)
         assertEquals(SpaColors.UmberTint, SpaColorScheme.secondaryContainer)
         assertEquals(SpaColors.Ink, SpaColorScheme.onSecondaryContainer)
@@ -41,7 +41,7 @@ class SpaColorSchemeTest {
 
     @Test
     fun extra_colors_match_design_tokens() {
-        assertEquals(SpaColors.Slate, LightExtraColors.link)
+        assertEquals(SpaColors.Eucalyptus, LightExtraColors.link)
         assertEquals(SpaColors.Moss, LightExtraColors.success)
         assertEquals(SpaColors.Ochre, LightExtraColors.warning)
         assertEquals(SpaColors.OchreTint, LightExtraColors.warningContainer)
@@ -60,10 +60,10 @@ class SpaColorSchemeTest {
     @Test
     fun text_pairs_are_readable() {
         val pairs = listOf(
-            SpaColors.OnSlate to SpaColors.Slate,
-            SpaColors.Slate to SpaColors.Paper,
-            SpaColors.Slate to SpaColors.Card,
-            SpaColors.SlateDeep to SpaColors.SlateTint,
+            SpaColors.OnEucalyptus to SpaColors.Eucalyptus,
+            SpaColors.Eucalyptus to SpaColors.Paper,
+            SpaColors.Eucalyptus to SpaColors.Card,
+            SpaColors.EucalyptusDeep to SpaColors.EucalyptusTint,
             SpaColors.Ink to SpaColors.Paper,
             SpaColors.Ink to SpaColors.Card,
             SpaColors.Ink to SpaColors.UmberTint,

@@ -17,17 +17,17 @@ through `MaterialTheme` and `SpaTheme`; the Kotlin source of truth is `core/ui`
 | Muted | 47% 0.014 60 | `#615953` | `onSurfaceVariant`, tags |
 | Rule | 81% 0.011 70 | `#C6C0B9` | `outlineVariant`, hairlines |
 | Outline | 58% 0.014 64 | `#807972` | `outline`, control boundaries |
-| Slate | 41% 0.075 248 | `#264D71` | `primary`: the primary action, selection, links |
-| SlateTint | 90.5% 0.025 248 | `#D3E2F0` | `primaryContainer` |
-| SlateDeep | 30% 0.065 248 | `#0E304D` | `onPrimaryContainer` |
-| Focus | 50% 0.095 248 | `#326797` | focus rings |
+| Eucalyptus | 43.7% 0.051 184 | `#2E5B55` | `primary`: the primary action, selection, links |
+| EucalyptusTint | 90.7% 0.020 173 | `#D4E5DF` | `primaryContainer` |
+| EucalyptusDeep | 31.8% 0.047 184 | `#0F3A35` | `onPrimaryContainer` |
+| Focus | 51.1% 0.061 182 | `#3A7269` | focus rings |
 | Umber | 40% 0.035 58 | `#564335` | `secondary`, `tertiary` |
 | UmberTint | 90% 0.018 70 | `#E6DCD2` | `secondaryContainer`, `surfaceContainerHighest` |
 | Ochre / OchreTint | 52% 0.10 70 / 93.5% 0.035 80 | `#8D5D1C` / `#F6E8D0` | warning |
 | Moss | 46% 0.07 150 | `#3A6343` | success |
 | Danger / DangerTint / DangerDeep | 47% 0.13 32 / 93% 0.03 32 / 36% 0.11 32 | `#963828` / `#FBE1DC` / `#6B2013` | error roles |
 
-Slate is the only chromatic signal: never a second accent, never a warm one, and never a
+Eucalyptus, a deep blue-green, is the only chromatic signal: never a second accent, never a warm one, and never a
 decorative fill. Light only (ADR 0002).
 
 ## Type

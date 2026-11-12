@@ -22,7 +22,7 @@ colour and text style from `MaterialTheme` and `SpaTheme` (ADR 0002).
 
 ## Decision
 
-- **Palette:** warm limewash paper and card stock, umber ink, and one slate signal (`primary`)
+- **Palette:** warm limewash paper and card stock, umber ink, and one eucalyptus signal (`primary`, slate until 2026-11-12)
   reserved for the primary action, the current selection and focus. Every role maps to a token in
   `SpaColors`; the values and their OKLCH sources are listed in `DESIGN.md`.
 - **Type:** Newsreader (light for display and screen titles, regular for card titles) over Hanken

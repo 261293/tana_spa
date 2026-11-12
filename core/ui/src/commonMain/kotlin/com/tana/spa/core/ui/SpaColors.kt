@@ -3,7 +3,7 @@ package com.tana.spa.core.ui
 import androidx.compose.ui.graphics.Color
 
 /**
- * The limewash palette (ADR 0008): warm paper and card stock, umber ink, and one slate signal that
+ * The limewash palette (ADR 0008): warm paper and card stock, umber ink, and one eucalyptus signal that
  * marks the primary action, the current selection and focus. Values are the OKLCH tokens in
  * `DESIGN.md` converted to sRGB.
  */
@@ -20,11 +20,11 @@ object SpaColors {
     val Rule = Color(0xFFC6C0B9)
     val Outline = Color(0xFF807972)
 
-    val Slate = Color(0xFF264D71)
-    val OnSlate = Color(0xFFF5F1EC)
-    val SlateTint = Color(0xFFD3E2F0)
-    val SlateDeep = Color(0xFF0E304D)
-    val Focus = Color(0xFF326797)
+    val Eucalyptus = Color(0xFF2E5B55)
+    val OnEucalyptus = Color(0xFFF5F1EC)
+    val EucalyptusTint = Color(0xFFD4E5DF)
+    val EucalyptusDeep = Color(0xFF0F3A35)
+    val Focus = Color(0xFF3A7269)
 
     val Umber = Color(0xFF564335)
     val UmberTint = Color(0xFFE6DCD2)

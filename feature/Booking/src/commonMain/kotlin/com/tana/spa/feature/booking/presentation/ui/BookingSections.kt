@@ -1,7 +1,13 @@
 package com.tana.spa.feature.booking.presentation.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -25,11 +31,14 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.tana.spa.core.ui.SpaEasing
 import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindowSize
@@ -79,6 +89,7 @@ import org.jetbrains.compose.resources.stringResource
 
 private val PickThumbShape = RoundedCornerShape(10.dp)
 private val PICK_THUMB_SIZE = 56.dp
+private const val HOVER_THUMB_SCALE = 1.05f
 private val SERVICE_ROW_HEIGHT = 80.dp
 private val SLOT_ROW_HEIGHT = 46.dp
 private const val SERVICE_PLACEHOLDERS = 4
@@ -154,18 +165,40 @@ private fun MenuUnavailable(onRetry: () -> Unit) {
 /** The design's pick row: a square thumb, then the treatment, its length and its price stacked. */
 @Composable
 private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
-    val shape = MaterialTheme.shapes.extraSmall
+    val shape = MaterialTheme.shapes.small
+    val motion = SpaTheme.motion
+    val hover = remember { MutableInteractionSource() }
+    val hovered by hover.collectIsHoveredAsState()
+    val fill by animateColorAsState(
+        targetValue = when {
+            selected -> MaterialTheme.colorScheme.primaryContainer
+            hovered -> MaterialTheme.colorScheme.surfaceContainerLow
+            else -> MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0f)
+        },
+        animationSpec = tween(motion.short, easing = SpaEasing.OutExpo),
+        label = "pickFill",
+    )
+    val thumbScale by animateFloatAsState(
+        targetValue = if (hovered && !motion.reduced) HOVER_THUMB_SCALE else 1f,
+        animationSpec = tween(motion.medium, easing = SpaEasing.OutExpo),
+        label = "pickThumb",
+    )
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (selected) MaterialTheme.colorScheme.surfaceContainerLow else Color.Transparent, shape)
+            .clip(shape)
+            .background(fill)
+            .hoverable(hover)
             .spaClickable(role = Role.RadioButton, onClick = onSelect)
             .padding(horizontal = 8.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SpaImageTile(
-            Modifier.size(PICK_THUMB_SIZE),
+            Modifier.size(PICK_THUMB_SIZE).graphicsLayer {
+                scaleX = thumbScale
+                scaleY = thumbScale
+            },
             shape = PickThumbShape,
             photo = SpaPhotos.treatment(service.id),
         )
