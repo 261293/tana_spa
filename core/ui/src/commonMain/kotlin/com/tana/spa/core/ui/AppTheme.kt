@@ -14,24 +14,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.resources.Res
-import com.tana.spa.core.ui.resources.hanken_grotesk_medium
-import com.tana.spa.core.ui.resources.hanken_grotesk_regular
-import com.tana.spa.core.ui.resources.hanken_grotesk_semibold
-import com.tana.spa.core.ui.resources.newsreader_light
-import com.tana.spa.core.ui.resources.newsreader_regular
+import com.tana.spa.core.ui.resources.be_vietnam_pro_medium
+import com.tana.spa.core.ui.resources.be_vietnam_pro_regular
+import com.tana.spa.core.ui.resources.be_vietnam_pro_semibold
+import com.tana.spa.core.ui.resources.fraunces_medium
+import com.tana.spa.core.ui.resources.fraunces_regular
 import org.jetbrains.compose.resources.Font
 
 @Composable
-fun hankenGroteskFontFamily(): FontFamily = FontFamily(
-    Font(Res.font.hanken_grotesk_regular, FontWeight.Normal),
-    Font(Res.font.hanken_grotesk_medium, FontWeight.Medium),
-    Font(Res.font.hanken_grotesk_semibold, FontWeight.SemiBold),
+fun beVietnamProFontFamily(): FontFamily = FontFamily(
+    Font(Res.font.be_vietnam_pro_regular, FontWeight.Normal),
+    Font(Res.font.be_vietnam_pro_medium, FontWeight.Medium),
+    Font(Res.font.be_vietnam_pro_semibold, FontWeight.SemiBold),
 )
 
 @Composable
-fun newsreaderFontFamily(): FontFamily = FontFamily(
-    Font(Res.font.newsreader_light, FontWeight.Light),
-    Font(Res.font.newsreader_regular, FontWeight.Normal),
+fun frauncesFontFamily(): FontFamily = FontFamily(
+    Font(Res.font.fraunces_regular, FontWeight.Normal),
+    Font(Res.font.fraunces_medium, FontWeight.Medium),
 )
 
 internal val SpaColorScheme = lightColorScheme(
@@ -81,8 +81,8 @@ internal val SpaShapes = Shapes(
 
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
-    val bodyFamily = hankenGroteskFontFamily()
-    val displayFamily = newsreaderFontFamily()
+    val bodyFamily = beVietnamProFontFamily()
+    val displayFamily = frauncesFontFamily()
     val typography = remember(bodyFamily, displayFamily) { Typography().withFamilies(bodyFamily, displayFamily) }
     val textStyles = remember(typography, displayFamily) { spaTextStyles(typography, displayFamily) }
     val motion = if (platformPrefersReducedMotion()) NoMotion else FullMotion
@@ -99,11 +99,11 @@ private fun Typography.withFamilies(body: FontFamily, display: FontFamily): Typo
     fun TextStyle.b() = copy(fontFamily = body, letterSpacing = 0.sp)
     fun TextStyle.d(weight: FontWeight) = copy(fontFamily = display, fontWeight = weight)
     return copy(
-        displayLarge = displayLarge.d(FontWeight.Light),
-        displayMedium = displayMedium.d(FontWeight.Light),
-        displaySmall = displaySmall.d(FontWeight.Light),
-        headlineLarge = headlineLarge.d(FontWeight.Light),
-        headlineMedium = headlineMedium.d(FontWeight.Light),
+        displayLarge = displayLarge.d(FontWeight.Normal),
+        displayMedium = displayMedium.d(FontWeight.Normal),
+        displaySmall = displaySmall.d(FontWeight.Normal),
+        headlineLarge = headlineLarge.d(FontWeight.Normal),
+        headlineMedium = headlineMedium.d(FontWeight.Normal),
         headlineSmall = headlineSmall.d(FontWeight.Normal),
         titleLarge = titleLarge.d(FontWeight.Normal),
         titleMedium = titleMedium.b(), titleSmall = titleSmall.b(),

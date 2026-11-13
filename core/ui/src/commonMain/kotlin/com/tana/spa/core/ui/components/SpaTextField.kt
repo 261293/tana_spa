@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.spaPointer
@@ -175,6 +176,8 @@ fun SpaTextField(
                             Text(
                                 text = placeholder,
                                 style = textStyle.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = inkAlpha)),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                         innerTextField()
