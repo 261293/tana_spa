@@ -12,7 +12,7 @@ together.
 | Role | Who | Permissions | What it can do |
 |---|---|---|---|
 | `customer` | anyone who signs up | none | book, cancel their own booking |
-| `staff` | the spa's team | `MANAGE_BOOKINGS` | the desk's queue: confirm, decline, record visits |
+| `staff` | the spa's team | `MANAGE_BOOKINGS` | the desk's queue: confirm, decline, record visits. Staff never book: `spa_create_booking` refuses them with `403 staff_cannot_book`, and the app hides booking from them |
 | `owner` | the spa | `MANAGE_BOOKINGS`, `MANAGE_SERVICES`, `MANAGE_THERAPISTS`, `MANAGE_ACCOUNTS` | the desk, plus treatments, therapists and staff/customer accounts |
 | `admin` | whoever operates the system | all of the above and `OPERATE_SYSTEM` | everything, including `/admin/` |
 
@@ -56,6 +56,7 @@ token expires, and refuses a caller without the permission with `403 forbidden`.
 | `spa_complete_booking(id)` | `MANAGE_BOOKINGS` | record that the visit happened |
 | `spa_no_show_booking(id)` | `MANAGE_BOOKINGS` | record that it did not |
 | `spa_create_service(name, description, minutes, price, category)` | `MANAGE_SERVICES` | add a treatment to the menu |
+| `spa_create_product(name, brand, description, price, size)` | `MANAGE_SERVICES` | put a retail product on the shelf every role sees on Home (`spa_products()`, callable without a session) |
 | `spa_create_therapist(name, focus, accent?)` | `MANAGE_THERAPISTS` | add a therapist profile (no login of their own) |
 
 The guest's own side is `spa_bookings()`, `spa_create_booking(…)` and `spa_cancel_booking(id)`,
