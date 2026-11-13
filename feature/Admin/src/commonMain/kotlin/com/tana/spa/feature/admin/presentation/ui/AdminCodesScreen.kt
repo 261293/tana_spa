@@ -81,6 +81,7 @@ import com.tana.spa.shared.spa.AdminCode
 import com.tana.spa.shared.spa.AdminCodeState
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 
 private const val USAGE_WARNING_PERCENT = 90
@@ -97,11 +98,12 @@ fun AdminCodesScreen(
     onOpenGuestApp: () -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
+    val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
         effects.collect { effect ->
             val message = when (effect) {
-                is AdminCodesEffect.ShowPublished -> getString(Res.string.admin_published_toast, effect.code, effect.starts)
-                is AdminCodesEffect.ShowDisabled -> getString(Res.string.admin_disabled_toast, effect.code)
+                is AdminCodesEffect.ShowPublished -> getString(resources, Res.string.admin_published_toast, effect.code, effect.starts)
+                is AdminCodesEffect.ShowDisabled -> getString(resources, Res.string.admin_disabled_toast, effect.code)
             }
             snackbar.currentSnackbarData?.dismiss()
             snackbar.showSnackbar(message)

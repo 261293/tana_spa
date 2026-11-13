@@ -112,11 +112,13 @@ import com.tana.spa.feature.admin.resources.admin_status_recorded
 import com.tana.spa.feature.admin.resources.admin_time_range
 import com.tana.spa.feature.admin.resources.admin_visit_completed
 import com.tana.spa.feature.admin.resources.admin_visit_toast
-import com.tana.spa.feature.admin.resources.admin_waited
+import com.tana.spa.feature.admin.resources.admin_waited_hours
+import com.tana.spa.feature.admin.resources.admin_waited_minutes
 import com.tana.spa.shared.booking.DeclineReasonDto
 import com.tana.spa.shared.spa.SpaDate
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 
 private val QUEUE_WIDTH = 340.dp
@@ -133,26 +135,28 @@ fun AdminRequestsScreen(
     onOpenGuestApp: () -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
+    val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
         effects.collect { effect ->
             val message = when (effect) {
-                is AdminRequestsEffect.ShowConfirmed -> getString(Res.string.admin_confirmed_toast, effect.guest)
+                is AdminRequestsEffect.ShowConfirmed -> getString(resources, Res.string.admin_confirmed_toast, effect.guest)
 
                 is AdminRequestsEffect.ShowDeclined -> if (effect.withAlternative) {
-                    getString(Res.string.admin_declined_toast_alternative, effect.guest)
+                    getString(resources, Res.string.admin_declined_toast_alternative, effect.guest)
                 } else {
-                    getString(Res.string.admin_declined_toast, effect.guest)
+                    getString(resources, Res.string.admin_declined_toast, effect.guest)
                 }
 
                 is AdminRequestsEffect.ShowVisitRecorded -> getString(
+                    resources,
                     if (effect.attended) Res.string.admin_visit_toast else Res.string.admin_no_show_toast,
                     effect.guest,
                 )
 
-                is AdminRequestsEffect.ShowAssigned -> getString(Res.string.admin_assigned_toast, effect.guest, effect.therapist)
+                is AdminRequestsEffect.ShowAssigned -> getString(resources, Res.string.admin_assigned_toast, effect.guest, effect.therapist)
 
                 is AdminRequestsEffect.ShowRefused ->
-                    getString(if (effect.overlap) Res.string.admin_refused_overlap else Res.string.admin_refused)
+                    getString(resources, if (effect.overlap) Res.string.admin_refused_overlap else Res.string.admin_refused)
             }
             snackbar.currentSnackbarData?.dismiss()
             snackbar.showSnackbar(message)
@@ -324,12 +328,12 @@ private fun WarningTag(text: String) {
     }
 }
 
-/** "9 min ago", then hours once a request has been waiting that long. */
 @Composable
-private fun waitedLabel(minutes: Int): String = stringResource(
-    Res.string.admin_waited,
-    if (minutes < MINUTES_PER_HOUR) "$minutes min" else "${minutes / MINUTES_PER_HOUR} h",
-)
+private fun waitedLabel(minutes: Int): String = if (minutes < MINUTES_PER_HOUR) {
+    stringResource(Res.string.admin_waited_minutes, minutes)
+} else {
+    stringResource(Res.string.admin_waited_hours, minutes / MINUTES_PER_HOUR)
+}
 
 @Composable
 private fun StatusPill(status: DeskStatus) {
@@ -374,7 +378,11 @@ private fun DecisionPanel(
     val nowEpochMillis = state.nowEpochMillis
     SpaCard(modifier.fillMaxWidth(), padding = PaddingValues(20.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                itemVerticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     text = request.guest,
                     style = SpaTheme.textStyles.cardTitle,

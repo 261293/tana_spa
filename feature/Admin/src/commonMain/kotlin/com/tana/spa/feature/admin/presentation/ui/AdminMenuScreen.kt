@@ -100,6 +100,7 @@ import com.tana.spa.shared.booking.ServiceCategoryDto
 import com.tana.spa.shared.booking.TextFieldError
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
@@ -116,19 +117,23 @@ fun AdminMenuScreen(
     onOpenGuestApp: () -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
+    val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
         effects.collect { effect ->
             val message = when (effect) {
-                is AdminMenuEffect.ShowServiceAdded -> getString(Res.string.admin_menu_service_added, effect.name)
+                is AdminMenuEffect.ShowServiceAdded -> getString(resources, Res.string.admin_menu_service_added, effect.name)
 
-                is AdminMenuEffect.ShowTherapistAdded -> getString(Res.string.admin_menu_therapist_added, effect.name)
+                is AdminMenuEffect.ShowTherapistAdded -> getString(resources, Res.string.admin_menu_therapist_added, effect.name)
 
-                is AdminMenuEffect.ShowPersonAdded -> getString(Res.string.admin_menu_person_added, effect.name)
+                is AdminMenuEffect.ShowPersonAdded -> getString(resources, Res.string.admin_menu_person_added, effect.name)
 
-                is AdminMenuEffect.ShowLinked -> effect.account?.let { getString(Res.string.admin_menu_team_linked, effect.name, it) }
-                    ?: getString(Res.string.admin_menu_team_unlinked, effect.name)
+                is AdminMenuEffect.ShowLinked -> effect.account?.let {
+                    getString(resources, Res.string.admin_menu_team_linked, effect.name, it)
+                }
+                    ?: getString(resources, Res.string.admin_menu_team_unlinked, effect.name)
 
                 is AdminMenuEffect.ShowLinkRefused -> getString(
+                    resources,
                     when (effect.code) {
                         AccountErrorCodes.UNKNOWN_ACCOUNT -> Res.string.admin_menu_team_unknown
                         AccountErrorCodes.ROLE_NOT_ALLOWED -> Res.string.admin_menu_team_not_staff
@@ -136,7 +141,7 @@ fun AdminMenuScreen(
                     },
                 )
 
-                is AdminMenuEffect.ShowRefused -> getString(Res.string.admin_refused)
+                is AdminMenuEffect.ShowRefused -> getString(resources, Res.string.admin_refused)
             }
             snackbar.currentSnackbarData?.dismiss()
             snackbar.showSnackbar(message)

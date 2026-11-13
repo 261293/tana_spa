@@ -84,6 +84,7 @@ import com.tana.spa.feature.notifications.resources.notifications_unread_count
 import com.tana.spa.shared.notifications.NotificationType
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
 
@@ -99,13 +100,14 @@ fun NotificationsScreen(
     onOpenBooking: (String) -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
+    val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
                 is NotificationsEffect.OpenBooking -> onOpenBooking(effect.bookingId)
-                NotificationsEffect.ShowLoadFailed -> snackbar.showSnackbar(getString(Res.string.notifications_load_failed))
-                NotificationsEffect.ShowPushEnabled -> snackbar.showSnackbar(getString(Res.string.notifications_enabled_message))
-                NotificationsEffect.ShowPushRefused -> snackbar.showSnackbar(getString(Res.string.notifications_refused_message))
+                NotificationsEffect.ShowLoadFailed -> snackbar.showSnackbar(getString(resources, Res.string.notifications_load_failed))
+                NotificationsEffect.ShowPushEnabled -> snackbar.showSnackbar(getString(resources, Res.string.notifications_enabled_message))
+                NotificationsEffect.ShowPushRefused -> snackbar.showSnackbar(getString(resources, Res.string.notifications_refused_message))
             }
         }
     }

@@ -156,7 +156,8 @@ private fun CompactTabs(section: AdminSection, pendingCount: Int, onSelect: (Adm
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = stringResource(Res.string.admin_nav_requests),
-                            style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
                         )
                         if (pendingCount > 0) {
                             Badge(
@@ -175,7 +176,8 @@ private fun CompactTabs(section: AdminSection, pendingCount: Int, onSelect: (Adm
                 text = {
                     Text(
                         text = stringResource(Res.string.admin_nav_menu),
-                        style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
                     )
                 },
             )
@@ -185,7 +187,8 @@ private fun CompactTabs(section: AdminSection, pendingCount: Int, onSelect: (Adm
                 text = {
                     Text(
                         text = stringResource(Res.string.admin_nav_codes),
-                        style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
                     )
                 },
             )

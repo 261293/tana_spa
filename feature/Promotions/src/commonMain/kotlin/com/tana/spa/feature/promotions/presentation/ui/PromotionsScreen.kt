@@ -79,6 +79,7 @@ import com.tana.spa.shared.spa.Promo
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
@@ -92,13 +93,14 @@ fun PromotionsScreen(
     val snackbar = remember { SnackbarHostState() }
     val clipboard = LocalClipboardManager.current
 
+    val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
                 is PromotionsEffect.ShowCopied -> {
                     clipboard.setText(AnnotatedString(effect.code))
                     snackbar.currentSnackbarData?.dismiss()
-                    snackbar.showSnackbar(getString(Res.string.promotions_copied, effect.code))
+                    snackbar.showSnackbar(getString(resources, Res.string.promotions_copied, effect.code))
                 }
 
                 is PromotionsEffect.OpenBooking -> onOpenBooking(effect.code)

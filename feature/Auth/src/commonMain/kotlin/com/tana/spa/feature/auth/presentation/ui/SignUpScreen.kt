@@ -78,6 +78,7 @@ import com.tana.spa.feature.auth.resources.signup_with_google
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 
 /** Figma "SIGNUP" screen. Stateless: state comes in, [onEvent] goes out, effects are one-shot. */
@@ -92,6 +93,7 @@ fun SignUpScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
@@ -103,7 +105,7 @@ fun SignUpScreen(
 
                 is SignUpEffect.ShowComingSoon -> {
                     snackbarHostState.currentSnackbarData?.dismiss()
-                    snackbarHostState.showSnackbar(getString(effect.feature.res()))
+                    snackbarHostState.showSnackbar(getString(resources, effect.feature.res()))
                 }
             }
         }
