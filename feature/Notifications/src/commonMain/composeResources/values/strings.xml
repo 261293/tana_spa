@@ -9,7 +9,7 @@
     <string name="notifications_mark_all_read">Đánh dấu đã đọc tất cả</string>
     <string name="notifications_unread">Chưa đọc</string>
     <string name="notifications_empty_title">Chưa có thông báo</string>
-    <string name="notifications_empty_body">Thông báo về đơn hàng, lịch hẹn và ưu đãi sẽ xuất hiện ở đây.</string>
+    <string name="notifications_empty_body">Thông báo về lịch hẹn và ưu đãi sẽ xuất hiện ở đây.</string>
     <string name="notifications_failed_title">Không tải được thông báo</string>
     <string name="notifications_retry">Thử lại</string>
     <string name="notifications_load_more">Xem thêm</string>
@@ -17,7 +17,7 @@
 
     <!-- Asked for in the centre, not at launch: the system prompt only appears once -->
     <string name="notifications_enable_title">Bật thông báo</string>
-    <string name="notifications_enable_body">Nhận thông báo về đơn hàng và lịch hẹn ngay trên thiết bị này.</string>
+    <string name="notifications_enable_body">Nhận thông báo về lịch hẹn ngay trên thiết bị này.</string>
     <string name="notifications_enable_action">Bật</string>
     <string name="notifications_enabled_message">Đã bật thông báo trên thiết bị này.</string>
     <string name="notifications_refused_message">Chưa bật được thông báo. Bạn có thể bật lại trong phần cài đặt của thiết bị.</string>

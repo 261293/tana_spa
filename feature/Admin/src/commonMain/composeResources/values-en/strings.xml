@@ -104,7 +104,7 @@
 
     <string name="admin_codes_title">Discount</string>
     <string name="admin_codes_title_accent">codes</string>
-    <string name="admin_codes_subtitle">%1$d live · %2$d redemptions in October · $%3$s discounted</string>
+    <string name="admin_codes_subtitle">%1$d live</string>
     <string name="admin_codes_create">Create discount code</string>
     <string name="admin_filter_all">All %1$d</string>
     <string name="admin_filter_state">%1$s %2$d</string>
@@ -143,7 +143,7 @@
     <string name="admin_create_preview">What guests will see</string>
     <string name="admin_create_preview_offer">%1$s %2$s</string>
     <string name="admin_create_preview_valid">Valid %1$s – %2$s.</string>
-    <string name="admin_create_preview_minimum">Minimum spend $%1$s.</string>
+    <string name="admin_create_preview_minimum">Minimum spend %1$s.</string>
     <string name="admin_create_preview_limit">First %1$s bookings.</string>
     <string name="admin_create_publish">Publish code</string>
     <string name="admin_create_cancel">Cancel</string>

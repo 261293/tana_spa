@@ -46,8 +46,8 @@
     <string name="bookings_status_cancelled">Cancelled</string>
     <string name="bookings_status_completed">Visited</string>
     <string name="bookings_status_no_show">Missed</string>
-    <string name="bookings_decline_overlap">That therapist was already booked at the time you asked for.</string>
-    <string name="bookings_decline_therapist">That therapist wasn’t available at the time you asked for.</string>
+    <string name="bookings_decline_overlap">The time you asked for is fully booked.</string>
+    <string name="bookings_decline_therapist">No therapist is free at the time you asked for.</string>
     <string name="bookings_decline_room">No treatment room was free at the time you asked for.</string>
     <string name="bookings_instead">The spa suggests %1$s instead.</string>
     <string name="bookings_cancel">Cancel this visit</string>

@@ -85,10 +85,6 @@ import org.jetbrains.compose.resources.stringResource
 
 private const val USAGE_WARNING_PERCENT = 90
 
-/** Redemptions this month, as reported by the console's billing summary. */
-private const val REDEMPTIONS_THIS_MONTH = 287
-private const val DISCOUNTED_THIS_MONTH = "4,310"
-
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
 @Composable
 fun AdminCodesScreen(
@@ -133,12 +129,7 @@ fun AdminCodesScreen(
                 SpaScreenHeader(
                     title = stringResource(Res.string.admin_codes_title),
                     accent = stringResource(Res.string.admin_codes_title_accent),
-                    subtitle = stringResource(
-                        Res.string.admin_codes_subtitle,
-                        state.liveCount,
-                        REDEMPTIONS_THIS_MONTH,
-                        DISCOUNTED_THIS_MONTH,
-                    ),
+                    subtitle = stringResource(Res.string.admin_codes_subtitle, state.liveCount),
                     modifier = Modifier.revealOnScroll(),
                 )
                 SpaPrimaryButton(
