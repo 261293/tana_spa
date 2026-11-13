@@ -10,7 +10,10 @@ interface Platform {
 expect fun getPlatform(): Platform
 
 /**
- * Base URL the host environment points the app at, or null to use the compiled default. Only the
- * browser build can be retargeted after it is built, from the page that loads it.
+ * Base URL the host environment points the app at, or null to use the compiled default. The browser
+ * build reads it from the page, the desktop build from the environment; mobile builds always use the default.
  */
 expect fun configuredApiBaseUrl(): String?
+
+/** Publishable key of the project [configuredApiBaseUrl] names, or null to use the compiled one. */
+expect fun configuredPublishableKey(): String?

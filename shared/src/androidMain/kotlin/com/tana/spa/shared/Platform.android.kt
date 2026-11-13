@@ -11,3 +11,5 @@ class AndroidPlatform : Platform {
 actual fun getPlatform(): Platform = AndroidPlatform()
 
 actual fun configuredApiBaseUrl(): String? = null
+
+actual fun configuredPublishableKey(): String? = null

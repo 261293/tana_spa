@@ -159,7 +159,7 @@ class AuthRemoteApiImplTest {
         api.logout("a1")
 
         assertEquals(3, sent.size)
-        sent.forEach { assertEquals(Constants.SUPABASE_PUBLISHABLE_KEY, it.apikey, it.target) }
+        sent.forEach { assertEquals(Constants.publishableKey(), it.apikey, it.target) }
     }
 
     @Test

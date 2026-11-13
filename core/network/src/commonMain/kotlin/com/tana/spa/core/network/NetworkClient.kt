@@ -25,7 +25,7 @@ fun HttpClient.withDefaults(refresher: () -> SessionRefresher = { SessionRefresh
     // Read per request, not once at install: the guest can change language without restarting.
     install(DefaultRequest) {
         headers[HttpHeaders.AcceptLanguage] = RequestLanguage.tag
-        headers["apikey"] = Constants.SUPABASE_PUBLISHABLE_KEY
+        headers["apikey"] = Constants.publishableKey()
     }
     install(HttpTimeout) {
         requestTimeoutMillis = 20_000

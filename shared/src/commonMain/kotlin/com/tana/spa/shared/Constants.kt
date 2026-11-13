@@ -9,6 +9,8 @@ object Constants {
     /** Public by design: it identifies the project, and the database functions decide what a caller may do. */
     const val SUPABASE_PUBLISHABLE_KEY = "sb_publishable_OH8tYugWOYtJEynk0AElHA_rB18Sy3t"
 
-    /** Without a trailing slash. The browser build can be pointed elsewhere by the page; see [configuredApiBaseUrl]. */
+    /** Without a trailing slash. The web and desktop builds can be pointed elsewhere; see [configuredApiBaseUrl]. */
     fun apiBaseUrl(): String = configuredApiBaseUrl() ?: BASE_URL
+
+    fun publishableKey(): String = configuredPublishableKey() ?: SUPABASE_PUBLISHABLE_KEY
 }

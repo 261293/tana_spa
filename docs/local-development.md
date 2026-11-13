@@ -32,13 +32,18 @@ your IDE) before anything else works.
 
 ### Where the apps get their data
 
-The apps always talk to the remote Supabase project named in `shared/.../Constants.kt`
-(`SUPABASE_URL` and its publishable key, both public by design). There is no debug build that
-points at your machine: common code has no debug/release switch. The local stack below is for the
-database and Edge Function tests.
+By default every app talks to the remote (production) Supabase project named in
+`shared/.../Constants.kt` (`BASE_URL` and its publishable key, both public by design).
+
+The **web development server** and the **desktop app** can talk to the local stack instead: set
+`TANA_API_BASE_URL` and `TANA_SUPABASE_KEY` in the shell that starts them (section 1a). A production
+web bundle never takes them (`composeApp/webpack.config.d/local-backend.js` only touches a
+development bundle, and `verifyWebDistributionStripped` fails a production bundle that carries
+them). Android and iOS always use the compiled project.
 
 The backend in `supabase/` reaches the remote project only when it is deployed. Until then an app
-built from this branch calls functions the remote project may not have yet.
+built from this branch and pointed at production calls functions the remote project may not have
+yet; point it at the local stack instead.
 
 ### Start the local stack
 
@@ -68,6 +73,33 @@ npx supabase test db     # every pgTAP file in supabase/tests/database ends with
 ./gradlew :androidApp:assembleDebug                 # Android APK
 # iOS: open iosApp/ in Xcode and run (macOS only)
 ```
+
+### 1a. Run the app against the local stack
+
+```powershell
+# PowerShell
+npx supabase start -x logflare,vector,studio
+npx supabase db reset                                   # your new migrations included
+$env:TANA_API_BASE_URL = "http://127.0.0.1:54321"
+$env:TANA_SUPABASE_KEY = ((npx supabase status -o env | Select-String '^PUBLISHABLE_KEY=').Line -split '"')[1]
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun       # or :composeApp:run for desktop
+```
+
+```bash
+# bash
+npx supabase start -x logflare,vector,studio
+npx supabase db reset
+export TANA_API_BASE_URL=http://127.0.0.1:54321
+export TANA_SUPABASE_KEY=$(npx supabase status -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"/\1/p')
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+```
+
+The dev server prints `[tana] development bundle talks to http://127.0.0.1:54321`; without that line
+the page is talking to production. The local database starts with the catalogue and therapists but
+no accounts: sign up in the app (email confirmation is off locally), then give an account a role
+with `docker exec supabase_db_tana-spa psql -U postgres -c "update public.users set role = 'owner' where email = '…';"`
+and sign out and in again, since the app reads the role at sign-in. Close the terminal (or unset
+both variables) to go back to production.
 
 The admin page (feature flags, app update config) is `/admin/` of the web build:
 `composeApp/src/webMain/resources/admin/index.html`. It signs in with an account whose `role` is
@@ -103,7 +135,23 @@ npx supabase test db supabase/tests/database/060_owner_desk.test.sql
 
 ---
 
-## 3. Before you push
+## 3. A feature end to end: local first, then production
+
+1. Branch from `main`.
+2. Backend: a **new** migration in `supabase/migrations/` plus its pgTAP test
+   (section 4); `npx supabase db reset && npx supabase test db`.
+3. Client: the DTOs in `shared/` and the feature code; `./gradlew jvmTest`.
+4. Run the web or desktop app against the local stack (section 1a) and try the feature by hand.
+5. Run "Before you push" below, open a pull request, merge it once CI is green.
+6. Deploy from an up-to-date `main`, backend first: apply the new migration to the project
+   (`docs/production-checklist.md`), then build and publish the web
+   (`./gradlew :composeApp:wasmJsBrowserDistribution` and `npx wrangler deploy`, in a shell
+   without the `TANA_*` variables). A client that calls a function the project does not have yet
+   fails, so never ship the client first.
+
+---
+
+## 3b. Before you push
 
 This is what CI runs ([ci.md](ci.md)), in the cheapest-first order. Run all of it after
 implementing anything.
