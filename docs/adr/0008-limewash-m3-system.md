@@ -25,9 +25,11 @@ colour and text style from `MaterialTheme` and `SpaTheme` (ADR 0002).
 - **Palette:** warm limewash paper and card stock, umber ink, and one eucalyptus signal (`primary`, slate until 2026-11-12)
   reserved for the primary action, the current selection and focus. Every role maps to a token in
   `SpaColors`; the values and their OKLCH sources are listed in `DESIGN.md`.
-- **Type:** Newsreader (light for display and screen titles, regular for card titles) over Hanken
-  Grotesk for everything else, untracked. Both bundle the Vietnamese letters and `₫`
-  (`core/ui/licenses/FONTS.md`).
+- **Type:** Fraunces regular for display, screen and card titles over Be Vietnam Pro for
+  everything else, untracked. Both bundle the Vietnamese letters and `₫`
+  (`core/ui/licenses/FONTS.md`). Amended 2026-11-13: Newsreader light and Hanken Grotesk were
+  replaced after the owner found them plain and the light serif's stacked Vietnamese marks thin;
+  Instrument Sans, the earlier body face, has no Vietnamese at all and was not brought back.
 - **Shape:** Material's scale cut smaller, 4/8/12/16/24 dp.
 - **Removed:** the italic accent span in `SpaDisplayTitle`, page-head eyebrows (`SpaScreenHeader`
   no longer takes one), uppercase transforms on labels (`SpaEyebrow` became `SpaTag`), the

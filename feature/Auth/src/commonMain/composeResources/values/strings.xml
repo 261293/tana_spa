@@ -15,7 +15,7 @@
     <string name="login_button">Đăng nhập</string>
     <string name="login_with_google">Đăng nhập với Google</string>
     <string name="no_account">Bạn chưa có tài khoản?</string>
-    <string name="sign_up_now">Đăng kí ngay</string>
+    <string name="sign_up_now">Đăng ký ngay</string>
 
     <!-- Sign-up -->
     <string name="signup_title">Tạo tài khoản</string>
@@ -24,8 +24,8 @@
     <string name="name_placeholder">Nhập họ và tên</string>
     <string name="phone_label">Số điện thoại</string>
     <string name="phone_placeholder">Nhập số điện thoại</string>
-    <string name="signup_button">Đăng kí</string>
-    <string name="signup_with_google">Đăng kí với Google</string>
+    <string name="signup_button">Đăng ký</string>
+    <string name="signup_with_google">Đăng ký với Google</string>
     <string name="have_account">Bạn đã có tài khoản?</string>
     <string name="login_now">Đăng nhập ngay</string>
 
@@ -57,7 +57,7 @@
 
     <!-- Request failures -->
     <string name="failure_invalid_credentials">Email hoặc mật khẩu không đúng</string>
-    <string name="failure_email_taken">Email này đã được đăng kí</string>
+    <string name="failure_email_taken">Email này đã được đăng ký</string>
     <string name="failure_phone_taken">Số điện thoại này đã được xác minh bởi tài khoản khác</string>
     <string name="failure_invalid_input">Thông tin chưa hợp lệ. Vui lòng kiểm tra số điện thoại và email</string>
     <string name="failure_too_many_requests">Bạn đã thử quá nhiều lần. Vui lòng thử lại sau ít phút</string>

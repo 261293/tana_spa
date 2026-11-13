@@ -104,7 +104,7 @@
 
     <string name="admin_codes_title">Mã</string>
     <string name="admin_codes_title_accent">giảm giá</string>
-    <string name="admin_codes_subtitle">%1$d mã đang chạy · %2$d lượt dùng trong tháng 10 · đã giảm %3$s$</string>
+    <string name="admin_codes_subtitle">%1$d mã đang chạy</string>
     <string name="admin_codes_create">Tạo mã giảm giá</string>
     <string name="admin_filter_all">Tất cả %1$d</string>
     <string name="admin_filter_state">%1$s %2$d</string>
@@ -143,7 +143,7 @@
     <string name="admin_create_preview">Khách sẽ thấy</string>
     <string name="admin_create_preview_offer">%1$s %2$s</string>
     <string name="admin_create_preview_valid">Hiệu lực %1$s – %2$s.</string>
-    <string name="admin_create_preview_minimum">Hóa đơn tối thiểu %1$s$.</string>
+    <string name="admin_create_preview_minimum">Hóa đơn tối thiểu %1$s.</string>
     <string name="admin_create_preview_limit">%1$s lịch hẹn đầu tiên.</string>
     <string name="admin_create_publish">Phát hành mã</string>
     <string name="admin_create_cancel">Hủy</string>

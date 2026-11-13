@@ -32,9 +32,10 @@ decorative fill. Light only (ADR 0002).
 
 ## Type
 
-- **Newsreader** light: display and screen titles, sentence case, roman, one weight a heading.
-  Regular: card titles, prices, the brand name. Never running text.
-- **Hanken Grotesk** 400/500/600: body (16sp), labels, controls, data. Untracked.
+- **Fraunces** regular: display and screen titles, card titles and prices, sentence case, roman.
+  Medium: the brand name. Never running text.
+- **Be Vietnam Pro** 400/500/600: body (16sp), labels, controls, data. Untracked. Drawn for
+  Vietnamese, so stacked marks (`ể`, `ẫ`, `ở`) keep their spacing at small sizes.
 - Labels (`SpaTag`) are a step smaller, sentence case, never uppercase or letter-spaced.
 
 ## Shape

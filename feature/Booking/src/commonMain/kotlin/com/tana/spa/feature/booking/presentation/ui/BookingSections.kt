@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
@@ -123,9 +122,8 @@ internal fun ServiceList(
 
         else -> Row(modifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             staggeredColumns(state.visibleServices, columns).forEach { column ->
-                Column(Modifier.weight(1f)) {
-                    column.forEachIndexed { index, service ->
-                        if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    column.forEach { service ->
                         PickRow(service, service.id == state.serviceId) { onSelect(service.id) }
                     }
                 }
@@ -221,7 +219,12 @@ private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
             )
         }
         if (selected) {
-            SpaIconImage(SpaIcon.Check, size = 16.dp, tint = MaterialTheme.colorScheme.primary)
+            Box(
+                Modifier.size(24.dp).background(MaterialTheme.colorScheme.primary, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                SpaIconImage(SpaIcon.Check, size = 16.dp, tint = MaterialTheme.colorScheme.onPrimary)
+            }
         }
     }
 }

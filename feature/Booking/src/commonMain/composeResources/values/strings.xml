@@ -46,8 +46,8 @@
     <string name="bookings_status_cancelled">Đã hủy</string>
     <string name="bookings_status_completed">Đã đến</string>
     <string name="bookings_status_no_show">Không đến</string>
-    <string name="bookings_decline_overlap">Kỹ thuật viên đó đã có khách vào giờ bạn chọn.</string>
-    <string name="bookings_decline_therapist">Kỹ thuật viên đó không nhận khách vào giờ bạn chọn.</string>
+    <string name="bookings_decline_overlap">Giờ bạn chọn đã kín lịch.</string>
+    <string name="bookings_decline_therapist">Không có kỹ thuật viên nào rảnh vào giờ bạn chọn.</string>
     <string name="bookings_decline_room">Không còn phòng trị liệu trống vào giờ bạn chọn.</string>
     <string name="bookings_instead">Spa gợi ý %1$s thay cho giờ đó.</string>
     <string name="bookings_cancel">Hủy lịch hẹn này</string>
@@ -116,6 +116,6 @@
     <string name="treatments_search_placeholder">Massage, chăm sóc da, xông thảo mộc…</string>
     <string name="treatments_filter_all">Tất cả</string>
     <string name="treatments_empty_title">Không có liệu trình nào khớp</string>
-    <string name="treatments_empty_body">Thử từ khoá khác, hoặc xem lại toàn bộ liệu trình.</string>
+    <string name="treatments_empty_body">Thử từ khóa khác, hoặc xem lại toàn bộ liệu trình.</string>
     <string name="treatments_empty_action">Xem tất cả liệu trình</string>
 </resources>

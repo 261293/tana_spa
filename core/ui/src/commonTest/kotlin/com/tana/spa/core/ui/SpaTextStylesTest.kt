@@ -36,9 +36,9 @@ class SpaTextStylesTest {
 
     @Test
     fun weights_match_the_design_tokens() {
-        assertEquals(FontWeight.Normal, styles.brandTitle.fontWeight)
-        assertEquals(FontWeight.Light, styles.screenTitle.fontWeight)
-        assertEquals(FontWeight.Light, styles.displayTitle.fontWeight)
+        assertEquals(FontWeight.Medium, styles.brandTitle.fontWeight)
+        assertEquals(FontWeight.Normal, styles.screenTitle.fontWeight)
+        assertEquals(FontWeight.Normal, styles.displayTitle.fontWeight)
         assertEquals(FontWeight.Normal, styles.cardTitle.fontWeight)
         assertEquals(FontWeight.Medium, styles.tag.fontWeight)
         assertEquals(FontWeight.SemiBold, styles.buttonLabel.fontWeight)

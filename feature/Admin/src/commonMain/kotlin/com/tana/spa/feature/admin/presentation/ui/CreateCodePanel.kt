@@ -63,6 +63,7 @@ import com.tana.spa.feature.admin.resources.admin_create_publish
 import com.tana.spa.feature.admin.resources.admin_create_starts
 import com.tana.spa.feature.admin.resources.admin_create_title
 import com.tana.spa.feature.admin.resources.admin_create_value
+import com.tana.spa.shared.helpers.formatVnd
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -277,7 +278,8 @@ private fun GuestPreview(state: AdminCodesState) {
                     val minimum = if (draft.minimumSpend.isBlank()) {
                         ""
                     } else {
-                        stringResource(Res.string.admin_create_preview_minimum, draft.minimumSpend)
+                        val amount = draft.minimumSpend.toLongOrNull()?.let(::formatVnd) ?: draft.minimumSpend
+                        stringResource(Res.string.admin_create_preview_minimum, amount)
                     }
                     val valid = stringResource(Res.string.admin_create_preview_valid, draft.starts, draft.ends)
                     val limit = if (draft.limit.isBlank()) {
