@@ -14,10 +14,12 @@ import com.tana.spa.shared.auth.CreateAccountRequest
 import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.auth.SpaPermission
 import com.tana.spa.shared.auth.SpaRoles
+import com.tana.spa.shared.booking.CreateProductRequest
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
 import com.tana.spa.shared.booking.DurationError
+import com.tana.spa.shared.booking.ProductDto
 import com.tana.spa.shared.booking.ServiceCategoryDto
 import com.tana.spa.shared.booking.ServiceDto
 import com.tana.spa.shared.booking.SpaValidation
@@ -47,6 +49,7 @@ class AdminMenuViewModelTest {
         val services = mutableListOf<CreateServiceRequest>()
         val therapists = mutableListOf<CreateTherapistRequest>()
         val accounts = mutableListOf<CreateAccountRequest>()
+        val products = mutableListOf<CreateProductRequest>()
         var refusal: DeskRefused? = null
 
         override suspend fun queue() = DeskQueue(emptyList(), emptyList(), 0)
@@ -83,6 +86,20 @@ class AdminMenuViewModelTest {
             therapists += request
             refusal?.let { throw it }
             return TherapistDto(SpaValidation.slugify(request.name), request.name, request.focus, TherapistAccentDto.MOSS, null)
+        }
+
+        override suspend fun createProduct(request: CreateProductRequest): ProductDto {
+            products += request
+            refusal?.let { throw it }
+            return ProductDto(
+                SpaValidation.slugify(request.name),
+                request.name,
+                request.brand,
+                request.description,
+                null,
+                request.price,
+                request.size,
+            )
         }
 
         override suspend fun createAccount(request: CreateAccountRequest): CreatedAccountDto {
@@ -128,6 +145,35 @@ class AdminMenuViewModelTest {
         )
         assertEquals("", vm.state.value.service.name, "a saved form is ready for the next treatment")
         assertEquals(AdminMenuEffect.ShowServiceAdded("Pine Ritual"), vm.effects.first())
+    }
+
+    @Test
+    fun a_product_goes_on_the_shelf_with_its_optional_fields_trimmed() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onEvent(AdminMenuEvent.ProductNameChanged(" Serum trà xanh "))
+        vm.onEvent(AdminMenuEvent.ProductDescriptionChanged("Dưỡng ẩm"))
+        vm.onEvent(AdminMenuEvent.ProductPriceChanged("450.000đ"))
+        vm.onEvent(AdminMenuEvent.ProductSizeChanged(" 30ml "))
+
+        vm.onEvent(AdminMenuEvent.SaveProduct)
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(listOf(CreateProductRequest("Serum trà xanh", "", "Dưỡng ẩm", 450_000, "30ml")), desk.products.toList())
+        assertEquals("", vm.state.value.product.name, "a saved form is ready for the next product")
+        assertEquals(AdminMenuEffect.ShowProductAdded("Serum trà xanh"), vm.effects.first())
+    }
+
+    @Test
+    fun a_product_without_a_name_is_never_sent() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onEvent(AdminMenuEvent.ProductPriceChanged("100"))
+        vm.onEvent(AdminMenuEvent.ProductDescriptionChanged("Dầu massage"))
+
+        vm.onEvent(AdminMenuEvent.SaveProduct)
+        testScheduler.advanceUntilIdle()
+
+        assertTrue(desk.products.isEmpty())
+        assertEquals(TextFieldError.EMPTY, vm.state.value.product.nameError)
     }
 
     @Test

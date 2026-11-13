@@ -27,7 +27,7 @@ object AdminRequestsEntry : FeatureEntry {
             onEvent = viewModel::onEvent,
             onOpenCodes = { navigator.navigate(Routes.ADMIN_CODES) },
             onOpenMenu = { navigator.navigate(Routes.ADMIN_MENU) },
-            onOpenGuestApp = { navigator.navigate(Routes.BOOKING) },
+            onOpenGuestApp = { navigator.navigate(Routes.HOME) },
         )
     }
 }
@@ -49,7 +49,7 @@ object AdminMenuEntry : FeatureEntry {
             pendingRequests = requestsState.pending.size,
             onOpenRequests = { navigator.navigate(Routes.ADMIN_REQUESTS) },
             onOpenCodes = { navigator.navigate(Routes.ADMIN_CODES) },
-            onOpenGuestApp = { navigator.navigate(Routes.BOOKING) },
+            onOpenGuestApp = { navigator.navigate(Routes.HOME) },
         )
     }
 }
@@ -72,7 +72,7 @@ object AdminCodesEntry : FeatureEntry {
             pendingRequests = requestsState.pending.size,
             onOpenRequests = { navigator.navigate(Routes.ADMIN_REQUESTS) },
             onOpenMenu = { navigator.navigate(Routes.ADMIN_MENU) },
-            onOpenGuestApp = { navigator.navigate(Routes.BOOKING) },
+            onOpenGuestApp = { navigator.navigate(Routes.HOME) },
         )
     }
 }

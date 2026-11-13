@@ -16,11 +16,13 @@ import com.tana.spa.shared.booking.AssignTherapistRequest
 import com.tana.spa.shared.booking.BookingDto
 import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.booking.ConfirmBookingRequest
+import com.tana.spa.shared.booking.CreateProductRequest
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineBookingRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
 import com.tana.spa.shared.booking.LinkTherapistRequest
+import com.tana.spa.shared.booking.ProductDto
 import com.tana.spa.shared.booking.ServiceDto
 import com.tana.spa.shared.booking.ShiftsResponse
 import com.tana.spa.shared.booking.StaffQueueResponse
@@ -100,6 +102,15 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
 
     override suspend fun createService(request: CreateServiceRequest): ServiceDto {
         val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_create_service")) {
+            authorize()
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
+        return response.requireSuccess().body()
+    }
+
+    override suspend fun createProduct(request: CreateProductRequest): ProductDto {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_create_product")) {
             authorize()
             contentType(ContentType.Application.Json)
             setBody(request)

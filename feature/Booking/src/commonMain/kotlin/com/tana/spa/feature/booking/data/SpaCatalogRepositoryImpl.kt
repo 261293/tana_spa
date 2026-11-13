@@ -2,9 +2,12 @@ package com.tana.spa.feature.booking.data
 
 import com.tana.spa.core.network.NetworkClient
 import com.tana.spa.feature.booking.domain.Catalog
+import com.tana.spa.feature.booking.domain.Product
 import com.tana.spa.feature.booking.domain.SpaCatalogRepository
 import com.tana.spa.shared.SupabasePaths
 import com.tana.spa.shared.booking.CatalogResponse
+import com.tana.spa.shared.booking.ProductDto
+import com.tana.spa.shared.booking.ProductsResponse
 import com.tana.spa.shared.booking.ServiceCategoryDto
 import com.tana.spa.shared.booking.ServiceDto
 import com.tana.spa.shared.booking.TherapistDto
@@ -31,7 +34,23 @@ class SpaCatalogRepositoryImpl(private val networkClient: NetworkClient, private
             todayEpochDay = body.todayEpochDay,
         )
     }
+
+    override suspend fun products(): List<Product> {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_products"))
+        check(response.status.isSuccess()) { "Products request failed with ${response.status.value}" }
+        return response.body<ProductsResponse>().products.map { it.toProduct() }
+    }
 }
+
+private fun ProductDto.toProduct() = Product(
+    id = slug,
+    name = name,
+    brand = brand,
+    description = description,
+    imageUrl = imageUrl,
+    priceVnd = price,
+    size = size,
+)
 
 private fun ServiceDto.toService() = Service(
     id = slug,

@@ -118,4 +118,19 @@
     <string name="treatments_empty_title">No treatments match that search</string>
     <string name="treatments_empty_body">Try a different word, or browse every ritual.</string>
     <string name="treatments_empty_action">Show all treatments</string>
+    <string name="home_title">Everything the spa has</string>
+    <string name="home_title_accent">for you</string>
+    <string name="home_subtitle">Treatments, products and offers in one place. Tap a treatment to book it.</string>
+    <string name="home_subtitle_staff">What the spa offers, so you can advise guests.</string>
+    <string name="home_offers">%1$d offers running</string>
+    <string name="home_offers_action">See offers</string>
+    <string name="home_treatments">Treatments</string>
+    <string name="home_treatment_meta">%1$d min · %2$s</string>
+    <string name="home_treatment_book">Book</string>
+    <string name="home_products">Products at the spa</string>
+    <string name="home_products_note">Buy them at the desk when you visit.</string>
+    <string name="home_products_empty">The spa has no products on the shelf yet.</string>
+    <string name="home_failed">Could not load the treatments.</string>
+    <string name="home_retry">Try again</string>
+    <string name="refusal_staff">Staff accounts do not book visits.</string>
 </resources>

@@ -14,6 +14,7 @@ import com.tana.spa.feature.booking.BookingConfirmEntry
 import com.tana.spa.feature.booking.BookingEntry
 import com.tana.spa.feature.booking.BookingWhenEntry
 import com.tana.spa.feature.booking.BookingsEntry
+import com.tana.spa.feature.booking.HomeEntry
 import com.tana.spa.feature.booking.ServiceDetailEntry
 import com.tana.spa.feature.explore.ExploreEntry
 import com.tana.spa.feature.feed.FeedEntry
@@ -27,6 +28,7 @@ import com.tana.spa.feature.settings.SettingsEntry
 /** Aggregates every feature module's navigable entry for the app to render. */
 object FeaturesRegistry {
     val entries: List<FeatureEntry> = listOf(
+        HomeEntry,
         BookingEntry,
         BookingWhenEntry,
         BookingConfirmEntry,

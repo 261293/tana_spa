@@ -177,4 +177,14 @@
     <string name="admin_menu_person_name_error">A name is needed</string>
     <string name="admin_menu_person_email_error">That email does not look right</string>
     <string name="admin_menu_person_password_error">At least 8 characters</string>
+    <string name="admin_menu_product_title">New product</string>
+    <string name="admin_menu_product_name_hint">Green tea serum</string>
+    <string name="admin_menu_product_brand">Brand</string>
+    <string name="admin_menu_product_brand_hint">Tana</string>
+    <string name="admin_menu_product_description_hint">Hydrating, calms skin after a treatment</string>
+    <string name="admin_menu_product_price_hint">450000</string>
+    <string name="admin_menu_product_size">Size</string>
+    <string name="admin_menu_product_size_hint">30ml</string>
+    <string name="admin_menu_add_product">Put on the shelf</string>
+    <string name="admin_menu_product_added">%1$s is on the shelf</string>
 </resources>

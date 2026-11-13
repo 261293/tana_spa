@@ -10,6 +10,7 @@ import com.tana.spa.shared.auth.AuthValidation
 import com.tana.spa.shared.auth.CreateAccountRequest
 import com.tana.spa.shared.auth.SpaPermission
 import com.tana.spa.shared.auth.SpaRoles
+import com.tana.spa.shared.booking.CreateProductRequest
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.SpaValidation
@@ -54,6 +55,20 @@ class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRol
             is AdminMenuEvent.ServiceCategoryChanged -> setState { copy(service = service.copy(category = event.category)) }
 
             AdminMenuEvent.SaveService -> saveService()
+
+            is AdminMenuEvent.ProductNameChanged -> setState { copy(product = product.copy(name = event.value, nameError = null)) }
+
+            is AdminMenuEvent.ProductBrandChanged -> setState { copy(product = product.copy(brand = event.value, brandError = null)) }
+
+            is AdminMenuEvent.ProductDescriptionChanged ->
+                setState { copy(product = product.copy(description = event.value, descriptionError = null)) }
+
+            is AdminMenuEvent.ProductPriceChanged ->
+                setState { copy(product = product.copy(price = event.value.digits(MAX_PRICE_DIGITS), priceError = null)) }
+
+            is AdminMenuEvent.ProductSizeChanged -> setState { copy(product = product.copy(size = event.value, sizeError = null)) }
+
+            AdminMenuEvent.SaveProduct -> saveProduct()
 
             is AdminMenuEvent.TherapistNameChanged ->
                 setState { copy(therapist = therapist.copy(name = event.value, nameError = null)) }
@@ -114,6 +129,44 @@ class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRol
                 }
                 .onFailure { failure ->
                     setState { copy(savingService = false) }
+                    sendEffect(AdminMenuEffect.ShowRefused((failure as? DeskRefused)?.code))
+                }
+        }
+    }
+
+    private fun saveProduct() {
+        val form = state.value.product
+        if (state.value.savingProduct) return
+        val request = CreateProductRequest(
+            name = form.name.trim(),
+            brand = form.brand.trim(),
+            description = form.description.trim(),
+            price = form.price.toIntOrNull() ?: 0,
+            size = form.size.trim(),
+        )
+        val checked = form.copy(
+            nameError = SpaValidation.validateName(request.name),
+            brandError = SpaValidation.validateLabel(request.brand, SpaValidation.MAX_BRAND_LENGTH),
+            descriptionError = SpaValidation.validateDescription(request.description),
+            priceError = SpaValidation.validatePrice(request.price),
+            sizeError = SpaValidation.validateLabel(request.size, SpaValidation.MAX_SIZE_LENGTH),
+        )
+        setState { copy(product = checked) }
+        if (SpaValidation.firstInvalidField(request) != null) {
+            AppLog.i(logTag) { "new product rejected locally: ${SpaValidation.firstInvalidField(request)}" }
+            return
+        }
+
+        setState { copy(savingProduct = true) }
+        viewModelScope.launch {
+            runCatchingCancellable { desk.createProduct(request) }
+                .onSuccess { added ->
+                    AppLog.i(logTag) { "product ${added.slug} put on the shelf" }
+                    setState { copy(product = ProductForm(), savingProduct = false) }
+                    sendEffect(AdminMenuEffect.ShowProductAdded(added.name))
+                }
+                .onFailure { failure ->
+                    setState { copy(savingProduct = false) }
                     sendEffect(AdminMenuEffect.ShowRefused((failure as? DeskRefused)?.code))
                 }
         }

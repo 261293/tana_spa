@@ -55,7 +55,7 @@ import com.tana.spa.core.ui.resources.Res
 import com.tana.spa.core.ui.resources.nav_alerts
 import com.tana.spa.core.ui.resources.nav_book
 import com.tana.spa.core.ui.resources.nav_desk
-import com.tana.spa.core.ui.resources.nav_offers
+import com.tana.spa.core.ui.resources.nav_home
 import com.tana.spa.core.ui.resources.nav_settings
 import com.tana.spa.core.ui.resources.nav_visits
 import com.tana.spa.core.ui.scafold.AppScaffold
@@ -112,12 +112,17 @@ internal fun restoredRoute(urlRoute: String, role: String?): String {
     val name = urlRoute.routeName()
     val needs = CONSOLE_ROUTES[name]
     val known = FeaturesRegistry.entries.any { it.route == name }
-    return if (known && (needs == null || SpaRoles.has(role, needs))) urlRoute else Routes.BOOKING
+    val bookable = role != SpaRoles.STAFF || name !in GUEST_ONLY_ROUTES
+    return if (known && bookable && (needs == null || SpaRoles.has(role, needs))) urlRoute else Routes.HOME
 }
+
+/** Screens for booking and keeping one's own visits; staff work the visits instead. */
+internal val GUEST_ONLY_ROUTES = BOOKING_FLOW_ROUTES + setOf(Routes.BOOKING, Routes.MY_BOOKINGS)
 
 private val NO_VISIT_STRIP_ROUTES = setOf(Routes.BOOKING, Routes.MY_BOOKINGS)
 
 internal val TOP_LEVEL_ROUTES = setOf(
+    Routes.HOME,
     Routes.BOOKING,
     Routes.MY_BOOKINGS,
     Routes.NOTIFICATIONS,
@@ -132,7 +137,7 @@ fun App() {
         // The app opens on the login screen; it forwards to the booking screen itself when a
         // valid session is already stored. On the web the URL may name a screen to come back to.
         val sessions: SessionStore = koinInject()
-        val navigator = rememberNavigator(remember { restoredRoute(RouteUrl.current(Routes.BOOKING), sessions.load()?.user?.role?.wire) })
+        val navigator = rememberNavigator(remember { restoredRoute(RouteUrl.current(Routes.HOME), sessions.load()?.user?.role?.wire) })
         // `current` is backed by mutableStateOf, so reading it here observes navigation.
         val current = navigator.current
 
@@ -224,7 +229,7 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
     // shortcut: on a first launch with no cached flags this reads the compiled default; once an
     // install has fetched flags it is exact. Upgrade if notifications ship on by default.
     LaunchedEffect(route, notificationsEnabled) {
-        if (route == Routes.NOTIFICATIONS && !notificationsEnabled) navigator.replaceAll(Routes.BOOKING)
+        if (route == Routes.NOTIFICATIONS && !notificationsEnabled) navigator.replaceAll(Routes.HOME)
     }
     if (route in FULL_SCREEN_ROUTES) {
         RouteContent(navigator, route, screenState)
@@ -238,17 +243,22 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
     val sessions: SessionStore = koinInject()
     val account = remember(current) { sessions.load()?.user }
     val worksTheDesk = SpaRoles.has(account?.role?.wire.orEmpty(), SpaPermission.MANAGE_BOOKINGS)
+    val books = account?.role?.wire != SpaRoles.STAFF
+    LaunchedEffect(route, books) {
+        if (!books && route in GUEST_ONLY_ROUTES) navigator.replaceAll(Routes.HOME)
+    }
 
     AppScaffold(
         navItems = navDestinations(
             desk = worksTheDesk,
+            books = books,
             notificationsEnabled = notificationsEnabled,
             unread = unread,
             labels = NavLabels(
+                home = stringResource(Res.string.nav_home),
                 book = stringResource(Res.string.nav_book),
                 visits = stringResource(Res.string.nav_visits),
                 alerts = stringResource(Res.string.nav_alerts),
-                offers = stringResource(Res.string.nav_offers),
                 desk = stringResource(Res.string.nav_desk),
                 settings = stringResource(Res.string.nav_settings),
             ),
@@ -265,7 +275,7 @@ private fun CurrentRoute(navigator: Navigator, current: String, notificationsEna
         },
         topBarActions = {
             // The desk takes the visits' place in the bar, so whoever works it reaches their own here.
-            if (worksTheDesk) {
+            if (worksTheDesk && books) {
                 IconButton(onClick = { navigator.navigate(Routes.MY_BOOKINGS) }, modifier = Modifier.spaPointer()) {
                     SpaIconImage(
                         icon = SpaIcon.CalendarCheck,
@@ -331,20 +341,27 @@ private fun sharedAxisX(forward: Boolean, motion: SpaMotion): ContentTransform {
 }
 
 /** The words on the destinations, read from resources so they follow the chosen language. */
-data class NavLabels(val book: String, val visits: String, val alerts: String, val offers: String, val desk: String, val settings: String)
+data class NavLabels(val home: String, val book: String, val visits: String, val alerts: String, val desk: String, val settings: String)
 
 /**
  * The destinations the signed-in account sees. Desk is the spa's own console: the server refuses
  * its calls for every other role, so leaving it out only keeps it out of a guest's way.
  *
  * Material's bar holds five destinations, so for whoever works the desk the desk takes the place
- * of their own visits, which stay one tap away in the app bar.
+ * of their own visits, which stay one tap away in the app bar, and the offers live on Home.
+ * Staff ([books] false) never book, so they get neither booking nor visits.
  */
-internal fun navDestinations(desk: Boolean, notificationsEnabled: Boolean, unread: Int, labels: NavLabels): List<NavConfig> = buildList {
-    add(NavConfig(Routes.BOOKING, labels.book, SpaIcon.CalendarPlus))
-    if (!desk) add(NavConfig(Routes.MY_BOOKINGS, labels.visits, SpaIcon.CalendarCheck))
+internal fun navDestinations(
+    desk: Boolean,
+    books: Boolean,
+    notificationsEnabled: Boolean,
+    unread: Int,
+    labels: NavLabels,
+): List<NavConfig> = buildList {
+    add(NavConfig(Routes.HOME, labels.home, SpaIcon.Lotus))
+    if (books) add(NavConfig(Routes.BOOKING, labels.book, SpaIcon.CalendarPlus))
+    if (books && !desk) add(NavConfig(Routes.MY_BOOKINGS, labels.visits, SpaIcon.CalendarCheck))
     if (notificationsEnabled) add(NavConfig(Routes.NOTIFICATIONS, labels.alerts, SpaIcon.Bell, badgeCount = unread))
-    add(NavConfig(Routes.PROMOTIONS, labels.offers, SpaIcon.Tag))
     if (desk) add(NavConfig(Routes.ADMIN_REQUESTS, labels.desk, SpaIcon.Calendar))
     add(NavConfig(Routes.SETTINGS, labels.settings, SpaIcon.Gear))
 }

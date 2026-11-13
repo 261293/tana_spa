@@ -38,6 +38,7 @@ import com.tana.spa.feature.admin.presentation.AdminMenuEvent
 import com.tana.spa.feature.admin.presentation.AdminMenuState
 import com.tana.spa.feature.admin.resources.Res
 import com.tana.spa.feature.admin.resources.admin_menu_add_person
+import com.tana.spa.feature.admin.resources.admin_menu_add_product
 import com.tana.spa.feature.admin.resources.admin_menu_add_service
 import com.tana.spa.feature.admin.resources.admin_menu_add_therapist
 import com.tana.spa.feature.admin.resources.admin_menu_category
@@ -69,6 +70,15 @@ import com.tana.spa.feature.admin.resources.admin_menu_person_role
 import com.tana.spa.feature.admin.resources.admin_menu_person_title
 import com.tana.spa.feature.admin.resources.admin_menu_price
 import com.tana.spa.feature.admin.resources.admin_menu_price_hint
+import com.tana.spa.feature.admin.resources.admin_menu_product_added
+import com.tana.spa.feature.admin.resources.admin_menu_product_brand
+import com.tana.spa.feature.admin.resources.admin_menu_product_brand_hint
+import com.tana.spa.feature.admin.resources.admin_menu_product_description_hint
+import com.tana.spa.feature.admin.resources.admin_menu_product_name_hint
+import com.tana.spa.feature.admin.resources.admin_menu_product_price_hint
+import com.tana.spa.feature.admin.resources.admin_menu_product_size
+import com.tana.spa.feature.admin.resources.admin_menu_product_size_hint
+import com.tana.spa.feature.admin.resources.admin_menu_product_title
 import com.tana.spa.feature.admin.resources.admin_menu_role_admin
 import com.tana.spa.feature.admin.resources.admin_menu_role_customer
 import com.tana.spa.feature.admin.resources.admin_menu_role_owner
@@ -124,6 +134,8 @@ fun AdminMenuScreen(
                 is AdminMenuEffect.ShowServiceAdded -> getString(resources, Res.string.admin_menu_service_added, effect.name)
 
                 is AdminMenuEffect.ShowTherapistAdded -> getString(resources, Res.string.admin_menu_therapist_added, effect.name)
+
+                is AdminMenuEffect.ShowProductAdded -> getString(resources, Res.string.admin_menu_product_added, effect.name)
 
                 is AdminMenuEffect.ShowPersonAdded -> getString(resources, Res.string.admin_menu_person_added, effect.name)
 
@@ -183,6 +195,7 @@ fun AdminMenuScreen(
                     if (menu) Box(Modifier.revealOnScroll(order = 1)) { ServiceForm(state, onEvent) }
                     if (roster) Box(Modifier.revealOnScroll(order = 2)) { TherapistForm(state, onEvent) }
                 }
+                if (menu) Box(Modifier.revealOnScroll(order = 3)) { ProductForm(state, onEvent) }
                 if (roster && state.team.isNotEmpty()) {
                     Box(Modifier.revealOnScroll(order = 3)) { TeamAccounts(state, onEvent) }
                 }
@@ -258,6 +271,68 @@ private fun ServiceForm(state: AdminMenuState, onEvent: (AdminMenuEvent) -> Unit
                 text = stringResource(Res.string.admin_menu_add_service),
                 onClick = { onEvent(AdminMenuEvent.SaveService) },
                 loading = state.savingService,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProductForm(state: AdminMenuState, onEvent: (AdminMenuEvent) -> Unit) {
+    val form = state.product
+    val saving = state.savingProduct
+    SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(20.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            FormTitle(stringResource(Res.string.admin_menu_product_title))
+            SpaTextField(
+                label = stringResource(Res.string.admin_menu_name),
+                value = form.name,
+                onValueChange = { onEvent(AdminMenuEvent.ProductNameChanged(it)) },
+                placeholder = stringResource(Res.string.admin_menu_product_name_hint),
+                error = form.nameError?.let { stringResource(textError(it)) },
+                enabled = !saving,
+            )
+            SpaTextField(
+                label = stringResource(Res.string.admin_menu_product_brand),
+                value = form.brand,
+                onValueChange = { onEvent(AdminMenuEvent.ProductBrandChanged(it)) },
+                placeholder = stringResource(Res.string.admin_menu_product_brand_hint),
+                error = form.brandError?.let { stringResource(textError(it)) },
+                enabled = !saving,
+            )
+            SpaTextField(
+                label = stringResource(Res.string.admin_menu_description),
+                value = form.description,
+                onValueChange = { onEvent(AdminMenuEvent.ProductDescriptionChanged(it)) },
+                placeholder = stringResource(Res.string.admin_menu_product_description_hint),
+                error = form.descriptionError?.let { stringResource(textError(it)) },
+                enabled = !saving,
+                singleLine = false,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                SpaTextField(
+                    label = stringResource(Res.string.admin_menu_price),
+                    value = form.price,
+                    onValueChange = { onEvent(AdminMenuEvent.ProductPriceChanged(it)) },
+                    placeholder = stringResource(Res.string.admin_menu_product_price_hint),
+                    error = form.priceError?.let { stringResource(priceError(it)) },
+                    enabled = !saving,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f),
+                )
+                SpaTextField(
+                    label = stringResource(Res.string.admin_menu_product_size),
+                    value = form.size,
+                    onValueChange = { onEvent(AdminMenuEvent.ProductSizeChanged(it)) },
+                    placeholder = stringResource(Res.string.admin_menu_product_size_hint),
+                    error = form.sizeError?.let { stringResource(textError(it)) },
+                    enabled = !saving,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            SpaPrimaryButton(
+                text = stringResource(Res.string.admin_menu_add_product),
+                onClick = { onEvent(AdminMenuEvent.SaveProduct) },
+                loading = saving,
             )
         }
     }

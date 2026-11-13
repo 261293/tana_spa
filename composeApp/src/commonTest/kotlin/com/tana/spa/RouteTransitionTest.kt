@@ -7,12 +7,12 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class RouteTransitionTest {
-    private val labels = NavLabels("Book", "Visits", "Alerts", "Offers", "Desk", "Settings")
+    private val labels = NavLabels("Home", "Book", "Visits", "Alerts", "Desk", "Settings")
 
     @Test
     fun every_destination_in_the_bar_fades_through_rather_than_sliding() {
         for (desk in listOf(false, true)) {
-            val destinations = navDestinations(desk, notificationsEnabled = true, unread = 0, labels = labels)
+            val destinations = navDestinations(desk, books = true, notificationsEnabled = true, unread = 0, labels = labels)
             for (destination in destinations) {
                 assertTrue(destination.route in TOP_LEVEL_ROUTES, destination.route)
             }
