@@ -32,7 +32,7 @@ at <https://developer.android.com/develop/ui/compose/components>.
 | Transient confirmation | `SnackbarHost` + `showSnackbar` | code copied, booking confirmed/declined |
 | Progress against a limit | `LinearProgressIndicator` | discount-code usage |
 | Separator | `HorizontalDivider` | the "or continue with" rule |
-| Text entry | `TextField` (filled) | `SpaTextField` |
+| Text entry | `OutlinedTextField` | `SpaTextField` |
 
 ### What is deliberately not a Material component
 
@@ -47,25 +47,15 @@ where they are defined:
 
 `SpaIcon` is a drawn icon set because the Material icon artifact is not on the classpath.
 
-### Known incompatibility: Material's text field
+### Material's text field
 
-`SpaTextField` is an outlined web-form input — label above the box, pale fill, hairline outline
-that thickens to moss on focus and red on an error — built on `BasicTextField`, not on Material's
-`TextField`. With the versions this
-project pins (`material3 1.11.0-alpha07` with `compose 1.12.1`), composing a Material text field
-throws at runtime:
-
-```
-java.lang.AbstractMethodError: Receiver class androidx.compose.material3.TextFieldDefaults$$Lambda
-does not define or inherit an implementation of the resolved method
-'abstract void applyStyle(androidx.compose.foundation.style.CustomStyleScope)'
-of interface androidx.compose.foundation.style.CustomStyle
-```
-
-material3 builds a `CustomStyle` that this foundation version does not implement. Bumping material3
-is not the fix on its own — an earlier bump broke the web target and was reverted (commit
-`9e759dc`). Re-try `TextField` when the two artifacts line up again; everything else in the table
-above was exercised on the desktop target with these versions.
+`SpaTextField` is Material 3's `OutlinedTextField` with the theme's colours: the label floats into
+the outline, the outline turns copper on focus and red with an icon and a message on an error, and
+the helper is its supporting text. Until 2026-11-13 it was hand-built on `BasicTextField`, because
+`material3 1.11.0-alpha07` with `compose 1.12.1` threw `AbstractMethodError` (`TextFieldDefaults`
+building a `CustomStyle` that foundation did not implement). `material3 1.12.0-alpha03` composes it
+on the desktop and web targets; the booking dropdown on Home is `ExposedDropdownMenuBox` over the
+same field.
 
 ## Adaptive layout: the web is a width, not a platform
 
@@ -112,8 +102,8 @@ Compose attaches.
    `SpaTheme.extraColors`, shapes from `MaterialTheme.shapes`, text from `SpaTheme.textStyles`. No
    `Color(0x…)`, no inline `fontSize`. `SpaColorSchemeTest` pins every role to its design token.
 2. **Restyle a component, don't rebuild it.** Every Material component takes `colors`, `shape` and
-   `border`; that is the seam for this design. `SpaTextField` is the pattern: Material's filled
-   text field with the indicator switched off and a tonal container.
+   `border`; that is the seam for this design. `SpaTextField` is the pattern: Material's
+   `OutlinedTextField` with the theme's container and outline colours.
 3. **Wrap in `core:ui` when a styling is used twice.** One call site uses the Material component
    directly; the second one makes it an `Spa*` wrapper so the styling exists once.
 4. **Let Material own interaction.** Use `onClick` on the component, or `Modifier.clickable` /
