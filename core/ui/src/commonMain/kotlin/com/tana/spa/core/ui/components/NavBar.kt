@@ -129,7 +129,7 @@ private fun NavIcon(item: NavConfig, tint: Color = LocalContentColor.current) {
                     containerColor = MaterialTheme.colorScheme.secondary,
                     contentColor = MaterialTheme.colorScheme.onSecondary,
                 ) {
-                    Text(item.badgeCount.toString(), style = SpaTheme.textStyles.overline)
+                    Text(item.badgeCount.toString(), style = SpaTheme.textStyles.tag)
                 }
             }
         },

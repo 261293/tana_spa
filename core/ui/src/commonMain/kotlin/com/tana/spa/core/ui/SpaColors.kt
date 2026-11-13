@@ -3,38 +3,39 @@ package com.tana.spa.core.ui
 import androidx.compose.ui.graphics.Color
 
 /**
- * The Serein Spa palette, named after the custom properties in the design export
- * (`Spa-Booking-UI-Redesign/assets/css/app.css`): forest greens and a clay accent on a warm
- * off-white page, separated by hairlines rather than tonal fills.
+ * The limewash palette (ADR 0008): warm paper and card stock, umber ink, and one eucalyptus signal that
+ * marks the primary action, the current selection and focus. Values are the OKLCH tokens in
+ * `DESIGN.md` converted to sRGB.
  */
 object SpaColors {
-    val Ground = Color(0xFFF3F5F1)
-    val Surface = Color(0xFFFFFFFF)
-    val SurfaceAlt = Color(0xFFE9EDE6)
+    val Paper = Color(0xFFF1ECE6)
+    val Paper2 = Color(0xFFE9E3DB)
+    val Paper3 = Color(0xFFDED6CD)
+    val Card = Color(0xFFF9F7F2)
 
-    val Ink = Color(0xFF14231B)
-    val InkSoft = Color(0xFF3B4B41)
-    val Muted = Color(0xFF5E6F64)
+    val Ink = Color(0xFF1C110A)
+    val InkSoft = Color(0xFF382E28)
+    val Muted = Color(0xFF615953)
 
-    val Forest = Color(0xFF1A3527)
-    val Forest600 = Color(0xFF2D5340)
-    val ForestDeep = Color(0xFF0F2018)
-    val OnForest = Color(0xFFF5F9F4)
-    val OnForestMuted = Color(0xFFCFE0D2)
+    val Rule = Color(0xFFC6C0B9)
+    val Outline = Color(0xFF807972)
 
-    val Sage = Color(0xFFA9C0AE)
-    val SageSoft = Color(0xFFE2EBE3)
-    val SageTint = Color(0xFFDFE9DF)
-    val Moss = Color(0xFF47604F)
+    val Eucalyptus = Color(0xFF2E5B55)
+    val OnEucalyptus = Color(0xFFF5F1EC)
+    val EucalyptusTint = Color(0xFFD4E5DF)
+    val EucalyptusDeep = Color(0xFF0F3A35)
+    val Focus = Color(0xFF3A7269)
 
-    val Clay = Color(0xFFA9553A)
-    val ClaySoft = Color(0xFFF6E6DF)
+    val Umber = Color(0xFF564335)
+    val UmberTint = Color(0xFFE6DCD2)
 
-    val Line = Color(0xFFDBE2D9)
-    val LineStrong = Color(0xFF6F8A76)
+    val Ochre = Color(0xFF8D5D1C)
+    val OchreTint = Color(0xFFF6E8D0)
+    val Moss = Color(0xFF3A6343)
 
-    val Danger = Color(0xFF8C3823)
-    val DangerDeep = Color(0xFF742C1A)
+    val Danger = Color(0xFF963828)
+    val DangerTint = Color(0xFFFBE1DC)
+    val DangerDeep = Color(0xFF6B2013)
 
-    val Shadow = Color(0x330F2018)
+    val Shadow = Color(0x291C110A)
 }

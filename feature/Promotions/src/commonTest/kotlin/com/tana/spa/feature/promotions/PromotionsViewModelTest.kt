@@ -3,6 +3,8 @@ package com.tana.spa.feature.promotions
 import com.tana.spa.feature.promotions.presentation.PromotionsEffect
 import com.tana.spa.feature.promotions.presentation.PromotionsEvent
 import com.tana.spa.feature.promotions.presentation.PromotionsViewModel
+import com.tana.spa.shared.spa.SpaCatalog
+import com.tana.spa.shared.spa.SpaDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -14,7 +16,7 @@ class PromotionsViewModelTest {
 
     @Test
     fun a_live_code_is_recognised_whatever_the_casing() {
-        val vm = PromotionsViewModel()
+        val vm = PromotionsViewModel(SpaCatalog.today)
         vm.onEvent(PromotionsEvent.EntryChanged(" midweek15 "))
         vm.onEvent(PromotionsEvent.CheckEntry)
 
@@ -24,7 +26,7 @@ class PromotionsViewModelTest {
 
     @Test
     fun an_unknown_code_is_reported_as_failed() {
-        val vm = PromotionsViewModel()
+        val vm = PromotionsViewModel(SpaCatalog.today)
         vm.onEvent(PromotionsEvent.EntryChanged("NOPE"))
         vm.onEvent(PromotionsEvent.CheckEntry)
 
@@ -34,7 +36,7 @@ class PromotionsViewModelTest {
 
     @Test
     fun editing_the_entry_clears_the_previous_verdict() {
-        val vm = PromotionsViewModel()
+        val vm = PromotionsViewModel(SpaCatalog.today)
         vm.onEvent(PromotionsEvent.EntryChanged("JADE20"))
         vm.onEvent(PromotionsEvent.CheckEntry)
         vm.onEvent(PromotionsEvent.EntryChanged("JADE2"))
@@ -45,9 +47,19 @@ class PromotionsViewModelTest {
 
     @Test
     fun using_a_code_asks_for_the_booking_screen() = runTest {
-        val vm = PromotionsViewModel()
+        val vm = PromotionsViewModel(SpaCatalog.today)
         vm.onEvent(PromotionsEvent.UseCode("JADE20"))
 
         assertEquals(PromotionsEffect.OpenBooking("JADE20"), vm.effects.first())
+    }
+
+    @Test
+    fun an_expired_offer_is_neither_shown_nor_accepted() {
+        val vm = PromotionsViewModel(SpaDate(2026, 11, 12))
+        assertTrue(vm.state.value.live.none { it.code == "JADE20" })
+
+        vm.onEvent(PromotionsEvent.EntryChanged("JADE20"))
+        vm.onEvent(PromotionsEvent.CheckEntry)
+        assertTrue(vm.state.value.checkFailed)
     }
 }

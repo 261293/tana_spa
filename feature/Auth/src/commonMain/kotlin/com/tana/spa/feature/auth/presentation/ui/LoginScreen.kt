@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSocialButton
+import com.tana.spa.core.ui.components.SpaTextButton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.core.ui.spaPointer
@@ -171,15 +172,11 @@ private fun ColumnScope.LoginForm(state: LoginState, onEvent: (LoginEvent) -> Un
         )
     }
 
-    Text(
+    SpaTextButton(
         text = stringResource(Res.string.forgot_password),
-        style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier
-            .align(Alignment.End)
-            .spaClickable(enabled = !state.isLoading) { onEvent(LoginEvent.ForgotPasswordClicked) }
-            .minimumInteractiveComponentSize()
-            .padding(vertical = 4.dp),
+        onClick = { onEvent(LoginEvent.ForgotPasswordClicked) },
+        enabled = !state.isLoading,
+        modifier = Modifier.align(Alignment.End),
     )
 
     SpaPrimaryButton(

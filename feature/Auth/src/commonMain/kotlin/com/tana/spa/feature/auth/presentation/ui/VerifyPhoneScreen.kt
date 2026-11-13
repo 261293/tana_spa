@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaOtpField
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.components.SpaTextButton
 import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyMessage
 import com.tana.spa.feature.auth.presentation.manipulator.VerifyPhoneEffect
@@ -205,16 +206,12 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
             modifier = Modifier.padding(top = 12.dp),
         )
 
-        Text(
+        SpaTextButton(
             text = stringResource(Res.string.verify_skip),
-            style = SpaTheme.textStyles.sectionLead,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .spaClickable(enabled = !state.isVerifying) { onEvent(VerifyPhoneEvent.Skip) }
-                .minimumInteractiveComponentSize()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+            onClick = { onEvent(VerifyPhoneEvent.Skip) },
+            enabled = !state.isVerifying,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
         )
     }
 }

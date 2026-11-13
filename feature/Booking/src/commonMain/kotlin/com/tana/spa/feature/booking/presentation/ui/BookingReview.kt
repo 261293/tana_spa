@@ -45,6 +45,7 @@ import com.tana.spa.feature.booking.resources.Res
 import com.tana.spa.feature.booking.resources.booking_code_applied
 import com.tana.spa.feature.booking.resources.booking_code_apply
 import com.tana.spa.feature.booking.resources.booking_code_empty
+import com.tana.spa.feature.booking.resources.booking_code_expired
 import com.tana.spa.feature.booking.resources.booking_code_helper
 import com.tana.spa.feature.booking.resources.booking_code_label
 import com.tana.spa.feature.booking.resources.booking_code_minimum
@@ -54,10 +55,10 @@ import com.tana.spa.feature.booking.resources.booking_code_unknown
 import com.tana.spa.feature.booking.resources.booking_code_wrong_category
 import com.tana.spa.feature.booking.resources.booking_disclaimer
 import com.tana.spa.feature.booking.resources.booking_request
-import com.tana.spa.feature.booking.resources.booking_review_any_therapist
+import com.tana.spa.feature.booking.resources.booking_request_need_service
+import com.tana.spa.feature.booking.resources.booking_request_need_time
 import com.tana.spa.feature.booking.resources.booking_review_not_chosen
 import com.tana.spa.feature.booking.resources.booking_review_pick_time
-import com.tana.spa.feature.booking.resources.booking_review_therapist
 import com.tana.spa.feature.booking.resources.booking_review_treatment
 import com.tana.spa.feature.booking.resources.booking_review_when
 import com.tana.spa.feature.booking.resources.booking_sent_another
@@ -70,6 +71,7 @@ import com.tana.spa.feature.booking.resources.booking_subtotal
 import com.tana.spa.feature.booking.resources.booking_total_label
 import com.tana.spa.shared.spa.PromoCheck
 import com.tana.spa.shared.spa.PromoRejection
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /** Summary, discount code and the moss pocket that closes the booking. */
@@ -83,10 +85,6 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
             value =
             service?.let { "${it.name} · ${stringResource(Res.string.booking_service_meta, it.minutes, it.category.localizedLabel())}" }
                 ?: notChosen,
-        )
-        SpaSummaryRow(
-            label = stringResource(Res.string.booking_review_therapist),
-            value = state.therapist?.name ?: stringResource(Res.string.booking_review_any_therapist),
         )
         SpaSummaryRow(
             label = stringResource(Res.string.booking_review_when),
@@ -136,6 +134,14 @@ internal fun BookingReview(state: BookingState, onEvent: (BookingEvent) -> Unit,
             )
         }
 
+        missingForRequest(state)?.let { missing ->
+            Text(
+                text = stringResource(missing),
+                style = SpaTheme.textStyles.caption,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+        }
         SpaPrimaryButton(
             text = stringResource(Res.string.booking_request),
             onClick = { onEvent(BookingEvent.Submit) },
@@ -179,6 +185,8 @@ private fun promoError(check: PromoCheck?): String? {
 
         PromoRejection.UNKNOWN_CODE -> stringResource(Res.string.booking_code_unknown, rejected.code)
 
+        PromoRejection.EXPIRED -> stringResource(Res.string.booking_code_expired, rejected.code)
+
         PromoRejection.NO_SERVICE_CHOSEN -> stringResource(Res.string.booking_code_no_service)
 
         PromoRejection.WRONG_CATEGORY -> stringResource(
@@ -219,11 +227,9 @@ internal fun RequestSentDialog(sent: GuestBooking, onEvent: (BookingEvent) -> Un
         },
         text = {
             Text(
-                // The spa's own words for it: with "any therapist" the guest learns here who took them.
                 text = stringResource(
                     Res.string.booking_sent_body,
                     sent.serviceName,
-                    sent.therapistName,
                     formatDayAndTime(sent.startDayEpochDay, sent.startHour),
                 ),
                 style = SpaTheme.textStyles.bodyRelaxed,
@@ -250,4 +256,11 @@ internal fun RequestSentDialog(sent: GuestBooking, onEvent: (BookingEvent) -> Un
             }
         },
     )
+}
+
+/** Why the request cannot be sent yet, so the disabled button is never left unexplained. */
+private fun missingForRequest(state: BookingState): StringResource? = when {
+    state.service == null -> Res.string.booking_request_need_service
+    state.slot == null -> Res.string.booking_request_need_time
+    else -> null
 }

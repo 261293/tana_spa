@@ -1,10 +1,9 @@
 <resources>
     <string name="booking_title">What does your body</string>
     <string name="booking_title_accent">need today?</string>
-    <string name="booking_subtitle">Choose what you’d like, who you’d like it with, and when. We’ll confirm your time.</string>
+    <string name="booking_subtitle">Choose what you’d like and when. We’ll arrange your therapist and confirm your time.</string>
 
     <string name="booking_step_treatment">Treatment</string>
-    <string name="booking_step_therapist">Therapist</string>
     <string name="booking_step_when">Date &amp; time</string>
     <string name="booking_step_review">Your afternoon</string>
     <string name="booking_step_done">Step done</string>
@@ -13,7 +12,6 @@
     <string name="booking_service_details">View details</string>
 
     <string name="booking_service_meta">%1$d min · %2$s</string>
-    <string name="booking_therapist_next">Next: %1$s</string>
 
     <string name="booking_open_times">Open times on %1$s</string>
     <string name="booking_day_full">%1$s, fully booked</string>
@@ -22,9 +20,6 @@
     <string name="booking_menu_failed">We couldn’t load the treatment menu.</string>
     <string name="booking_menu_retry">Try again</string>
     <string name="booking_no_times">No open times that day. Try another.</string>
-    <string name="booking_any_therapist">First available</string>
-    <string name="booking_any_therapist_focus">Fastest confirmation</string>
-    <string name="booking_review_any_therapist">Whoever is free</string>
     <string name="booking_sent_bookings">View your visits</string>
 
     <string name="refusal_slot_taken">That time has just been taken. Pick another.</string>
@@ -40,7 +35,7 @@
     <string name="bookings_title">Your</string>
     <string name="bookings_title_accent">visits</string>
     <string name="bookings_subtitle">What you’ve asked for, and what the spa has confirmed.</string>
-    <string name="bookings_meta">%1$s · %2$s · %3$s</string>
+    <string name="bookings_meta">%1$s · %2$s</string>
     <string name="bookings_empty">You have no visits booked yet.</string>
     <string name="bookings_book_now">Book a treatment</string>
     <string name="bookings_failed">We couldn’t load your visits.</string>
@@ -76,7 +71,6 @@
     <string name="service_retry">Try again</string>
 
     <string name="booking_review_treatment">Treatment</string>
-    <string name="booking_review_therapist">Therapist</string>
     <string name="booking_review_when">When</string>
     <string name="booking_review_not_chosen">Not chosen</string>
     <string name="booking_review_pick_time">%1$s · choose a time</string>
@@ -88,38 +82,39 @@
     <string name="booking_code_applied">%1$s applied — %2$s</string>
     <string name="booking_code_empty">Enter a code.</string>
     <string name="booking_code_unknown">“%1$s” isn’t a valid code.</string>
+    <string name="booking_code_expired">“%1$s” has expired.</string>
     <string name="booking_code_no_service">Choose a treatment first.</string>
     <string name="booking_code_wrong_category">%1$s applies to %2$s treatments only.</string>
     <string name="booking_code_minimum">%1$s needs a minimum spend of %2$s.</string>
 
     <string name="booking_total_label">total due at the spa</string>
     <string name="booking_request">Request booking</string>
+    <string name="booking_request_need_service">Choose a treatment in step 1 to send the request.</string>
+    <string name="booking_request_need_time">Pick a time in step 2 to send the request.</string>
     <string name="booking_disclaimer">The spa will confirm your time, usually within 30 minutes. You won’t be charged until your visit.</string>
 
     <string name="booking_strip_choose">Choose a treatment</string>
-    <string name="booking_strip_pick_time">pick a time</string>
+    <string name="booking_card_title">Your appointment</string>
+    <string name="booking_card_no_time">no time yet</string>
+    <string name="booking_card_minutes">%1$d min</string>
+    <string name="booking_card_need_service">Choose a treatment to continue</string>
+    <string name="booking_card_need_time">Pick a time to continue</string>
 
     <string name="booking_sent_title">Request sent</string>
-    <string name="booking_sent_body">%1$s with %2$s, %3$s. We’ll notify you as soon as the spa confirms.</string>
+    <string name="booking_sent_body">%1$s, %2$s. The spa will arrange your therapist and let you know as soon as it confirms.</string>
     <string name="booking_sent_notifications">View notifications</string>
     <string name="booking_sent_another">Book another treatment</string>
     <string name="visit_in_progress">This visit is under way</string>
     <string name="visit_progress_description">Step %1$d of %2$d: %3$s</string>
-    <string name="booking_eyebrow">Reserve</string>
     <string name="booking_today">Today</string>
     <string name="booking_change">Change</string>
     <string name="booking_subtotal">Subtotal</string>
     <string name="booking_slots_morning">Morning</string>
     <string name="booking_slots_afternoon">Afternoon</string>
     <string name="booking_slots_evening">Evening</string>
-    <string name="bookings_eyebrow">Your visits</string>
-    <string name="treatments_eyebrow">Treatments</string>
-    <string name="treatments_title">Find your ritual</string>
-    <string name="treatments_note">Every treatment includes time to settle in.</string>
     <string name="treatments_search_label">Search treatments</string>
     <string name="treatments_search_placeholder">Massage, facial, aromatherapy…</string>
     <string name="treatments_filter_all">All</string>
-    <string name="treatments_count">%1$d treatments</string>
     <string name="treatments_empty_title">No treatments match that search</string>
     <string name="treatments_empty_body">Try a different word, or browse every ritual.</string>
     <string name="treatments_empty_action">Show all treatments</string>

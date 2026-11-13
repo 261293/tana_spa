@@ -4,6 +4,7 @@ import com.tana.spa.core.network.AccessTokenSource
 import com.tana.spa.core.network.NetworkClient
 import com.tana.spa.core.network.withDefaults
 import com.tana.spa.feature.admin.domain.DeskRefused
+import com.tana.spa.feature.admin.domain.DeskTherapist
 import com.tana.spa.shared.auth.CreateAccountRequest
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
@@ -61,6 +62,62 @@ class DeskRepositoryImplTest {
         desk(BOOKING).confirm("b1", force = true)
 
         assertEquals(Sent("POST /rest/v1/rpc/spa_confirm_booking", """{"force":true,"id":"b1"}""", "Bearer a1"), sent.single())
+    }
+
+    @Test
+    fun confirm_can_assign_a_therapist_on_the_way() = runTest {
+        desk(BOOKING).confirm("b1", therapistSlug = "lena")
+
+        assertEquals("""{"therapistSlug":"lena","id":"b1"}""", sent.single().body)
+    }
+
+    @Test
+    fun assign_posts_to_spa_assign_therapist() = runTest {
+        desk(BOOKING).assign("b1", "mai")
+
+        assertEquals(Sent("POST /rest/v1/rpc/spa_assign_therapist", """{"therapistSlug":"mai","id":"b1"}""", "Bearer a1"), sent.single())
+    }
+
+    @Test
+    fun the_queue_carries_the_team_and_who_is_free() = runTest {
+        val free = BOOKING.dropLast(1) + ""","freeTherapists":["mai"]}"""
+        val queue = desk("""{"pending":[$free],"scheduled":[],"dayEpochDay":20000,"therapists":[$THERAPIST]}""").queue()
+
+        assertEquals(listOf(DeskTherapist("mai", "Mai")), queue.team)
+        assertEquals(listOf("mai"), queue.pending.single().freeTherapists)
+    }
+
+    @Test
+    fun linking_posts_the_email_and_unlinking_sends_none() = runTest {
+        val linked = THERAPIST.dropLast(1) + ""","account":"mai@tana.test"}"""
+        val desk = desk(linked)
+
+        assertEquals(DeskTherapist("mai", "Mai", "mai@tana.test"), desk.link("mai", "mai@tana.test"))
+        desk.link("mai", null)
+
+        assertEquals(
+            listOf(
+                Sent("POST /rest/v1/rpc/spa_link_therapist", """{"therapistSlug":"mai","email":"mai@tana.test"}""", "Bearer a1"),
+                Sent("POST /rest/v1/rpc/spa_link_therapist", """{"therapistSlug":"mai"}""", "Bearer a1"),
+            ),
+            sent,
+        )
+    }
+
+    @Test
+    fun my_shifts_are_read_from_spa_my_shifts() = runTest {
+        val shifts = desk("""{"shifts":[$BOOKING]}""").myShifts()
+
+        assertEquals(Sent("POST /rest/v1/rpc/spa_my_shifts", "", "Bearer a1"), sent.single())
+        assertEquals(listOf("b1"), shifts.map { it.id })
+    }
+
+    @Test
+    fun the_team_is_read_from_spa_team() = runTest {
+        val team = desk("""{"therapists":[$THERAPIST]}""").team()
+
+        assertEquals(Sent("POST /rest/v1/rpc/spa_team", "", "Bearer a1"), sent.single())
+        assertEquals(listOf(DeskTherapist("mai", "Mai")), team)
     }
 
     @Test

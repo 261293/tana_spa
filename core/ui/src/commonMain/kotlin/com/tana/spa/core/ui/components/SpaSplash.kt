@@ -23,7 +23,7 @@ import org.jetbrains.compose.resources.stringResource
 fun SpaSplash(modifier: Modifier = Modifier) {
     // A Surface swallows pointer input, so nothing underneath can be tapped while it is up.
     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Box(Modifier.fillMaxSize().spaTopo(Alignment.Center), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp),

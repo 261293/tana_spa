@@ -5,7 +5,7 @@
     <string name="settings_group_account">Account</string>
     <string name="settings_group_booking">Booking notifications</string>
     <string name="settings_group_promotions">Promotions</string>
-    <string name="settings_group_payment">Payment &amp; language</string>
+    <string name="settings_group_language">Language</string>
 
     <string name="settings_edit">Edit</string>
     <string name="settings_cancel">Cancel</string>
@@ -23,9 +23,6 @@
     <string name="settings_offers">Offers &amp; discount codes</string>
     <string name="settings_offers_help">About two emails a month. Booking updates are separate.</string>
 
-    <string name="settings_card">Visa ending 4821</string>
-    <string name="settings_card_help">Held for late cancellations only</string>
     <string name="settings_language">Language</string>
     <string name="settings_sign_out">Sign out</string>
-    <string name="settings_eyebrow">Account</string>
 </resources>

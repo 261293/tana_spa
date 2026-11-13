@@ -5,7 +5,7 @@
     <string name="settings_group_account">Tài khoản</string>
     <string name="settings_group_booking">Thông báo lịch hẹn</string>
     <string name="settings_group_promotions">Ưu đãi</string>
-    <string name="settings_group_payment">Thanh toán &amp; ngôn ngữ</string>
+    <string name="settings_group_language">Ngôn ngữ</string>
 
     <string name="settings_edit">Sửa</string>
     <string name="settings_cancel">Hủy</string>
@@ -23,9 +23,6 @@
     <string name="settings_offers">Ưu đãi &amp; mã giảm giá</string>
     <string name="settings_offers_help">Khoảng hai email mỗi tháng. Cập nhật lịch hẹn được gửi riêng.</string>
 
-    <string name="settings_card">Visa đuôi 4821</string>
-    <string name="settings_card_help">Chỉ giữ cho trường hợp hủy sát giờ</string>
     <string name="settings_language">Ngôn ngữ</string>
     <string name="settings_sign_out">Đăng xuất</string>
-    <string name="settings_eyebrow">Tài khoản</string>
 </resources>

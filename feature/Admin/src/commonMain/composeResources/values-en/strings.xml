@@ -25,6 +25,14 @@
     <string name="admin_menu_add_therapist">Add to the team</string>
     <string name="admin_menu_service_added">%1$s is on the menu</string>
     <string name="admin_menu_therapist_added">%1$s joined the team</string>
+    <string name="admin_menu_team_title">Shift accounts</string>
+    <string name="admin_menu_team_help">Link each therapist to a staff account so they get notified and can see their shifts. Clear the field and save to unlink.</string>
+    <string name="admin_menu_team_hint">name@tanaspa.vn</string>
+    <string name="admin_menu_team_save">Save</string>
+    <string name="admin_menu_team_linked">%1$s takes shifts as %2$s</string>
+    <string name="admin_menu_team_unlinked">%1$s no longer has an account</string>
+    <string name="admin_menu_team_unknown">No account uses that email</string>
+    <string name="admin_menu_team_not_staff">Only a staff or owner account can take shifts</string>
     <string name="admin_menu_error_empty">This can’t be empty.</string>
     <string name="admin_menu_error_long">That’s too long.</string>
     <string name="admin_menu_error_duration_zero">A treatment needs a length.</string>
@@ -50,6 +58,10 @@
     <string name="admin_desk_failed">We couldn’t load the desk. Check the connection and try again.</string>
     <string name="admin_desk_retry">Try again</string>
     <string name="admin_refused">The spa couldn’t record that. Try again.</string>
+    <string name="admin_my_shifts_title">My shifts</string>
+    <string name="admin_my_shift_line">%1$s · Guest: %2$s</string>
+    <string name="admin_assigned_toast">%1$s’s visit moved to %2$s</string>
+    <string name="admin_no_one_free">Nobody is free then. Decline and suggest another time.</string>
     <string name="admin_refused_overlap">That time is already taken. Press confirm again to book it anyway.</string>
 
     <string name="admin_visit_completed">Mark visit completed</string>
@@ -86,10 +98,8 @@
     <string name="admin_decline_reason_therapist">Therapist unavailable</string>
     <string name="admin_decline_reason_room">No treatment room free</string>
     <string name="admin_decline_suggest">Suggest another time (optional)</string>
-    <string name="admin_decline_suggest_none">Don’t suggest a time</string>
-    <string name="admin_decline_suggest_same_midday">Today 12:30 PM · same therapist</string>
-    <string name="admin_decline_suggest_mai">Today 1:00 PM · Mai Tran</string>
-    <string name="admin_decline_suggest_tomorrow">Tomorrow 11:00 AM · same therapist</string>
+    <string name="admin_decline_suggest_placeholder">For example: Saturday, 3:00 PM</string>
+    <string name="admin_decline_suggest_help">The guest reads exactly this line on their visit.</string>
     <string name="admin_decline_keep">Keep request</string>
 
     <string name="admin_codes_title">Discount</string>
@@ -166,7 +176,4 @@
     <string name="admin_menu_person_name_error">A name is needed</string>
     <string name="admin_menu_person_email_error">That email does not look right</string>
     <string name="admin_menu_person_password_error">At least 8 characters</string>
-    <string name="admin_codes_eyebrow">Codes</string>
-    <string name="admin_menu_eyebrow">Studio</string>
-    <string name="admin_requests_eyebrow">Diary</string>
 </resources>

@@ -61,7 +61,7 @@ fun SpaCatalogCard(
             if (badge != null) {
                 Text(
                     text = badge,
-                    style = SpaTheme.textStyles.overline,
+                    style = SpaTheme.textStyles.tag,
                     color = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier
                         .padding(8.dp)

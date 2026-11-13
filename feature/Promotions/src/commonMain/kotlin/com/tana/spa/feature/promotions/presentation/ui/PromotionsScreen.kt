@@ -33,7 +33,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
-import com.tana.spa.core.ui.SpaPebbleShape
 import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindow
@@ -48,7 +47,6 @@ import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.components.spaFelt
-import com.tana.spa.core.ui.components.spaTopo
 import com.tana.spa.core.ui.localizedEligibleLabel
 import com.tana.spa.core.ui.localizedTerms
 import com.tana.spa.core.ui.localizedTitle
@@ -68,7 +66,6 @@ import com.tana.spa.feature.promotions.resources.promotions_code_label
 import com.tana.spa.feature.promotions.resources.promotions_code_placeholder
 import com.tana.spa.feature.promotions.resources.promotions_copied
 import com.tana.spa.feature.promotions.resources.promotions_copy
-import com.tana.spa.feature.promotions.resources.promotions_eyebrow
 import com.tana.spa.feature.promotions.resources.promotions_have_code_body
 import com.tana.spa.feature.promotions.resources.promotions_have_code_title
 import com.tana.spa.feature.promotions.resources.promotions_more
@@ -116,14 +113,13 @@ fun PromotionsScreen(
             maxWidth = SpaPageWidth.Wide,
         ) {
             SpaScreenHeader(
-                eyebrow = stringResource(Res.string.promotions_eyebrow),
                 title = stringResource(Res.string.promotions_title),
                 accent = stringResource(Res.string.promotions_title_accent),
                 subtitle = stringResource(Res.string.promotions_subtitle),
                 modifier = Modifier.revealOnScroll(),
             )
 
-            FeaturedOffer(state.featured, wide, onEvent, Modifier.revealOnScroll(order = 1))
+            state.featured?.let { FeaturedOffer(it, wide, onEvent, Modifier.revealOnScroll(order = 1)) }
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
@@ -179,17 +175,16 @@ private fun FeaturedOffer(promo: Promo, wide: Boolean, onEvent: (PromotionsEvent
     Box(
         modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer, SpaPebbleShape)
-            .spaTopo(Alignment.TopEnd),
+            .background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.large),
     ) {
         if (wide) {
             Row(Modifier.heightIn(min = 300.dp)) {
-                SpaImageTile(Modifier.weight(1.1f).fillMaxSize(), shape = SpaPebbleShape, photo = promo.photo())
+                SpaImageTile(Modifier.weight(1.1f).fillMaxSize(), shape = MaterialTheme.shapes.large, photo = promo.photo())
                 Box(Modifier.weight(1f)) { body() }
             }
         } else {
             Column {
-                SpaImageTile(Modifier.fillMaxWidth().height(180.dp), shape = SpaPebbleShape, photo = promo.photo())
+                SpaImageTile(Modifier.fillMaxWidth().height(180.dp), shape = MaterialTheme.shapes.large, photo = promo.photo())
                 body()
             }
         }
@@ -216,7 +211,7 @@ private fun CopyableCode(code: String, onEvent: (PromotionsEvent) -> Unit) {
 
 @Composable
 private fun PromoRow(promo: Promo, onEvent: (PromotionsEvent) -> Unit, modifier: Modifier = Modifier) {
-    SpaCard(modifier.fillMaxWidth().spaTopo(Alignment.CenterEnd), padding = PaddingValues(0.dp)) {
+    SpaCard(modifier.fillMaxWidth(), padding = PaddingValues(0.dp)) {
         ListItem(
             overlineContent = {
                 Row(verticalAlignment = Alignment.CenterVertically) {

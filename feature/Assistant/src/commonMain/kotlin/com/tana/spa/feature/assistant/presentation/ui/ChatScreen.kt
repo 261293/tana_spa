@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.components.SpaTextButton
 import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.feature.assistant.domain.model.Author
 import com.tana.spa.feature.assistant.domain.model.ChatMessage
@@ -180,7 +181,7 @@ private fun ProgressStrip(progress: Float) {
         Column(Modifier.weight(1f)) {
             Text(
                 text = stringResource(Res.string.chat_progress_label),
-                style = SpaTheme.textStyles.overline,
+                style = SpaTheme.textStyles.tag,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Box(
@@ -342,16 +343,7 @@ private fun FailedRow(onRetry: () -> Unit) {
             style = SpaTheme.textStyles.caption,
             color = MaterialTheme.colorScheme.error,
         )
-        Text(
-            text = stringResource(Res.string.chat_retry),
-            style = SpaTheme.textStyles.body,
-            fontWeight = FontWeight.Bold,
-            color = SpaTheme.extraColors.link,
-            modifier = Modifier
-                .spaClickable(onClick = onRetry)
-                .minimumInteractiveComponentSize()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        )
+        SpaTextButton(text = stringResource(Res.string.chat_retry), onClick = onRetry)
     }
 }
 

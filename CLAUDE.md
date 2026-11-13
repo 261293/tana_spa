@@ -86,17 +86,18 @@ name any step you skipped. Full rules: the `calibrated-claims` skill.
 **Material 3 components first.** Build a screen out of Material's components (`ListItem`, `Card`,
 `FilterChip`, `DatePicker`, `ModalBottomSheet`, `NavigationRail`, …) restyled through their
 `colors`/`shape` parameters, and hand-draw only what Material has no component for. The component
-map, the three deliberate exceptions (the moss pocket, the felt tray, the status pill) and the
+map, the three deliberate exceptions (the pocket, the felt tray, the status pill) and the
 checklist for a new screen: `docs/material-design.md`. Layout follows the window's width class
 (`SpaWindow.size`, measured once at the root), never the platform: bottom bar on compact, rail on
 medium, destinations in the app bar from expanded up, and every screen's body inside a `SpaPage`
 that caps and centres it.
 
-Colours come from `MaterialTheme.colorScheme` or `SpaTheme.extraColors`, text styles from
+The palette, faces and shapes are locked in `DESIGN.md` (ADR 0008). Colours come from
+`MaterialTheme.colorScheme` or `SpaTheme.extraColors`, text styles from
 `SpaTheme.textStyles` — never a raw `Color(0x…)`, a `SpaColors` constant or an inline `fontSize` in
 a composable. `SpaColors` is the palette the theme is built from, not an API for screens.
 `SpaColorSchemeTest` and `SpaTextStylesTest` pin each token, including which base a text style
-derives from. Sizes stay faithful to the Figma spec rather than a rounded scale, and the app is
+derives from. Sizes follow `DESIGN.md` rather than a rounded scale, and the app is
 light-only by decision: `docs/adr/0002-light-only-colour-scheme.md`. Full rules (per-target constraints, the wasm canvas, breakpoints,
 WCAG 2.2 checks, screen templates): `core:ui` plus the `kmp-compose-multiplatform` skill's
 `references/ui-design.md`; library candidates are in its `references/libraries.md`.

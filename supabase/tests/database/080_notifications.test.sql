@@ -67,7 +67,7 @@ select public.spa_confirm_booking((select pending from bk));
 select pg_temp.as_postgres();
 select results_eq(format($$select type, title, body, data from public.notifications where user_id = %L and type = 'booking'$$, (select hoa from ctx)),
   format($$values ('booking'::text, 'Booking confirmed'::text, %L::text, %L::jsonb)$$,
-         (select 'Jade Roller Facial with Mai Tran on ' || private.day_and_time(b.start_at) from public.bookings b where b.id = (select pending from bk)),
+         (select 'Jade Roller Facial on ' || private.day_and_time(b.start_at) from public.bookings b where b.id = (select pending from bk)),
          (select jsonb_build_object('bookingId', b.id, 'reference', 'BK-' || b.booking_no) from public.bookings b where b.id = (select pending from bk))),
   'confirm_writes_notification');
 

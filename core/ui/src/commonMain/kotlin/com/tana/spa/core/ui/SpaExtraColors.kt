@@ -23,24 +23,23 @@ data class SpaExtraColors(
     /** The recessed tray behind time slots and inline edit forms. */
     val felt: Color,
     val shadow: Color,
-    /** The uppercase label that sits above a heading. */
-    val eyebrow: Color,
+    val tag: Color,
     val inkSoft: Color,
 )
 
 internal val LightExtraColors = SpaExtraColors(
-    link = SpaColors.Forest600,
-    success = SpaColors.Forest600,
-    warning = SpaColors.Clay,
-    warningContainer = SpaColors.ClaySoft,
-    pocket = SpaColors.ForestDeep,
-    onPocket = SpaColors.OnForest,
-    onPocketMuted = SpaColors.OnForestMuted,
-    pocketAction = SpaColors.OnForest,
-    onPocketAction = SpaColors.ForestDeep,
-    felt = SpaColors.SurfaceAlt,
+    link = SpaColors.Eucalyptus,
+    success = SpaColors.Moss,
+    warning = SpaColors.Ochre,
+    warningContainer = SpaColors.OchreTint,
+    pocket = SpaColors.Ink,
+    onPocket = SpaColors.Paper,
+    onPocketMuted = SpaColors.Paper3,
+    pocketAction = SpaColors.Card,
+    onPocketAction = SpaColors.Ink,
+    felt = SpaColors.Paper2,
     shadow = SpaColors.Shadow,
-    eyebrow = SpaColors.Moss,
+    tag = SpaColors.Muted,
     inkSoft = SpaColors.InkSoft,
 )
 

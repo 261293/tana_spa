@@ -1,10 +1,9 @@
 <resources>
     <string name="booking_title">Hôm nay cơ thể bạn</string>
     <string name="booking_title_accent">cần điều gì?</string>
-    <string name="booking_subtitle">Chọn dịch vụ bạn thích, người bạn muốn và thời gian phù hợp. Spa sẽ xác nhận giờ hẹn cho bạn.</string>
+    <string name="booking_subtitle">Chọn dịch vụ bạn thích và thời gian phù hợp. Spa sẽ sắp xếp kỹ thuật viên và xác nhận giờ hẹn cho bạn.</string>
 
     <string name="booking_step_treatment">Dịch vụ</string>
-    <string name="booking_step_therapist">Kỹ thuật viên</string>
     <string name="booking_step_when">Ngày &amp; giờ</string>
     <string name="booking_step_review">Buổi hẹn của bạn</string>
     <string name="booking_step_done">Đã xong bước này</string>
@@ -13,7 +12,6 @@
     <string name="booking_service_details">Xem chi tiết</string>
 
     <string name="booking_service_meta">%1$d phút · %2$s</string>
-    <string name="booking_therapist_next">Trống: %1$s</string>
 
     <string name="booking_open_times">Giờ trống ngày %1$s</string>
     <string name="booking_day_full">%1$s, đã kín lịch</string>
@@ -22,9 +20,6 @@
     <string name="booking_menu_failed">Không tải được danh sách dịch vụ.</string>
     <string name="booking_menu_retry">Thử lại</string>
     <string name="booking_no_times">Ngày này không còn giờ trống. Bạn chọn ngày khác nhé.</string>
-    <string name="booking_any_therapist">Ai trống trước</string>
-    <string name="booking_any_therapist_focus">Xác nhận nhanh nhất</string>
-    <string name="booking_review_any_therapist">Kỹ thuật viên đang trống</string>
     <string name="booking_sent_bookings">Xem lịch hẹn của bạn</string>
 
     <string name="refusal_slot_taken">Giờ này vừa có người đặt. Bạn chọn giờ khác nhé.</string>
@@ -40,7 +35,7 @@
     <string name="bookings_title">Lịch hẹn</string>
     <string name="bookings_title_accent">của bạn</string>
     <string name="bookings_subtitle">Những gì bạn đã đặt và những gì spa đã xác nhận.</string>
-    <string name="bookings_meta">%1$s · %2$s · %3$s</string>
+    <string name="bookings_meta">%1$s · %2$s</string>
     <string name="bookings_empty">Bạn chưa đặt lịch hẹn nào.</string>
     <string name="bookings_book_now">Đặt lịch ngay</string>
     <string name="bookings_failed">Không tải được lịch hẹn của bạn.</string>
@@ -76,7 +71,6 @@
     <string name="service_retry">Thử lại</string>
 
     <string name="booking_review_treatment">Dịch vụ</string>
-    <string name="booking_review_therapist">Kỹ thuật viên</string>
     <string name="booking_review_when">Thời gian</string>
     <string name="booking_review_not_chosen">Chưa chọn</string>
     <string name="booking_review_pick_time">%1$s · chọn giờ</string>
@@ -88,38 +82,39 @@
     <string name="booking_code_applied">Đã áp dụng %1$s — %2$s</string>
     <string name="booking_code_empty">Bạn hãy nhập mã.</string>
     <string name="booking_code_unknown">“%1$s” không phải mã hợp lệ.</string>
+    <string name="booking_code_expired">“%1$s” đã hết hạn.</string>
     <string name="booking_code_no_service">Bạn hãy chọn dịch vụ trước.</string>
     <string name="booking_code_wrong_category">%1$s chỉ áp dụng cho dịch vụ %2$s.</string>
     <string name="booking_code_minimum">%1$s cần hóa đơn tối thiểu %2$s.</string>
 
     <string name="booking_total_label">tổng thanh toán tại spa</string>
     <string name="booking_request">Gửi yêu cầu đặt lịch</string>
+    <string name="booking_request_need_service">Chọn một dịch vụ ở bước 1 để gửi yêu cầu.</string>
+    <string name="booking_request_need_time">Chọn giờ ở bước 2 để gửi yêu cầu.</string>
     <string name="booking_disclaimer">Spa sẽ xác nhận giờ hẹn, thường trong vòng 30 phút. Bạn chỉ thanh toán khi đến spa.</string>
 
     <string name="booking_strip_choose">Chọn một dịch vụ</string>
-    <string name="booking_strip_pick_time">chọn giờ</string>
+    <string name="booking_card_title">Buổi hẹn của bạn</string>
+    <string name="booking_card_no_time">chưa chọn giờ</string>
+    <string name="booking_card_minutes">%1$d phút</string>
+    <string name="booking_card_need_service">Chọn một dịch vụ để tiếp tục</string>
+    <string name="booking_card_need_time">Chọn giờ để tiếp tục</string>
 
     <string name="booking_sent_title">Đã gửi yêu cầu</string>
-    <string name="booking_sent_body">%1$s với %2$s, %3$s. Spa xác nhận xong là bạn sẽ nhận được thông báo ngay.</string>
+    <string name="booking_sent_body">%1$s, %2$s. Spa sẽ sắp xếp kỹ thuật viên và báo cho bạn ngay khi xác nhận.</string>
     <string name="booking_sent_notifications">Xem thông báo</string>
     <string name="booking_sent_another">Đặt thêm dịch vụ khác</string>
     <string name="visit_in_progress">Buổi trị liệu đang diễn ra</string>
     <string name="visit_progress_description">Bước %1$d trên %2$d: %3$s</string>
-    <string name="booking_eyebrow">Đặt lịch</string>
     <string name="booking_today">Hôm nay</string>
     <string name="booking_change">Đổi</string>
     <string name="booking_subtotal">Tạm tính</string>
     <string name="booking_slots_morning">Buổi sáng</string>
     <string name="booking_slots_afternoon">Buổi chiều</string>
     <string name="booking_slots_evening">Buổi tối</string>
-    <string name="bookings_eyebrow">Lần hẹn của bạn</string>
-    <string name="treatments_eyebrow">Liệu trình</string>
-    <string name="treatments_title">Tìm liệu trình của bạn</string>
-    <string name="treatments_note">Mỗi liệu trình đều có thời gian để bạn lắng lại.</string>
     <string name="treatments_search_label">Tìm liệu trình</string>
     <string name="treatments_search_placeholder">Massage, chăm sóc da, xông thảo mộc…</string>
     <string name="treatments_filter_all">Tất cả</string>
-    <string name="treatments_count">%1$d liệu trình</string>
     <string name="treatments_empty_title">Không có liệu trình nào khớp</string>
     <string name="treatments_empty_body">Thử từ khoá khác, hoặc xem lại toàn bộ liệu trình.</string>
     <string name="treatments_empty_action">Xem tất cả liệu trình</string>

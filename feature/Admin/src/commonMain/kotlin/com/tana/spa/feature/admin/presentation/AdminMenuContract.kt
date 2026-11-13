@@ -1,5 +1,6 @@
 package com.tana.spa.feature.admin.presentation
 
+import com.tana.spa.feature.admin.domain.DeskTherapist
 import com.tana.spa.shared.auth.EmailError
 import com.tana.spa.shared.auth.NameError
 import com.tana.spa.shared.auth.PasswordError
@@ -51,7 +52,13 @@ data class AdminMenuState(
     val savingPerson: Boolean = false,
     val permissions: Set<SpaPermission> = emptySet(),
     val creatableRoles: List<String> = emptyList(),
-)
+    val team: List<DeskTherapist> = emptyList(),
+    /** What the owner has typed per therapist slug, before saving; absent means the linked account. */
+    val accountDrafts: Map<String, String> = emptyMap(),
+    val linking: String? = null,
+) {
+    fun accountDraft(therapist: DeskTherapist): String = accountDrafts[therapist.slug] ?: therapist.account.orEmpty()
+}
 
 sealed interface AdminMenuEvent {
     data class ServiceNameChanged(val value: String) : AdminMenuEvent
@@ -70,6 +77,9 @@ sealed interface AdminMenuEvent {
     data class PersonPasswordChanged(val value: String) : AdminMenuEvent
     data class PersonRoleChanged(val role: String) : AdminMenuEvent
     data object SavePerson : AdminMenuEvent
+
+    data class AccountDraftChanged(val therapistSlug: String, val value: String) : AdminMenuEvent
+    data class LinkAccount(val therapistSlug: String) : AdminMenuEvent
 }
 
 sealed interface AdminMenuEffect {
@@ -77,5 +87,9 @@ sealed interface AdminMenuEffect {
     data class ShowServiceAdded(val name: String) : AdminMenuEffect
     data class ShowTherapistAdded(val name: String) : AdminMenuEffect
     data class ShowPersonAdded(val name: String) : AdminMenuEffect
+
+    /** [account] null: the therapist no longer has an account. */
+    data class ShowLinked(val name: String, val account: String?) : AdminMenuEffect
+    data class ShowLinkRefused(val code: String?) : AdminMenuEffect
     data class ShowRefused(val code: String?) : AdminMenuEffect
 }

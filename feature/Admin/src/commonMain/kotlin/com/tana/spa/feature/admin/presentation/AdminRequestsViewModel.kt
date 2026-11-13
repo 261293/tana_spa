@@ -28,22 +28,27 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
         when (event) {
             AdminRequestsEvent.Refresh -> refresh()
 
-            is AdminRequestsEvent.RequestSelected -> setState { copy(selectedId = event.id) }
+            is AdminRequestsEvent.RequestSelected -> setState { copy(selectedId = event.id, chosenTherapist = null) }
 
-            is AdminRequestsEvent.Confirmed -> decide(event.id) { desk.confirm(event.id, event.force) }
+            is AdminRequestsEvent.Confirmed -> {
+                val therapist = state.value.therapistToConfirm
+                decide(event.id) { desk.confirm(event.id, event.force, therapist) }
+            }
+
+            is AdminRequestsEvent.TherapistChosen -> chooseTherapist(event.id, event.slug)
 
             is AdminRequestsEvent.DeclineStarted -> setState {
                 val request = requests.firstOrNull { it.id == event.id }
                 copy(
                     declining = request,
                     reason = if (request?.conflict != null) DeclineReasonDto.OVERLAP else DeclineReasonDto.THERAPIST_UNAVAILABLE,
-                    alternative = AlternativeOffer.NONE,
+                    alternative = "",
                 )
             }
 
             is AdminRequestsEvent.ReasonChosen -> setState { copy(reason = event.reason) }
 
-            is AdminRequestsEvent.AlternativeChosen -> setState { copy(alternative = event.alternative) }
+            is AdminRequestsEvent.AlternativeChanged -> setState { copy(alternative = event.alternative.take(ALTERNATIVE_MAX_LENGTH)) }
 
             AdminRequestsEvent.DeclineConfirmed -> declineSelected()
 
@@ -70,10 +75,14 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
                             failed = false,
                             nowEpochMillis = Clock.System.now().toEpochMilliseconds(),
                             dayEpochDay = queue.dayEpochDay,
+                            team = queue.team,
                         )
                     }
                 }
                 .onFailure { setState { copy(loading = false, failed = true) } }
+        }
+        viewModelScope.launch {
+            runCatchingCancellable { desk.myShifts() }.onSuccess { shifts -> setState { copy(myShifts = shifts) } }
         }
     }
 
@@ -86,8 +95,32 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
             runCatchingCancellable { call() }
                 .onSuccess { decided ->
                     AppLog.i(logTag) { "booking ${decided.reference} is now ${decided.status}" }
-                    setState { copy(requests = replace(decided), working = false, selectedId = nextToAnswer(decided.id)) }
+                    setState {
+                        copy(requests = replace(decided), working = false, selectedId = nextToAnswer(decided.id), chosenTherapist = null)
+                    }
                     announce(decided, guest)
+                }
+                .onFailure { failure ->
+                    setState { copy(working = false) }
+                    sendEffect(AdminRequestsEffect.ShowRefused(overlap = failure.isOverlap()))
+                }
+        }
+    }
+
+    private fun chooseTherapist(id: String, slug: String) {
+        val request = state.value.requests.firstOrNull { it.id == id } ?: return
+        if (request.status != DeskStatus.CONFIRMED) {
+            setState { copy(chosenTherapist = slug) }
+            return
+        }
+        if (state.value.working || request.therapistSlug == slug) return
+        setState { copy(working = true) }
+        viewModelScope.launch {
+            runCatchingCancellable { desk.assign(id, slug) }
+                .onSuccess { moved ->
+                    AppLog.i(logTag) { "booking ${moved.reference} moved to $slug" }
+                    setState { copy(requests = replace(moved), working = false) }
+                    sendEffect(AdminRequestsEffect.ShowAssigned(moved.guest, moved.therapistName))
                 }
                 .onFailure { failure ->
                     setState { copy(working = false) }
@@ -98,17 +131,17 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
 
     private fun declineSelected() {
         val declining = state.value.declining ?: return
-        val alternative = state.value.alternative.takeIf { it != AlternativeOffer.NONE }
+        val alternative = state.value.alternative.trim().ifEmpty { null }
         val reason = state.value.reason
         setState { copy(declining = null) }
-        decide(declining.id) { desk.decline(declining.id, reason, alternative?.name) }
+        decide(declining.id) { desk.decline(declining.id, reason, alternative) }
     }
 
     private fun announce(decided: DeskRequest, guest: String) = when (decided.status) {
         DeskStatus.CONFIRMED -> sendEffect(AdminRequestsEffect.ShowConfirmed(guest))
 
         DeskStatus.DECLINED -> sendEffect(
-            AdminRequestsEffect.ShowDeclined(guest, withAlternative = state.value.alternative != AlternativeOffer.NONE),
+            AdminRequestsEffect.ShowDeclined(guest, withAlternative = state.value.alternative.isNotBlank()),
         )
 
         DeskStatus.COMPLETED -> sendEffect(AdminRequestsEffect.ShowVisitRecorded(guest, attended = true))
@@ -136,3 +169,6 @@ class AdminRequestsViewModel(private val desk: DeskRepository) :
         Result.failure(e)
     }
 }
+
+/** One line on the guest's visit card. */
+internal const val ALTERNATIVE_MAX_LENGTH = 80

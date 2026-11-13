@@ -32,10 +32,10 @@ import org.jetbrains.compose.resources.DrawableResource
 private const val MEDIA_RATIO = 4f / 3f
 private const val DESCRIPTION_LINES = 2
 
-/** The uppercase tracked label the design sets above every heading. */
+/** A small sentence-case label: a category on a card, a slot group, a weekday. */
 @Composable
-fun SpaEyebrow(text: String, modifier: Modifier = Modifier, color: Color = SpaTheme.extraColors.eyebrow) {
-    Text(text = text.uppercase(), style = SpaTheme.textStyles.overline, color = color, modifier = modifier)
+fun SpaTag(text: String, modifier: Modifier = Modifier, color: Color = SpaTheme.extraColors.tag) {
+    Text(text = text, style = SpaTheme.textStyles.tag, color = color, modifier = modifier)
 }
 
 /** Eyebrow, serif heading and an optional note or trailing action, as the design opens a block. */
@@ -48,7 +48,7 @@ fun SpaSectionHead(
     action: (@Composable () -> Unit)? = null,
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        SpaEyebrow(eyebrow)
+        SpaTag(eyebrow)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Bottom) {
             Text(
                 text = title,
@@ -98,7 +98,7 @@ fun SpaTreatmentCard(
             Modifier.padding(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp),
         ) {
-            category?.let { SpaEyebrow(it) }
+            category?.let { SpaTag(it) }
             Text(text = title, style = SpaTheme.textStyles.cardTitle, color = MaterialTheme.colorScheme.onSurface)
             description?.let {
                 Text(
@@ -139,7 +139,7 @@ fun SpaFacts(facts: List<Pair<String, String>>, modifier: Modifier = Modifier) {
         ) {
             facts.forEach { (label, value) ->
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    SpaEyebrow(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    SpaTag(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
                         text = value,
                         style = SpaTheme.textStyles.body,
@@ -153,14 +153,14 @@ fun SpaFacts(facts: List<Pair<String, String>>, modifier: Modifier = Modifier) {
     }
 }
 
-/** The dark forest panel the design closes a page with, holding one light action. */
+/** The tinted panel a page closes with, holding one action. */
 @Composable
 fun SpaCtaPanel(eyebrow: String, title: String, actionLabel: String, onAction: () -> Unit, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().spaPocket(MaterialTheme.shapes.extraLarge).padding(24.dp)) {
+    Box(modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.extraLarge).padding(24.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            SpaEyebrow(eyebrow, color = SpaTheme.extraColors.onPocketMuted)
-            Text(text = title, style = SpaTheme.textStyles.screenTitle, color = SpaTheme.extraColors.onPocket)
-            SpaPocketButton(text = actionLabel, onClick = onAction, modifier = Modifier.padding(top = 2.dp))
+            SpaTag(eyebrow, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = title, style = SpaTheme.textStyles.screenTitle, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            SpaPrimaryButton(text = actionLabel, onClick = onAction, modifier = Modifier.padding(top = 2.dp))
         }
     }
 }
@@ -191,7 +191,7 @@ fun SpaDateBlock(weekday: String, day: String, month: String, modifier: Modifier
             .padding(horizontal = 12.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        SpaEyebrow(weekday, color = MaterialTheme.colorScheme.onSecondaryContainer)
+        SpaTag(weekday, color = MaterialTheme.colorScheme.onSecondaryContainer)
         Text(text = day, style = SpaTheme.textStyles.cardTitle, color = MaterialTheme.colorScheme.onSurface)
         Text(text = month, style = SpaTheme.textStyles.label, color = MaterialTheme.colorScheme.onSecondaryContainer)
     }

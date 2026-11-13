@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 private const val MAX_BAR_DESTINATIONS = 5
 
 class NavDestinationsTest {
-    private val labels = NavLabels("Treatments", "Book", "Alerts", "Offers", "Desk", "Settings")
+    private val labels = NavLabels("Book", "Visits", "Alerts", "Offers", "Desk", "Settings")
 
     private fun routes(desk: Boolean) = navDestinations(desk, notificationsEnabled = true, unread = 0, labels = labels).map { it.route }
 
@@ -43,14 +43,13 @@ class NavDestinationsTest {
     }
 
     @Test
-    fun the_treatment_menu_leads_a_guest_s_destinations() {
-        assertEquals(Routes.TREATMENTS, routes(desk = false).first())
+    fun a_guest_s_destinations_start_with_booking_then_their_visits() {
+        assertEquals(listOf(Routes.BOOKING, Routes.MY_BOOKINGS), routes(desk = false).take(2))
     }
 
-    /** Whoever works the desk books from the console, and the bar has no room for both. */
     @Test
-    fun the_treatment_menu_stands_down_for_whoever_works_the_desk() {
-        assertFalse(Routes.TREATMENTS in routes(desk = true))
+    fun the_visits_stand_down_for_whoever_works_the_desk() {
+        assertFalse(Routes.MY_BOOKINGS in routes(desk = true))
         assertEquals(Routes.ADMIN_REQUESTS, routes(desk = true).single { it == Routes.ADMIN_REQUESTS })
     }
 

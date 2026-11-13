@@ -17,6 +17,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,9 +28,11 @@ import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.spaPointer
 
 private val ButtonShape = CircleShape
-private val ButtonHeight = 48.dp
-private const val DISABLED_ALPHA = 0.55f
-private const val POCKET_DISABLED_ALPHA = 0.25f
+private val ButtonHeight = 40.dp
+
+// Material 3's disabled tokens: the container at 12% and the label at 38% of onSurface.
+private const val DISABLED_CONTAINER_ALPHA = 0.12f
+private const val DISABLED_ALPHA = 0.38f
 
 /** Full-width forest call-to-action. While [loading] it shows a spinner and ignores taps. */
 @Composable
@@ -41,51 +44,19 @@ fun SpaPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
-            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = DISABLED_ALPHA),
-            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = DISABLED_ALPHA),
+            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_CONTAINER_ALPHA),
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
         ),
         modifier = modifier.spaPointer(enabled && !loading).fillMaxWidth().height(ButtonHeight),
     ) {
         if (loading) {
             CircularProgressIndicator(
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(20.dp),
                 color = MaterialTheme.colorScheme.onPrimary,
                 strokeWidth = 2.dp,
             )
         } else {
             Text(text = text, style = SpaTheme.textStyles.buttonLabel)
-        }
-    }
-}
-
-/**
- * The action inside a dark [spaPocket]: near-white on deep forest, with the trailing arrow the
- * design puts on the booking request.
- */
-@Composable
-fun SpaPocketButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    icon: SpaIcon? = SpaIcon.ArrowRight,
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        shape = ButtonShape,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = SpaTheme.extraColors.pocketAction,
-            contentColor = SpaTheme.extraColors.onPocketAction,
-            disabledContainerColor = SpaTheme.extraColors.pocketAction.copy(alpha = POCKET_DISABLED_ALPHA),
-            disabledContentColor = SpaTheme.extraColors.onPocket.copy(alpha = DISABLED_ALPHA),
-        ),
-        contentPadding = PaddingValues(horizontal = 22.dp),
-        modifier = modifier.spaPointer(enabled).fillMaxWidth().height(ButtonHeight),
-    ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(text = text, style = SpaTheme.textStyles.buttonLabel)
-            icon?.let { SpaIconImage(it, size = 18.dp) }
         }
     }
 }
@@ -100,13 +71,13 @@ fun SpaSocialButton(text: String, icon: Painter, onClick: () -> Unit, modifier: 
         colors = ButtonDefaults.filledTonalButtonColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DISABLED_ALPHA),
+            disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_CONTAINER_ALPHA),
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
         ),
         contentPadding = PaddingValues(horizontal = 22.dp),
         modifier = modifier.spaPointer(enabled).fillMaxWidth().height(ButtonHeight),
     ) {
-        Image(painter = icon, contentDescription = null, modifier = Modifier.size(22.dp))
+        Image(painter = icon, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.size(10.dp))
         Text(text = text, style = SpaTheme.textStyles.buttonLabel)
     }
@@ -128,12 +99,41 @@ fun SpaSecondaryButton(
         onClick = onClick,
         enabled = enabled,
         shape = ButtonShape,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(
+            1.dp,
+            if (enabled) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_CONTAINER_ALPHA),
+        ),
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = contentColor,
-            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DISABLED_ALPHA),
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
         ),
         modifier = modifier.spaPointer(enabled).fillMaxWidth().height(ButtonHeight),
+    ) {
+        Text(text = text, style = SpaTheme.textStyles.buttonLabel)
+    }
+}
+
+/**
+ * A link-like action ("Forgot password?", "Mark all read"). Material's text button, so hover and
+ * press draw a rounded state layer around padded text and the target is 48dp, not the glyphs.
+ */
+@Composable
+fun SpaTextButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    contentColor: Color = MaterialTheme.colorScheme.primary,
+) {
+    TextButton(
+        onClick = onClick,
+        enabled = enabled,
+        shape = ButtonShape,
+        colors = ButtonDefaults.textButtonColors(
+            contentColor = contentColor,
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = DISABLED_ALPHA),
+        ),
+        modifier = modifier.spaPointer(enabled),
     ) {
         Text(text = text, style = SpaTheme.textStyles.buttonLabel)
     }

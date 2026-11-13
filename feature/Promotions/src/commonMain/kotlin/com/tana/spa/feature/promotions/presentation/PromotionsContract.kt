@@ -1,16 +1,12 @@
 package com.tana.spa.feature.promotions.presentation
 
 import com.tana.spa.shared.spa.Promo
-import com.tana.spa.shared.spa.SpaCatalog
 
-/** [checked] is null until the guest checks a typed code. */
-data class PromotionsState(
-    val featured: Promo = SpaCatalog.promos.first(),
-    val others: List<Promo> = SpaCatalog.promos.drop(1),
-    val entry: String = "",
-    val checked: Promo? = null,
-    val checkFailed: Boolean = false,
-)
+/** Only offers still open [today]; [checked] is null until the guest checks a typed code. */
+data class PromotionsState(val live: List<Promo>, val entry: String = "", val checked: Promo? = null, val checkFailed: Boolean = false) {
+    val featured: Promo? get() = live.firstOrNull()
+    val others: List<Promo> get() = live.drop(1)
+}
 
 sealed interface PromotionsEvent {
     data class EntryChanged(val value: String) : PromotionsEvent

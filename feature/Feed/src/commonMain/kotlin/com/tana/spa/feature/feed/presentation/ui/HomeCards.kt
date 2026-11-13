@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaCard
 import com.tana.spa.core.ui.components.SpaCatalogCard
-import com.tana.spa.core.ui.components.SpaEyebrow
 import com.tana.spa.core.ui.components.SpaSecondaryButton
+import com.tana.spa.core.ui.components.SpaTag
 import com.tana.spa.core.ui.components.SpaTreatmentCard
 import com.tana.spa.feature.feed.presentation.data.UiAppointment
 import com.tana.spa.feature.feed.presentation.data.UiProduct
@@ -39,7 +39,7 @@ internal fun NextVisitCard(appointment: UiAppointment, onClick: () -> Unit, modi
         padding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SpaEyebrow(stringResource(Res.string.home_next_visit))
+            SpaTag(stringResource(Res.string.home_next_visit))
             Text(
                 text = appointment.serviceName,
                 style = SpaTheme.textStyles.cardTitle,

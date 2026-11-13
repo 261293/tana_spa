@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -29,6 +30,7 @@ import com.tana.spa.core.ui.components.SpaFilterChip
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaScreenHeader
+import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaTextField
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.feature.admin.presentation.AdminMenuEffect
@@ -48,7 +50,6 @@ import com.tana.spa.feature.admin.resources.admin_menu_error_empty
 import com.tana.spa.feature.admin.resources.admin_menu_error_long
 import com.tana.spa.feature.admin.resources.admin_menu_error_price_large
 import com.tana.spa.feature.admin.resources.admin_menu_error_price_negative
-import com.tana.spa.feature.admin.resources.admin_menu_eyebrow
 import com.tana.spa.feature.admin.resources.admin_menu_focus
 import com.tana.spa.feature.admin.resources.admin_menu_focus_hint
 import com.tana.spa.feature.admin.resources.admin_menu_minutes
@@ -75,6 +76,14 @@ import com.tana.spa.feature.admin.resources.admin_menu_role_staff
 import com.tana.spa.feature.admin.resources.admin_menu_service_added
 import com.tana.spa.feature.admin.resources.admin_menu_service_title
 import com.tana.spa.feature.admin.resources.admin_menu_subtitle
+import com.tana.spa.feature.admin.resources.admin_menu_team_help
+import com.tana.spa.feature.admin.resources.admin_menu_team_hint
+import com.tana.spa.feature.admin.resources.admin_menu_team_linked
+import com.tana.spa.feature.admin.resources.admin_menu_team_not_staff
+import com.tana.spa.feature.admin.resources.admin_menu_team_save
+import com.tana.spa.feature.admin.resources.admin_menu_team_title
+import com.tana.spa.feature.admin.resources.admin_menu_team_unknown
+import com.tana.spa.feature.admin.resources.admin_menu_team_unlinked
 import com.tana.spa.feature.admin.resources.admin_menu_therapist_added
 import com.tana.spa.feature.admin.resources.admin_menu_therapist_hint
 import com.tana.spa.feature.admin.resources.admin_menu_therapist_name
@@ -82,6 +91,7 @@ import com.tana.spa.feature.admin.resources.admin_menu_therapist_title
 import com.tana.spa.feature.admin.resources.admin_menu_title
 import com.tana.spa.feature.admin.resources.admin_menu_title_accent
 import com.tana.spa.feature.admin.resources.admin_refused
+import com.tana.spa.shared.auth.AccountErrorCodes
 import com.tana.spa.shared.auth.SpaPermission
 import com.tana.spa.shared.auth.SpaRoles
 import com.tana.spa.shared.booking.DurationError
@@ -93,6 +103,8 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
+private val TEAM_SAVE_WIDTH = 112.dp
+
 @Composable
 fun AdminMenuScreen(
     state: AdminMenuState,
@@ -108,8 +120,22 @@ fun AdminMenuScreen(
         effects.collect { effect ->
             val message = when (effect) {
                 is AdminMenuEffect.ShowServiceAdded -> getString(Res.string.admin_menu_service_added, effect.name)
+
                 is AdminMenuEffect.ShowTherapistAdded -> getString(Res.string.admin_menu_therapist_added, effect.name)
+
                 is AdminMenuEffect.ShowPersonAdded -> getString(Res.string.admin_menu_person_added, effect.name)
+
+                is AdminMenuEffect.ShowLinked -> effect.account?.let { getString(Res.string.admin_menu_team_linked, effect.name, it) }
+                    ?: getString(Res.string.admin_menu_team_unlinked, effect.name)
+
+                is AdminMenuEffect.ShowLinkRefused -> getString(
+                    when (effect.code) {
+                        AccountErrorCodes.UNKNOWN_ACCOUNT -> Res.string.admin_menu_team_unknown
+                        AccountErrorCodes.ROLE_NOT_ALLOWED -> Res.string.admin_menu_team_not_staff
+                        else -> Res.string.admin_refused
+                    },
+                )
+
                 is AdminMenuEffect.ShowRefused -> getString(Res.string.admin_refused)
             }
             snackbar.currentSnackbarData?.dismiss()
@@ -136,7 +162,6 @@ fun AdminMenuScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 SpaScreenHeader(
-                    eyebrow = stringResource(Res.string.admin_menu_eyebrow),
                     title = stringResource(Res.string.admin_menu_title),
                     accent = stringResource(Res.string.admin_menu_title_accent),
                     subtitle = stringResource(Res.string.admin_menu_subtitle),
@@ -152,6 +177,9 @@ fun AdminMenuScreen(
                 } else {
                     if (menu) Box(Modifier.revealOnScroll(order = 1)) { ServiceForm(state, onEvent) }
                     if (roster) Box(Modifier.revealOnScroll(order = 2)) { TherapistForm(state, onEvent) }
+                }
+                if (roster && state.team.isNotEmpty()) {
+                    Box(Modifier.revealOnScroll(order = 3)) { TeamAccounts(state, onEvent) }
                 }
                 if (SpaPermission.MANAGE_ACCOUNTS in state.permissions) {
                     Box(Modifier.revealOnScroll(order = 3)) { PersonForm(state, onEvent) }
@@ -257,6 +285,39 @@ private fun TherapistForm(state: AdminMenuState, onEvent: (AdminMenuEvent) -> Un
                 onClick = { onEvent(AdminMenuEvent.SaveTherapist) },
                 loading = state.savingTherapist,
             )
+        }
+    }
+}
+
+@Composable
+private fun TeamAccounts(state: AdminMenuState, onEvent: (AdminMenuEvent) -> Unit) {
+    SpaCard(Modifier.fillMaxWidth(), padding = PaddingValues(20.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            FormTitle(stringResource(Res.string.admin_menu_team_title))
+            Text(
+                text = stringResource(Res.string.admin_menu_team_help),
+                style = SpaTheme.textStyles.caption,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            state.team.forEach { therapist ->
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Bottom) {
+                    SpaTextField(
+                        label = therapist.name,
+                        value = state.accountDraft(therapist),
+                        onValueChange = { onEvent(AdminMenuEvent.AccountDraftChanged(therapist.slug, it)) },
+                        placeholder = stringResource(Res.string.admin_menu_team_hint),
+                        enabled = state.linking == null,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        modifier = Modifier.weight(1f),
+                    )
+                    SpaSecondaryButton(
+                        text = stringResource(Res.string.admin_menu_team_save),
+                        onClick = { onEvent(AdminMenuEvent.LinkAccount(therapist.slug)) },
+                        enabled = state.linking == null && state.accountDraft(therapist).trim() != therapist.account.orEmpty(),
+                        modifier = Modifier.width(TEAM_SAVE_WIDTH),
+                    )
+                }
+            }
         }
     }
 }

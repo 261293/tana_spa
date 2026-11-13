@@ -50,6 +50,8 @@ data class Promo(
     val minSpendVnd: Int? = null,
     /** Empty means every treatment qualifies. */
     val eligible: Set<ServiceCategory> = emptySet(),
+    /** The last day the code can be spent; [validUntil] is how that day is written. */
+    val lastDay: SpaDate,
     val validUntil: String,
     val validUntilVi: String? = null,
     val terms: String,
@@ -146,6 +148,7 @@ object SpaCatalog {
             titleVi = "Giảm 20% cho mọi liệu trình chăm sóc da mặt",
             percentOff = 20,
             eligible = setOf(ServiceCategory.FACIAL),
+            lastDay = SpaDate(2026, 10, 31),
             validUntil = "Oct 31, 2026",
             validUntilVi = "31 thg 10, 2026",
             terms = "Facials only. One use per guest.",
@@ -158,6 +161,7 @@ object SpaCatalog {
             amountOffVnd = 375_000,
             minSpendVnd = 3_000_000,
             eligible = setOf(ServiceCategory.MASSAGE),
+            lastDay = SpaDate(2026, 11, 15),
             validUntil = "Nov 15, 2026",
             validUntilVi = "15 thg 11, 2026",
             terms = "Tue-Thu appointments. Minimum spend 3.000.000đ.",
@@ -168,12 +172,15 @@ object SpaCatalog {
             title = "10% off your first booking",
             titleVi = "Giảm 10% cho lần đặt đầu tiên",
             percentOff = 10,
+            lastDay = SpaDate(2026, 12, 31),
             validUntil = "Dec 31, 2026",
             validUntilVi = "31 thg 12, 2026",
             terms = "New guests. Any treatment.",
             termsVi = "Dành cho khách mới. Mọi liệu trình.",
         ),
     )
+
+    fun livePromos(today: SpaDate): List<Promo> = promos.filter { today <= it.lastDay }
 
     /** The code a new account is welcomed with; the sign-up screen hands it to the booking flow. */
     const val NEW_GUEST_CODE = "FIRSTVISIT"

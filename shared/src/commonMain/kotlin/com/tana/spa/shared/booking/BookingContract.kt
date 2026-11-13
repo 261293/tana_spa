@@ -37,6 +37,9 @@ object BookingErrorCodes {
     /** A confirm that would double-book the therapist; retry with `force` to override. */
     const val OVERLAPS_ANOTHER = "overlaps_another"
     const val DUPLICATE_CODE = "duplicate_code"
+
+    /** A request cannot be confirmed until the owner has given it a therapist. */
+    const val THERAPIST_REQUIRED = "therapist_required"
 }
 
 @Serializable
@@ -63,6 +66,8 @@ data class TherapistDto(
     val accent: TherapistAccentDto,
     /** The next free slot; null when the diary is full. */
     val nextSlot: SlotMomentDto?,
+    /** The email of the account that takes this therapist's shifts; only the owner's team list carries it. */
+    val account: String? = null,
 )
 
 /** [todayEpochDay] is the day it is at the spa, which is what "today" means on a booking screen. */
@@ -79,7 +84,7 @@ data class SlotDto(val startAtEpochMillis: Long, val startHour: Double, val avai
 @Serializable
 data class AvailabilityResponse(val dayEpochDay: Int, val slots: List<SlotDto>)
 
-/** A null [therapistSlug] is "any therapist": the server assigns one who is free at that time. */
+/** A null [therapistSlug] leaves the booking unassigned until the owner gives it a therapist. */
 @Serializable
 data class CreateBookingRequest(
     val serviceSlug: String,
@@ -121,6 +126,8 @@ data class BookingDto(
     val alternativeOffer: String? = null,
     /** Set on the staff queue: why confirming this one needs a second look. */
     val conflict: String? = null,
+    /** Set on the staff queue: slugs of the therapists free for this booking's time. */
+    val freeTherapists: List<String> = emptyList(),
 )
 
 @Serializable
@@ -132,7 +139,22 @@ data class StaffQueueResponse(
     /** Everything already on the books for [dayEpochDay], which the schedule draws. */
     val scheduled: List<BookingDto>,
     val dayEpochDay: Int,
+    val therapists: List<TherapistDto> = emptyList(),
 )
+
+@Serializable
+data class AssignTherapistRequest(val therapistSlug: String, val force: Boolean = false)
+
+@Serializable
+data class TeamResponse(val therapists: List<TherapistDto>)
+
+/** A null [email] unlinks the therapist from any account. */
+@Serializable
+data class LinkTherapistRequest(val therapistSlug: String, val email: String? = null)
+
+/** The signed-in therapist's confirmed visits that have not ended, soonest first. */
+@Serializable
+data class ShiftsResponse(val shifts: List<BookingDto>)
 
 /** The owner adds a treatment to the menu; the server generates the slug. */
 @Serializable
@@ -151,6 +173,8 @@ data class CreateTherapistRequest(val name: String, val focus: String, val accen
 data class ConfirmBookingRequest(
     /** True confirms a booking that overlaps another; the desk has decided it is fine. */
     val force: Boolean = false,
+    /** Assigns this therapist before confirming; null keeps the one already assigned. */
+    val therapistSlug: String? = null,
 )
 
 @Serializable

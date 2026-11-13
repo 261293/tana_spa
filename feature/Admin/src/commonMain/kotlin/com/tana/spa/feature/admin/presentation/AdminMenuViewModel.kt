@@ -8,6 +8,7 @@ import com.tana.spa.feature.admin.domain.DeskRefused
 import com.tana.spa.feature.admin.domain.DeskRepository
 import com.tana.spa.shared.auth.AuthValidation
 import com.tana.spa.shared.auth.CreateAccountRequest
+import com.tana.spa.shared.auth.SpaPermission
 import com.tana.spa.shared.auth.SpaRoles
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
@@ -33,6 +34,7 @@ class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRol
                 person = person.copy(role = ROLE_ORDER.firstOrNull { it in creatable } ?: SpaRoles.CUSTOMER),
             )
         }
+        if (SpaPermission.MANAGE_THERAPISTS in state.value.permissions) loadTeam()
     }
 
     override fun handleEvent(event: AdminMenuEvent) {
@@ -72,6 +74,11 @@ class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRol
             is AdminMenuEvent.PersonRoleChanged -> setState { copy(person = person.copy(role = event.role)) }
 
             AdminMenuEvent.SavePerson -> savePerson()
+
+            is AdminMenuEvent.AccountDraftChanged ->
+                setState { copy(accountDrafts = accountDrafts + (event.therapistSlug to event.value)) }
+
+            is AdminMenuEvent.LinkAccount -> link(event.therapistSlug)
         }
     }
 
@@ -130,6 +137,7 @@ class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRol
                     AppLog.i(logTag) { "therapist ${added.slug} joined the team" }
                     setState { copy(therapist = TherapistForm(), savingTherapist = false) }
                     sendEffect(AdminMenuEffect.ShowTherapistAdded(added.name))
+                    loadTeam()
                 }
                 .onFailure { failure ->
                     setState { copy(savingTherapist = false) }
@@ -170,6 +178,33 @@ class AdminMenuViewModel(private val desk: DeskRepository, callerRole: CallerRol
                 .onFailure { failure ->
                     setState { copy(savingPerson = false) }
                     sendEffect(AdminMenuEffect.ShowRefused((failure as? DeskRefused)?.code))
+                }
+        }
+    }
+
+    private fun loadTeam() {
+        viewModelScope.launch {
+            runCatchingCancellable { desk.team() }.onSuccess { team -> setState { copy(team = team) } }
+        }
+    }
+
+    private fun link(slug: String) {
+        val therapist = state.value.team.firstOrNull { it.slug == slug } ?: return
+        if (state.value.linking != null) return
+        val email = state.value.accountDraft(therapist).trim().ifEmpty { null }
+        setState { copy(linking = slug) }
+        viewModelScope.launch {
+            runCatchingCancellable { desk.link(slug, email) }
+                .onSuccess { linked ->
+                    AppLog.i(logTag) { "therapist $slug ${if (linked.account == null) "unlinked" else "linked to an account"}" }
+                    setState {
+                        copy(team = team.map { if (it.slug == slug) linked else it }, accountDrafts = accountDrafts - slug, linking = null)
+                    }
+                    sendEffect(AdminMenuEffect.ShowLinked(linked.name, linked.account))
+                }
+                .onFailure { failure ->
+                    setState { copy(linking = null) }
+                    sendEffect(AdminMenuEffect.ShowLinkRefused((failure as? DeskRefused)?.code))
                 }
         }
     }

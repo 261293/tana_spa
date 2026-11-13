@@ -32,7 +32,6 @@ import com.tana.spa.core.ui.SpaWindow
 import com.tana.spa.core.ui.components.SpaBrand
 import com.tana.spa.core.ui.components.SpaDisplayTitle
 import com.tana.spa.core.ui.components.SpaImageTile
-import com.tana.spa.core.ui.components.spaTopo
 import com.tana.spa.core.ui.revealOnScroll
 
 private val PANEL_HEIGHT = 220.dp
@@ -58,7 +57,6 @@ internal fun AuthShell(title: String, accent: String, intro: String, content: @C
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .spaTopo(Alignment.BottomEnd)
                         .verticalScroll(rememberScrollState()),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -69,7 +67,6 @@ internal fun AuthShell(title: String, accent: String, intro: String, content: @C
             Column(
                 Modifier
                     .fillMaxSize()
-                    .spaTopo(Alignment.BottomCenter)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {

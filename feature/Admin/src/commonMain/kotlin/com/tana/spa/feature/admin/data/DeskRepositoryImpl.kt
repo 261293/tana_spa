@@ -7,10 +7,12 @@ import com.tana.spa.feature.admin.domain.DeskRefused
 import com.tana.spa.feature.admin.domain.DeskRepository
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
+import com.tana.spa.feature.admin.domain.DeskTherapist
 import com.tana.spa.shared.SupabasePaths
 import com.tana.spa.shared.auth.CreateAccountRequest
 import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.auth.ErrorResponse
+import com.tana.spa.shared.booking.AssignTherapistRequest
 import com.tana.spa.shared.booking.BookingDto
 import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.booking.ConfirmBookingRequest
@@ -18,8 +20,11 @@ import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineBookingRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.booking.LinkTherapistRequest
 import com.tana.spa.shared.booking.ServiceDto
+import com.tana.spa.shared.booking.ShiftsResponse
 import com.tana.spa.shared.booking.StaffQueueResponse
+import com.tana.spa.shared.booking.TeamResponse
 import com.tana.spa.shared.booking.TherapistDto
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
@@ -52,14 +57,24 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
             pending = body.pending.map { it.toRequest(now) },
             scheduled = body.scheduled.map { it.toRequest(now) },
             dayEpochDay = body.dayEpochDay,
+            team = body.therapists.map { it.toDesk() },
         )
     }
 
-    override suspend fun confirm(id: String, force: Boolean): DeskRequest {
+    override suspend fun confirm(id: String, force: Boolean, therapistSlug: String?): DeskRequest {
         val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_confirm_booking")) {
             authorize()
             contentType(ContentType.Application.Json)
-            setBody(withId(id, ConfirmBookingRequest(force)))
+            setBody(withId(id, ConfirmBookingRequest(force, therapistSlug)))
+        }
+        return response.requireSuccess().body<BookingDto>().toRequest(nowEpochMillis())
+    }
+
+    override suspend fun assign(id: String, therapistSlug: String): DeskRequest {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_assign_therapist")) {
+            authorize()
+            contentType(ContentType.Application.Json)
+            setBody(withId(id, AssignTherapistRequest(therapistSlug)))
         }
         return response.requireSuccess().body<BookingDto>().toRequest(nowEpochMillis())
     }
@@ -99,6 +114,26 @@ class DeskRepositoryImpl(private val networkClient: NetworkClient, private val b
             setBody(request)
         }
         return response.requireSuccess().body()
+    }
+
+    override suspend fun team(): List<DeskTherapist> {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_team")) { authorize() }
+        return response.requireSuccess().body<TeamResponse>().therapists.map { it.toDesk() }
+    }
+
+    override suspend fun myShifts(): List<DeskRequest> {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_my_shifts")) { authorize() }
+        val now = nowEpochMillis()
+        return response.requireSuccess().body<ShiftsResponse>().shifts.map { it.toRequest(now) }
+    }
+
+    override suspend fun link(therapistSlug: String, email: String?): DeskTherapist {
+        val response = networkClient.httpClient.post(baseUrl + SupabasePaths.rpc("spa_link_therapist")) {
+            authorize()
+            contentType(ContentType.Application.Json)
+            setBody(LinkTherapistRequest(therapistSlug, email))
+        }
+        return response.requireSuccess().body<TherapistDto>().toDesk()
     }
 
     override suspend fun createAccount(request: CreateAccountRequest): CreatedAccountDto {
@@ -147,7 +182,10 @@ private fun BookingDto.toRequest(nowEpochMillis: Long) = DeskRequest(
     note = note,
     conflict = conflict,
     declineReason = declineReason,
+    freeTherapists = freeTherapists,
 )
+
+private fun TherapistDto.toDesk() = DeskTherapist(slug = slug, name = name, account = account)
 
 private fun BookingStatusDto.toDeskStatus() = when (this) {
     BookingStatusDto.PENDING -> DeskStatus.PENDING

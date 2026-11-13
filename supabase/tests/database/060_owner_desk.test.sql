@@ -143,11 +143,11 @@ select is(
   (select array_agg(n.title || ' | ' || n.body || ' | ' || n.type || ' | ' || (n.uid = (select hoa from ctx)) || ' | '
                     || (n.data = jsonb_build_object('bookingId', b.id, 'reference', 'BK-' || b.booking_no)) order by b.start_at)
    from notices n join public.bookings b on b.id = (n.data ->> 'bookingId')::uuid),
-  array['Booking confirmed | Jade Roller Facial with Mai Tran on ' || to_char(pg_temp.at(2, '11:30') at time zone (select zone from ctx),
+  array['Booking confirmed | Jade Roller Facial on ' || to_char(pg_temp.at(2, '11:30') at time zone (select zone from ctx),
           'Dy Mon FMDD') || ', 11:30 AM | booking | true | true',
-        'Booking confirmed | Jade Roller Facial with Lena Okafor on ' || to_char(pg_temp.at(3, '10:00') at time zone (select zone from ctx),
+        'Booking confirmed | Jade Roller Facial on ' || to_char(pg_temp.at(3, '10:00') at time zone (select zone from ctx),
           'Dy Mon FMDD') || ', 10:00 AM | booking | true | true',
-        'Time unavailable | Tomas Ruiz is not available at 1:00 PM. We can offer Thursday at 2:30 PM. | booking | true | true'],
+        'Time unavailable | No therapist is free at 1:00 PM. We can offer Thursday at 2:30 PM. | booking | true | true'],
   'confirm_and_decline_notify_the_guest');
 
 select pg_temp.as_user((select hoa from ctx));

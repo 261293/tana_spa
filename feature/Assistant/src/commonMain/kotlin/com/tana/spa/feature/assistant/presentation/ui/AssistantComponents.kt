@@ -98,7 +98,8 @@ internal fun ScreenCard(
                 .clip(RoundedCornerShape(24.dp))
                 .background(cardColor)
         } else {
-            Modifier.fillMaxSize().background(cardColor)
+            // On a phone the card is the whole screen, so it takes the page's own paper.
+            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
         }
         Box(cardModifier) { content() }
     }

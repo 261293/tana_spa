@@ -35,15 +35,9 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
             setState {
                 val chosen = copy(serviceId = event.id)
                 // The code was checked against the old treatment; eligibility may no longer hold.
-                chosen.copy(check = check?.let { checkPromoCode(code, chosen.service) })
+                chosen.copy(check = check?.let { checkPromoCode(code, chosen.service, chosen.today) })
             }
             // A longer treatment needs more of the diary, so it is offered fewer times.
-            reloadSlots()
-        }
-
-        is BookingEvent.TherapistSelected -> {
-            setState { copy(therapistId = event.id) }
-            // Another pair of hands has another diary, so the open times change with them.
             reloadSlots()
         }
 
@@ -57,12 +51,18 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         is BookingEvent.CodeChanged -> setState { copy(code = event.value.uppercase(), check = null) }
 
         BookingEvent.ApplyCode -> setState {
-            val result = checkPromoCode(code, service)
+            val result = checkPromoCode(code, service, today)
             AppLog.i(logTag) { "promo code ${if (result is PromoCheck.Applied) "applied" else "refused"}" }
             copy(check = result)
         }
 
         BookingEvent.RetryCatalog -> loadCatalog()
+
+        is BookingEvent.QueryChanged -> setState { copy(query = event.query) }
+
+        is BookingEvent.CategoryChosen -> setState { copy(category = event.category) }
+
+        BookingEvent.FiltersCleared -> setState { copy(query = "", category = null) }
 
         BookingEvent.Submit -> submit()
 
@@ -79,9 +79,6 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         }
     }
 
-    /** Null is "any therapist": the request carries no therapist and the spa assigns one. */
-    private fun BookingState.therapistSlug(): String? = therapistId.takeIf { it != ANY_THERAPIST }
-
     private fun submit() {
         val current = state.value
         val service = current.service ?: return
@@ -91,7 +88,7 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         viewModelScope.launch {
             val attempt = bookings.create(
                 serviceSlug = service.id,
-                therapistSlug = current.therapistSlug(),
+                therapistSlug = null,
                 startAtEpochMillis = slot.startAtEpochMillis,
                 // Only a code the spa accepted is sent; an unchecked one would refuse the booking.
                 code = current.code.takeIf { current.check is PromoCheck.Applied },
@@ -116,20 +113,19 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         }
     }
 
-    /** The diary is asked for the choice as it stands: the day, the hands and the treatment. */
+    /** The diary is asked for the choice as it stands: the day and the treatment. */
     private fun reloadSlots() {
         val day = state.value.day
-        val therapistSlug = state.value.therapistSlug()
         val serviceSlug = state.value.serviceId
         setState { copy(slotsLoading = true) }
         viewModelScope.launch {
-            val open = runCatchingCancellable { bookings.availability(day.epochDay, therapistSlug, serviceSlug) }
+            val open = runCatchingCancellable { bookings.availability(day.epochDay, null, serviceSlug) }
                 .getOrNull()
                 .orEmpty()
             setState {
                 // The answer names no choice of its own, so a slower earlier one would otherwise
                 // land on a newer one and offer times for another day or treatment.
-                if (day != this.day || therapistSlug != this.therapistSlug() || serviceSlug != serviceId) {
+                if (day != this.day || serviceSlug != serviceId) {
                     this
                 } else {
                     copy(
@@ -149,11 +145,10 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         viewModelScope.launch {
             runCatchingCancellable { catalog.catalog() }
                 .onSuccess { loaded ->
-                    AppLog.i(logTag) { "catalogue: ${loaded.services.size} treatments, ${loaded.therapists.size} therapists" }
+                    AppLog.i(logTag) { "catalogue: ${loaded.services.size} treatments" }
                     setState {
                         val menu = copy(
                             services = loaded.services,
-                            therapists = loaded.therapists,
                             serviceId = serviceId ?: loaded.services.firstOrNull()?.id,
                             todayEpochDay = loaded.todayEpochDay,
                             catalogLoading = false,
@@ -179,7 +174,7 @@ class BookingViewModel(private val catalog: SpaCatalogRepository, private val bo
         return copy(
             serviceId = treatment?.id ?: serviceId,
             code = code,
-            check = treatment?.let { checkPromoCode(code, it) },
+            check = treatment?.let { checkPromoCode(code, it, today) },
         )
     }
 

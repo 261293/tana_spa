@@ -40,12 +40,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaTheme
-import com.tana.spa.core.ui.components.SpaEyebrow
 import com.tana.spa.core.ui.components.SpaGroupLabel
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
 import com.tana.spa.core.ui.components.SpaSecondaryButton
+import com.tana.spa.core.ui.components.SpaTag
+import com.tana.spa.core.ui.components.SpaTextButton
 import com.tana.spa.core.ui.rememberSpaLazyListState
 import com.tana.spa.core.ui.revealOnScroll
 import com.tana.spa.core.ui.spaClickable
@@ -63,7 +64,6 @@ import com.tana.spa.feature.notifications.resources.notifications_enable_action
 import com.tana.spa.feature.notifications.resources.notifications_enable_body
 import com.tana.spa.feature.notifications.resources.notifications_enable_title
 import com.tana.spa.feature.notifications.resources.notifications_enabled_message
-import com.tana.spa.feature.notifications.resources.notifications_eyebrow
 import com.tana.spa.feature.notifications.resources.notifications_failed_title
 import com.tana.spa.feature.notifications.resources.notifications_group_bookings
 import com.tana.spa.feature.notifications.resources.notifications_group_offers
@@ -188,7 +188,6 @@ private fun Header(state: NotificationsState, onEvent: (NotificationsEvent) -> U
         verticalAlignment = Alignment.Bottom,
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            SpaEyebrow(stringResource(Res.string.notifications_eyebrow))
             Text(
                 text = stringResource(Res.string.notifications_title),
                 style = SpaTheme.textStyles.displayTitle,
@@ -206,14 +205,9 @@ private fun Header(state: NotificationsState, onEvent: (NotificationsEvent) -> U
             )
         }
         if (state.unreadCount > 0) {
-            Text(
+            SpaTextButton(
                 text = stringResource(Res.string.notifications_mark_all_read),
-                style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .spaClickable { onEvent(NotificationsEvent.MarkAllRead) }
-                    .minimumInteractiveComponentSize()
-                    .padding(8.dp),
+                onClick = { onEvent(NotificationsEvent.MarkAllRead) },
             )
         }
     }

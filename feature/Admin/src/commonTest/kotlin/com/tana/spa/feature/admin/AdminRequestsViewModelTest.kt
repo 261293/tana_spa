@@ -5,10 +5,10 @@ import com.tana.spa.feature.admin.domain.DeskRefused
 import com.tana.spa.feature.admin.domain.DeskRepository
 import com.tana.spa.feature.admin.domain.DeskRequest
 import com.tana.spa.feature.admin.domain.DeskStatus
+import com.tana.spa.feature.admin.domain.DeskTherapist
 import com.tana.spa.feature.admin.presentation.AdminRequestsEffect
 import com.tana.spa.feature.admin.presentation.AdminRequestsEvent
 import com.tana.spa.feature.admin.presentation.AdminRequestsViewModel
-import com.tana.spa.feature.admin.presentation.AlternativeOffer
 import com.tana.spa.shared.auth.CreateAccountRequest
 import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.booking.BookingErrorCodes
@@ -44,6 +44,8 @@ class AdminRequestsViewModelTest {
         waitedMinutes: Int = 5,
         startAtEpochMillis: Long = 2_000,
         conflict: String? = null,
+        therapistSlug: String = "mai",
+        freeTherapists: List<String> = emptyList(),
     ) = DeskRequest(
         id = id,
         reference = "BK-$id",
@@ -51,8 +53,8 @@ class AdminRequestsViewModelTest {
         phone = "+14155550142",
         serviceName = "Warm Stone Massage",
         minutes = 90,
-        therapistSlug = "mai",
-        therapistName = "Mai Tran",
+        therapistSlug = therapistSlug,
+        therapistName = if (therapistSlug.isEmpty()) "" else "Mai Tran",
         startAtEpochMillis = startAtEpochMillis,
         startHour = 14.5,
         startDayEpochDay = SpaDate(2026, 10, 21).epochDay,
@@ -64,6 +66,7 @@ class AdminRequestsViewModelTest {
         note = null,
         conflict = conflict,
         declineReason = null,
+        freeTherapists = freeTherapists,
     )
 
     private class FakeDesk(var queue: DeskQueue) : DeskRepository {
@@ -72,14 +75,17 @@ class AdminRequestsViewModelTest {
         var confirmed = mutableListOf<Pair<String, Boolean>>()
         var declined = mutableListOf<Triple<String, DeclineReasonDto, String?>>()
         var visits = mutableListOf<Pair<String, Boolean>>()
+        var confirmedWith = mutableListOf<String?>()
+        var assigned = mutableListOf<Pair<String, String>>()
 
         override suspend fun queue(): DeskQueue {
             if (fail) throw IllegalStateException("offline")
             return queue
         }
 
-        override suspend fun confirm(id: String, force: Boolean): DeskRequest {
+        override suspend fun confirm(id: String, force: Boolean, therapistSlug: String?): DeskRequest {
             confirmed += id to force
+            confirmedWith += therapistSlug
             refusal?.let { throw it }
             return decided(id, DeskStatus.CONFIRMED)
         }
@@ -95,6 +101,19 @@ class AdminRequestsViewModelTest {
             refusal?.let { throw it }
             return decided(id, if (attended) DeskStatus.COMPLETED else DeskStatus.NO_SHOW)
         }
+
+        override suspend fun assign(id: String, therapistSlug: String): DeskRequest {
+            assigned += id to therapistSlug
+            refusal?.let { throw it }
+            return decided(id, DeskStatus.CONFIRMED).copy(therapistSlug = therapistSlug, therapistName = "Lena")
+        }
+
+        override suspend fun team(): List<DeskTherapist> = error("the queue reads its team with the queue")
+
+        var shifts = emptyList<DeskRequest>()
+        override suspend fun myShifts(): List<DeskRequest> = shifts
+
+        override suspend fun link(therapistSlug: String, email: String?): DeskTherapist = error("the queue never links accounts")
 
         override suspend fun createService(request: CreateServiceRequest): ServiceDto = error("the queue screen never adds to the menu")
 
@@ -134,6 +153,14 @@ class AdminRequestsViewModelTest {
     }
 
     @Test
+    fun a_linked_therapist_sees_their_own_shifts_beside_the_queue() = runTest(dispatcher) {
+        val desk = desk(request("a"))
+        desk.shifts = listOf(request("s", status = DeskStatus.CONFIRMED))
+
+        assertEquals(listOf("s"), viewModel(desk).state.value.myShifts.map { it.id })
+    }
+
+    @Test
     fun a_desk_that_cannot_be_read_offers_a_retry() = runTest(dispatcher) {
         val desk = desk(request("a"))
         desk.fail = true
@@ -163,6 +190,46 @@ class AdminRequestsViewModelTest {
     }
 
     @Test
+    fun an_unassigned_request_is_confirmed_with_the_first_free_therapist_unless_the_owner_picks() = runTest(dispatcher) {
+        val desk = desk(
+            request("a", therapistSlug = "", freeTherapists = listOf("lena", "tomas")),
+            request("b", therapistSlug = "", freeTherapists = listOf("lena", "tomas")),
+        )
+        val vm = viewModel(desk)
+        assertEquals("lena", vm.state.value.therapistToConfirm)
+
+        vm.onEvent(AdminRequestsEvent.Confirmed("a"))
+        testScheduler.advanceUntilIdle()
+        vm.onEvent(AdminRequestsEvent.TherapistChosen("b", "tomas"))
+        vm.onEvent(AdminRequestsEvent.Confirmed("b"))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(listOf<String?>("lena", "tomas"), desk.confirmedWith.toList())
+        assertTrue(desk.assigned.isEmpty(), "picking for a waiting request is only a choice until it is confirmed")
+    }
+
+    @Test
+    fun nobody_free_leaves_nothing_to_confirm_with() = runTest(dispatcher) {
+        val vm = viewModel(desk(request("a", therapistSlug = "")))
+
+        assertEquals(null, vm.state.value.therapistToConfirm)
+    }
+
+    @Test
+    fun choosing_another_therapist_for_a_confirmed_visit_moves_it_at_once() = runTest(dispatcher) {
+        val desk = desk(scheduled = listOf(request("c", status = DeskStatus.CONFIRMED)))
+        val vm = viewModel(desk)
+
+        vm.onEvent(AdminRequestsEvent.TherapistChosen("c", "mai"))
+        vm.onEvent(AdminRequestsEvent.TherapistChosen("c", "lena"))
+        testScheduler.advanceUntilIdle()
+
+        assertEquals(listOf("c" to "lena"), desk.assigned.toList(), "choosing whoever already has it sends nothing")
+        assertEquals("lena", vm.state.value.requests.single().therapistSlug)
+        assertEquals(AdminRequestsEffect.ShowAssigned("Hannah Pham", "Lena"), vm.effects.first())
+    }
+
+    @Test
     fun a_clash_is_confirmed_deliberately_and_its_refusal_is_explained() = runTest(dispatcher) {
         val desk = desk(request("a", conflict = "Overlaps Mai 2:30 PM"))
         val vm = viewModel(desk)
@@ -184,11 +251,15 @@ class AdminRequestsViewModelTest {
 
         vm.onEvent(AdminRequestsEvent.DeclineStarted("a"))
         vm.onEvent(AdminRequestsEvent.ReasonChosen(DeclineReasonDto.NO_ROOM))
-        vm.onEvent(AdminRequestsEvent.AlternativeChosen(AlternativeOffer.TOMORROW_MORNING))
+        vm.onEvent(AdminRequestsEvent.AlternativeChanged("  Thứ 7, 15:00 "))
         vm.onEvent(AdminRequestsEvent.DeclineConfirmed)
         testScheduler.advanceUntilIdle()
 
-        assertEquals(listOf(Triple("a", DeclineReasonDto.NO_ROOM, "TOMORROW_MORNING")), desk.declined.toList())
+        assertEquals(
+            listOf(Triple("a", DeclineReasonDto.NO_ROOM, "Thứ 7, 15:00")),
+            desk.declined.toList(),
+            "the guest reads the owner's words",
+        )
         assertEquals(DeskStatus.DECLINED, vm.state.value.requests.first().status)
         assertEquals(AdminRequestsEffect.ShowDeclined("Hannah Pham", withAlternative = true), vm.effects.first())
     }
