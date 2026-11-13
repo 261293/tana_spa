@@ -9,4 +9,8 @@ class JVMPlatform : Platform {
 
 actual fun getPlatform(): Platform = JVMPlatform()
 
-actual fun configuredApiBaseUrl(): String? = null
+actual fun configuredApiBaseUrl(): String? = environment("TANA_API_BASE_URL")
+
+actual fun configuredPublishableKey(): String? = environment("TANA_SUPABASE_KEY")
+
+private fun environment(name: String): String? = System.getenv(name)?.takeIf { it.isNotBlank() }

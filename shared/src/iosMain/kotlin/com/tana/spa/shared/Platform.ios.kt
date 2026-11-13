@@ -12,3 +12,5 @@ class IOSPlatform : Platform {
 actual fun getPlatform(): Platform = IOSPlatform()
 
 actual fun configuredApiBaseUrl(): String? = null
+
+actual fun configuredPublishableKey(): String? = null

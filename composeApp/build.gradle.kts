@@ -148,7 +148,7 @@ tasks.withType<KotlinWebpack>().configureEach {
 // one platform that serves its own artifacts straight to the client.
 tasks.register("verifyWebDistributionStripped") {
     group = "verification"
-    description = "Fails if the production web distribution contains source maps."
+    description = "Fails if the production web distribution contains source maps or points at a non-compiled backend."
     dependsOn("wasmJsBrowserDistribution")
 
     val distribution = layout.buildDirectory.dir("dist/wasmJs/productionExecutable")
@@ -160,6 +160,12 @@ tasks.register("verifyWebDistributionStripped") {
         require(maps.isEmpty()) {
             "Source maps in the production web bundle: ${maps.joinToString { it.name }}"
         }
-        logger.lifecycle("${dir.name}: no source maps")
+        val retargeted = dir.walkTopDown()
+            .filter { it.isFile && it.name.endsWith(".js") && "window.TANA_API_BASE_URL = " in it.readText() }
+            .toList()
+        require(retargeted.isEmpty()) {
+            "The production web bundle is pointed at another backend: ${retargeted.joinToString { it.name }}"
+        }
+        logger.lifecycle("${dir.name}: no source maps, compiled backend")
     }
 }

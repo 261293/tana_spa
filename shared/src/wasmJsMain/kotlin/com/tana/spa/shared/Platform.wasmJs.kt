@@ -13,4 +13,8 @@ actual fun getPlatform(): Platform = WasmPlatform()
 // module instantiable, which a missing external would not.
 private fun hostApiBaseUrl(): String? = js("window.TANA_API_BASE_URL || null")
 
+private fun hostPublishableKey(): String? = js("window.TANA_SUPABASE_KEY || null")
+
 actual fun configuredApiBaseUrl(): String? = hostApiBaseUrl()?.takeIf { it.isNotBlank() }
+
+actual fun configuredPublishableKey(): String? = hostPublishableKey()?.takeIf { it.isNotBlank() }
