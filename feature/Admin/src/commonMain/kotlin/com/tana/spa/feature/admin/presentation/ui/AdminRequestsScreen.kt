@@ -306,7 +306,7 @@ private fun QueueRow(request: DeskRequest, selected: Boolean, onSelect: () -> Un
             }
         },
         colors = ListItemDefaults.colors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+            containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
             headlineColor = MaterialTheme.colorScheme.onSurface,
         ),
         modifier = Modifier
@@ -347,8 +347,8 @@ private fun StatusPill(status: DeskStatus) {
 
         DeskStatus.CONFIRMED -> SpaStatusPill(
             text = stringResource(Res.string.admin_status_confirmed),
-            container = MaterialTheme.colorScheme.primaryContainer,
-            content = MaterialTheme.colorScheme.primary,
+            container = MaterialTheme.colorScheme.secondaryContainer,
+            content = MaterialTheme.colorScheme.onSecondaryContainer,
             icon = SpaIcon.Check,
         )
 
@@ -669,7 +669,7 @@ private fun ReasonOption(label: String, selected: Boolean, onSelect: () -> Unit)
         RadioButton(
             selected = selected,
             onClick = null,
-            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary),
+            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.secondary),
         )
         Text(label, style = SpaTheme.textStyles.body, color = MaterialTheme.colorScheme.onSurface)
     }

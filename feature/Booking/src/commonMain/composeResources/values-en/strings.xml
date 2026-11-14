@@ -90,7 +90,7 @@
     <string name="booking_code_wrong_category">%1$s applies to %2$s treatments only.</string>
     <string name="booking_code_minimum">%1$s needs a minimum spend of %2$s.</string>
 
-    <string name="booking_total_label">total due at the spa</string>
+    <string name="booking_total_label">Total due at the spa</string>
     <string name="booking_request">Request booking</string>
     <string name="booking_request_need_service">Choose a treatment in step 1 to send the request.</string>
     <string name="booking_request_need_time">Pick a time in step 2 to send the request.</string>
@@ -99,6 +99,7 @@
     <string name="booking_strip_choose">Choose a treatment</string>
     <string name="booking_card_title">Your appointment</string>
     <string name="booking_card_no_time">no time yet</string>
+    <string name="booking_card_discount">code %1$s −%2$s</string>
     <string name="booking_card_minutes">%1$d min</string>
     <string name="booking_card_need_service">Choose a treatment to continue</string>
     <string name="booking_card_need_time">Pick a time to continue</string>

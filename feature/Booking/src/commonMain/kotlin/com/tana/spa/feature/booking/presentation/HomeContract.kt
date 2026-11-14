@@ -17,6 +17,7 @@ data class HomeState(
 
 sealed interface HomeEvent {
     data object Retry : HomeEvent
+    data object Shown : HomeEvent
 }
 
 sealed interface HomeEffect

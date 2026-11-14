@@ -26,7 +26,7 @@ class BookingsViewModel(private val bookings: GuestBookingRepository, private va
                 setState { copy(openedId = event.bookingId) }
                 // The notification may be older than the list in hand, or the list older than the
                 // spa's answer, so the visit it is about is read again.
-                if (event.bookingId != null) refresh()
+                if (event.bookingId != null || !state.value.loading) refresh()
             }
 
             is BookingsEvent.RowToggled -> setState {

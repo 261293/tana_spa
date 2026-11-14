@@ -55,6 +55,9 @@ import com.tana.spa.core.ui.components.SpaDateCell
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaImageTile
+import com.tana.spa.core.ui.components.SpaListRow
+import com.tana.spa.core.ui.components.SpaPrice
+import com.tana.spa.core.ui.components.SpaRowGroup
 import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
 import com.tana.spa.core.ui.components.SpaSlotButton
@@ -88,7 +91,6 @@ import org.jetbrains.compose.resources.stringResource
 
 private val PickThumbShape = RoundedCornerShape(10.dp)
 private val PICK_THUMB_SIZE = 56.dp
-private const val HOVER_THUMB_SCALE = 1.05f
 private val SERVICE_ROW_HEIGHT = 80.dp
 private val SLOT_ROW_HEIGHT = 46.dp
 private const val SERVICE_PLACEHOLDERS = 4
@@ -120,13 +122,12 @@ internal fun ServiceList(
 
         state.visibleServices.isEmpty() -> NoMatches(onClearFilters)
 
-        else -> Row(modifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            staggeredColumns(state.visibleServices, columns).forEach { column ->
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    column.forEach { service ->
-                        PickRow(service, service.id == state.serviceId) { onSelect(service.id) }
-                    }
-                }
+        else -> Row(modifier, horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
+            staggeredColumns(state.visibleServices, columns.coerceAtMost(2)).filter { it.isNotEmpty() }.forEach { column ->
+                SpaRowGroup(
+                    modifier = Modifier.weight(1f),
+                    rows = column.map { service -> { PickRow(service, service.id == state.serviceId) { onSelect(service.id) } } },
+                )
             }
         }
     }
@@ -172,73 +173,22 @@ private fun MenuUnavailable(onRetry: () -> Unit) {
     }
 }
 
-/** The design's pick row: a square thumb, then the treatment, its length and its price stacked. */
 @Composable
 private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
-    val shape = MaterialTheme.shapes.small
-    val motion = SpaTheme.motion
-    val hover = remember { MutableInteractionSource() }
-    val hovered by hover.collectIsHoveredAsState()
-    val fill by animateColorAsState(
-        targetValue = when {
-            selected -> MaterialTheme.colorScheme.secondaryContainer
-            hovered -> MaterialTheme.colorScheme.surfaceContainerLow
-            else -> MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0f)
-        },
-        animationSpec = tween(motion.short, easing = SpaEasing.OutExpo),
-        label = "pickFill",
-    )
-    val thumbScale by animateFloatAsState(
-        targetValue = if (hovered && !motion.reduced) HOVER_THUMB_SCALE else 1f,
-        animationSpec = tween(motion.medium, easing = SpaEasing.OutExpo),
-        label = "pickThumb",
-    )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(fill)
-            .hoverable(hover)
-            .spaClickable(role = Role.RadioButton, onClick = onSelect)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        SpaImageTile(
-            Modifier.size(PICK_THUMB_SIZE).graphicsLayer {
-                scaleX = thumbScale
-                scaleY = thumbScale
-            },
-            shape = PickThumbShape,
-            photo = SpaPhotos.treatment(service.id),
-        )
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = service.name,
-                style = SpaTheme.textStyles.body,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = stringResource(Res.string.booking_service_meta, service.minutes, service.category.localizedLabel()),
-                style = SpaTheme.textStyles.label,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = formatPrice(service.priceVnd),
-                style = SpaTheme.textStyles.cardTitle,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        if (selected) {
-            Box(
-                Modifier.size(24.dp).background(MaterialTheme.colorScheme.secondary, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                SpaIconImage(SpaIcon.Check, size = 16.dp, tint = MaterialTheme.colorScheme.onPrimary)
+    SpaListRow(
+        title = service.name,
+        supporting = stringResource(Res.string.booking_service_meta, service.minutes, service.category.localizedLabel()),
+        leading = { SpaImageTile(Modifier.size(PICK_THUMB_SIZE), shape = PickThumbShape, photo = SpaPhotos.treatment(service.id)) },
+        trailing = {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                SpaPrice(formatPrice(service.priceVnd))
+                if (selected) SpaIconImage(SpaIcon.Check, size = 18.dp, tint = MaterialTheme.colorScheme.secondary)
             }
-        }
-    }
+        },
+        selected = selected,
+        role = Role.RadioButton,
+        onClick = onSelect,
+    )
 }
 
 /** Two weeks of days as the design's date cells; a day the spa is full cannot be chosen. */

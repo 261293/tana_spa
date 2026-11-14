@@ -115,4 +115,14 @@ class HomeViewModelTest {
         assertNull(viewModel(SpaRoles.STAFF).state.value.nextVisit)
         assertEquals(0, bookings.mineCalls)
     }
+
+    @Test
+    fun showing_home_again_picks_up_a_visit_booked_meanwhile() = runTest(dispatcher) {
+        val vm = viewModel()
+        assertNull(vm.state.value.nextVisit)
+        bookings.mine = listOf(guestBooking(id = "new", startAtEpochMillis = 20_000))
+        vm.onEvent(HomeEvent.Shown)
+        testScheduler.advanceUntilIdle()
+        assertEquals("new", vm.state.value.nextVisit?.id)
+    }
 }

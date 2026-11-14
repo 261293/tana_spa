@@ -324,7 +324,7 @@ private fun Usage(code: AdminCode, modifier: Modifier = Modifier) {
         val description = stringResource(Res.string.admin_usage_percent, percent)
         LinearProgressIndicator(
             progress = { percent / 100f },
-            color = if (percent >= USAGE_WARNING_PERCENT) SpaTheme.extraColors.warning else MaterialTheme.colorScheme.primary,
+            color = if (percent >= USAGE_WARNING_PERCENT) SpaTheme.extraColors.warning else MaterialTheme.colorScheme.secondary,
             trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             drawStopIndicator = {},
             modifier = Modifier.fillMaxWidth().semantics { contentDescription = description },
@@ -338,8 +338,8 @@ private fun StateTag(state: AdminCodeState) {
     val content: Color
     when (state) {
         AdminCodeState.LIVE -> {
-            container = MaterialTheme.colorScheme.primaryContainer
-            content = MaterialTheme.colorScheme.primary
+            container = MaterialTheme.colorScheme.secondaryContainer
+            content = MaterialTheme.colorScheme.onSecondaryContainer
         }
 
         AdminCodeState.SCHEDULED -> {

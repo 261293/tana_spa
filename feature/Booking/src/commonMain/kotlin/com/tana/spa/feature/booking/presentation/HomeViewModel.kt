@@ -33,6 +33,7 @@ class HomeViewModel(
     override fun handleEvent(event: HomeEvent) {
         when (event) {
             HomeEvent.Retry -> load()
+            HomeEvent.Shown -> if (!state.value.loading) refreshNextVisit()
         }
     }
 
@@ -53,6 +54,13 @@ class HomeViewModel(
                 AppLog.w(logTag, e) { "home catalogue failed (${e::class.simpleName})" }
                 setState { copy(loading = false, failed = true) }
             }
+        }
+    }
+
+    private fun refreshNextVisit() {
+        viewModelScope.launch {
+            val upcoming = nextVisit()
+            setState { copy(nextVisit = upcoming) }
         }
     }
 

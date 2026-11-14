@@ -61,11 +61,6 @@ class BookingsViewModelTest {
         val vm = viewModel()
         val reads = bookings.mineCalls
 
-        vm.onEvent(BookingsEvent.Opened(null))
-        testScheduler.advanceUntilIdle()
-        assertNull(vm.state.value.openedId, "the screen was opened on its own")
-        assertEquals(reads, bookings.mineCalls, "there is nothing to catch up with")
-
         vm.onEvent(BookingsEvent.Opened("b"))
         testScheduler.advanceUntilIdle()
 
@@ -175,5 +170,13 @@ class BookingsViewModelTest {
     fun a_diary_with_a_visit_ahead_suggests_nothing() = runTest(dispatcher) {
         bookings.mine = listOf(guestBooking(startAtEpochMillis = Long.MAX_VALUE / 2))
         assertTrue(viewModel().state.value.suggestions.isEmpty())
+    }
+
+    @Test
+    fun returning_to_the_screen_reads_the_diary_again() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onEvent(BookingsEvent.Opened(null))
+        testScheduler.advanceUntilIdle()
+        assertEquals(2, bookings.mineCalls)
     }
 }
