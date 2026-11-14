@@ -36,6 +36,9 @@
     <string name="bookings_title_accent">visits</string>
     <string name="bookings_subtitle">What you’ve asked for, and what the spa has confirmed.</string>
     <string name="bookings_meta">%1$s · %2$s</string>
+    <string name="bookings_upcoming">Coming up</string>
+    <string name="bookings_past">Past</string>
+    <string name="bookings_suggestions">Ideas for a first visit</string>
     <string name="bookings_empty">You have no visits booked yet.</string>
     <string name="bookings_book_now">Book a treatment</string>
     <string name="bookings_failed">We couldn’t load your visits.</string>
@@ -118,6 +121,12 @@
     <string name="treatments_empty_title">No treatments match that search</string>
     <string name="treatments_empty_body">Try a different word, or browse every ritual.</string>
     <string name="treatments_empty_action">Show all treatments</string>
+    <string name="home_title">Tana Spa</string>
+    <string name="home_next_title">Your next visit</string>
+    <string name="home_next_meta">%1$s · %2$d min</string>
+    <string name="home_next_open">View booking</string>
+    <string name="home_treatments_title">Treatments</string>
+    <string name="home_treatments_lead">Per visit, paid when you come to the spa. The spa arranges your therapist.</string>
     <string name="home_subtitle">Treatments, products and offers in one place. Tap a treatment to book it.</string>
     <string name="home_subtitle_staff">What the spa offers, so you can advise guests.</string>
     <string name="home_offers">%1$d offers running</string>
@@ -129,20 +138,8 @@
     <string name="home_failed">Could not load the treatments.</string>
     <string name="home_retry">Try again</string>
     <string name="refusal_staff">Staff accounts do not book visits.</string>
-    <string name="home_hero_accent">Tana Spa,</string>
-    <string name="home_hero_rest">where the body rests</string>
     <string name="home_quick_title">Book in a minute</string>
     <string name="home_quick_service">Treatment</string>
     <string name="home_quick_action">Choose a day and time</string>
     <string name="home_quick_note">The spa confirms your time, usually within 30 minutes. You pay when you visit.</string>
-    <string name="home_stat_treatments">Treatments</string>
-    <string name="home_stat_minutes">%1$d–%2$d</string>
-    <string name="home_stat_minutes_label">Minutes a visit</string>
-    <string name="home_stat_price_label">From</string>
-    <string name="home_stat_offers">Offers running</string>
-    <string name="home_treatments_title">Choose your treatment</string>
-    <string name="home_treatments_lead">Massage, facials and body care. Tap a treatment to choose a time.</string>
-    <string name="home_treatments_note">Pay at the spa · The spa arranges your therapist</string>
-    <string name="home_prices_title">Prices</string>
-    <string name="home_prices_lead">Per visit, paid when you come to the spa.</string>
 </resources>

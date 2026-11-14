@@ -1,11 +1,11 @@
 package com.tana.spa.feature.promotions.presentation.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +27,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -36,17 +38,17 @@ import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindow
-import com.tana.spa.core.ui.components.SpaCard
 import com.tana.spa.core.ui.components.SpaCodeChip
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaImageTile
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.components.SpaRowGroup
 import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
+import com.tana.spa.core.ui.components.SpaTextButton
 import com.tana.spa.core.ui.components.SpaTextField
-import com.tana.spa.core.ui.components.spaFelt
 import com.tana.spa.core.ui.localizedEligibleLabel
 import com.tana.spa.core.ui.localizedTerms
 import com.tana.spa.core.ui.localizedTitle
@@ -130,9 +132,10 @@ fun PromotionsScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.revealOnScroll(order = 2),
                 )
-                state.others.forEachIndexed { index, promo ->
-                    PromoRow(promo, onEvent, Modifier.revealOnScroll(order = index))
-                }
+                SpaRowGroup(
+                    modifier = Modifier.revealOnScroll(order = 3),
+                    rows = state.others.map { promo -> { PromoRow(promo, onEvent) } },
+                )
             }
 
             CodeChecker(state, onEvent, Modifier.widthIn(max = 560.dp).revealOnScroll())
@@ -150,7 +153,7 @@ private fun FeaturedOffer(promo: Promo, wide: Boolean, onEvent: (PromotionsEvent
         ) {
             Text(
                 text = promo.localizedTitle,
-                style = SpaTheme.textStyles.displayTitle,
+                style = SpaTheme.textStyles.screenTitle,
                 color = MaterialTheme.colorScheme.onBackground,
             )
             Text(promo.localizedTerms, style = SpaTheme.textStyles.body, color = MaterialTheme.colorScheme.onSurface)
@@ -177,16 +180,18 @@ private fun FeaturedOffer(promo: Promo, wide: Boolean, onEvent: (PromotionsEvent
     Box(
         modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.large),
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium),
     ) {
         if (wide) {
             Row(Modifier.heightIn(min = 300.dp)) {
-                SpaImageTile(Modifier.weight(1.1f).fillMaxSize(), shape = MaterialTheme.shapes.large, photo = promo.photo())
+                SpaImageTile(Modifier.weight(1.1f).fillMaxSize(), shape = RectangleShape, photo = promo.photo())
                 Box(Modifier.weight(1f)) { body() }
             }
         } else {
             Column {
-                SpaImageTile(Modifier.fillMaxWidth().height(180.dp), shape = MaterialTheme.shapes.large, photo = promo.photo())
+                SpaImageTile(Modifier.fillMaxWidth().height(180.dp), shape = RectangleShape, photo = promo.photo())
                 body()
             }
         }
@@ -212,15 +217,15 @@ private fun CopyableCode(code: String, onEvent: (PromotionsEvent) -> Unit) {
 }
 
 @Composable
-private fun PromoRow(promo: Promo, onEvent: (PromotionsEvent) -> Unit, modifier: Modifier = Modifier) {
-    SpaCard(modifier.fillMaxWidth(), padding = PaddingValues(0.dp)) {
+private fun PromoRow(promo: Promo, onEvent: (PromotionsEvent) -> Unit) {
+    run {
         ListItem(
             overlineContent = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = promo.code,
                         style = SpaTheme.textStyles.body.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     IconButton(onClick = { onEvent(PromotionsEvent.CodeCopied(promo.code)) }) {
                         SpaIconImage(
@@ -242,10 +247,9 @@ private fun PromoRow(promo: Promo, onEvent: (PromotionsEvent) -> Unit, modifier:
                         style = SpaTheme.textStyles.body,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    SpaSecondaryButton(
+                    SpaTextButton(
                         text = stringResource(Res.string.promotions_use_code),
                         onClick = { onEvent(PromotionsEvent.UseCode(promo.code)) },
-                        modifier = Modifier.widthIn(max = 160.dp),
                     )
                 }
             },
@@ -257,7 +261,11 @@ private fun PromoRow(promo: Promo, onEvent: (PromotionsEvent) -> Unit, modifier:
 @Composable
 private fun CodeChecker(state: PromotionsState, onEvent: (PromotionsEvent) -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.fillMaxWidth().spaFelt().padding(20.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium)
+            .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -276,7 +284,7 @@ private fun CodeChecker(state: PromotionsState, onEvent: (PromotionsEvent) -> Un
             onValueChange = { onEvent(PromotionsEvent.EntryChanged(it)) },
             placeholder = stringResource(Res.string.promotions_code_placeholder),
         )
-        SpaPrimaryButton(
+        SpaSecondaryButton(
             text = stringResource(Res.string.promotions_check),
             onClick = { onEvent(PromotionsEvent.CheckEntry) },
             enabled = state.entry.isNotBlank(),
@@ -287,7 +295,7 @@ private fun CodeChecker(state: PromotionsState, onEvent: (PromotionsEvent) -> Un
                 SpaIconImage(
                     icon = if (checked != null) SpaIcon.CheckCircle else SpaIcon.Warning,
                     size = 18.dp,
-                    tint = if (checked != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    tint = if (checked != null) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error,
                 )
                 Text(
                     text = if (checked != null) {

@@ -110,13 +110,13 @@ private fun VerifyPhoneContent(state: VerifyPhoneState, onEvent: (VerifyPhoneEve
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape),
+            modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Image(
                 painter = painterResource(Res.drawable.ic_phone),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary),
                 modifier = Modifier.size(30.dp),
             )
         }

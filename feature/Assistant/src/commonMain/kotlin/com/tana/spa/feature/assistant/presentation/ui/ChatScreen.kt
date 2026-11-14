@@ -170,7 +170,7 @@ private fun ProgressStrip(progress: Float) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .semantics(mergeDescendants = true) {
                 contentDescription = description
@@ -190,7 +190,7 @@ private fun ProgressStrip(progress: Float) {
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)),
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
             ) {
                 Box(
                     Modifier
@@ -364,7 +364,7 @@ private fun InputBar(value: String, onValueChange: (String) -> Unit, onSend: () 
             onValueChange = onValueChange,
             singleLine = true,
             textStyle = textStyle,
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.secondary),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
             keyboardActions = KeyboardActions(onSend = { onSend() }),
             modifier = Modifier.weight(1f).semantics { contentDescription = label },

@@ -5,12 +5,13 @@ import com.tana.spa.core.logging.AppLog
 import com.tana.spa.core.mvi.MviViewModel
 import com.tana.spa.feature.booking.domain.BookingAttempt
 import com.tana.spa.feature.booking.domain.GuestBookingRepository
+import com.tana.spa.feature.booking.domain.SpaCatalogRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
 /** The guest's own visits, as the spa has them: status, the reason for a refusal, and cancelling. */
-class BookingsViewModel(private val bookings: GuestBookingRepository) :
+class BookingsViewModel(private val bookings: GuestBookingRepository, private val catalog: SpaCatalogRepository) :
     MviViewModel<BookingsState, BookingsEvent, BookingsEffect>(BookingsState()) {
 
     init {
@@ -49,9 +50,16 @@ class BookingsViewModel(private val bookings: GuestBookingRepository) :
                 .onSuccess { mine ->
                     AppLog.i(logTag) { "loaded ${mine.size} bookings" }
                     setState { copy(bookings = mine, loading = false, failed = false, nowEpochMillis = now()) }
+                    if (state.value.upcoming.isEmpty() && state.value.suggestions.isEmpty()) suggest()
                 }
                 .onFailure { setState { copy(loading = false, failed = true) } }
         }
+    }
+
+    private suspend fun suggest() {
+        runCatchingCancellable { catalog.catalog().services.take(SUGGESTIONS) }
+            .onSuccess { setState { copy(suggestions = it) } }
+            .onFailure { AppLog.w(logTag, it) { "suggestions failed (${it::class.simpleName})" } }
     }
 
     private fun cancel() {
@@ -96,5 +104,9 @@ class BookingsViewModel(private val bookings: GuestBookingRepository) :
         // Ktor's wasm engine reports a failed fetch as kotlin.Error, which is not an Exception.
         AppLog.w(logTag, e) { "bookings call failed (${e::class.simpleName})" }
         Result.failure(e)
+    }
+
+    private companion object {
+        const val SUGGESTIONS = 3
     }
 }

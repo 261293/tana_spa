@@ -104,7 +104,7 @@ private fun Treatment(service: Service, onBook: () -> Unit) {
         )
         Text(
             text = service.name,
-            style = SpaTheme.textStyles.displayTitle,
+            style = SpaTheme.textStyles.screenTitle,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.semantics { heading() },
         )
@@ -182,6 +182,6 @@ private fun LoadFailed(onRetry: () -> Unit) {
 @Composable
 private fun Loading() {
     Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.secondary)
     }
 }

@@ -192,7 +192,7 @@ private fun Header(state: NotificationsState, onEvent: (NotificationsEvent) -> U
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 text = stringResource(Res.string.notifications_title),
-                style = SpaTheme.textStyles.displayTitle,
+                style = SpaTheme.textStyles.screenTitle,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.semantics { heading() },
             )
@@ -237,8 +237,8 @@ private fun NotificationIcon(type: NotificationType?, read: Boolean) {
         NotificationType.ORDER -> SpaIcon.Note
         else -> SpaIcon.Bell
     }
-    val container = if (read) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.primaryContainer
-    val content = if (read) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary
+    val container = if (read) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.secondaryContainer
+    val content = if (read) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSecondaryContainer
     Box(
         modifier = Modifier.size(40.dp).background(container, CircleShape),
         contentAlignment = Alignment.Center,
@@ -272,7 +272,7 @@ private fun NotificationRow(item: NotificationItem, nowEpochMillis: Long, onClic
                 )
                 // Material's badge is the unread marker; it keeps its place once read.
                 Badge(
-                    containerColor = if (item.read) Color.Transparent else MaterialTheme.colorScheme.primary,
+                    containerColor = if (item.read) Color.Transparent else MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.align(Alignment.End),
                 )
             }
@@ -365,6 +365,6 @@ private fun LoadFailed(onRetry: () -> Unit) {
 @Composable
 private fun Loading(modifier: Modifier = Modifier.fillMaxSize()) {
     Box(modifier, contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.secondary)
     }
 }

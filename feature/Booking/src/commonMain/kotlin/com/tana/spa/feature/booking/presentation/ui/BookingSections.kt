@@ -141,6 +141,18 @@ internal fun <T> staggeredColumns(items: List<T>, columns: Int): List<List<T>> {
     return List(count) { column -> items.filterIndexed { index, _ -> index % count == column } }
 }
 
+internal fun <T> balancedColumns(items: List<T>, columns: Int, weight: (T) -> Int): List<List<T>> {
+    val count = columns.coerceAtLeast(1)
+    val filled = List(count) { mutableListOf<T>() }
+    val loads = IntArray(count)
+    items.forEach { item ->
+        val lightest = loads.indices.minBy { loads[it] }
+        filled[lightest] += item
+        loads[lightest] += weight(item)
+    }
+    return filled
+}
+
 /** One column on a phone and on a tablet in portrait; the grid starts where two fit side by side. */
 internal fun catalogueColumns(size: SpaWindowSize): Int = when (size) {
     SpaWindowSize.COMPACT, SpaWindowSize.MEDIUM -> 1
@@ -169,7 +181,7 @@ private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
     val hovered by hover.collectIsHoveredAsState()
     val fill by animateColorAsState(
         targetValue = when {
-            selected -> MaterialTheme.colorScheme.primaryContainer
+            selected -> MaterialTheme.colorScheme.secondaryContainer
             hovered -> MaterialTheme.colorScheme.surfaceContainerLow
             else -> MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0f)
         },
@@ -220,7 +232,7 @@ private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
         }
         if (selected) {
             Box(
-                Modifier.size(24.dp).background(MaterialTheme.colorScheme.primary, CircleShape),
+                Modifier.size(24.dp).background(MaterialTheme.colorScheme.secondary, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 SpaIconImage(SpaIcon.Check, size = 16.dp, tint = MaterialTheme.colorScheme.onPrimary)
@@ -299,10 +311,10 @@ internal fun MonthCalendar(selected: SpaDate, today: SpaDate, onSelect: (SpaDate
                 showModeToggle = false,
                 colors = DatePickerDefaults.colors(
                     containerColor = Color.Transparent,
-                    selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedDayContainerColor = MaterialTheme.colorScheme.secondary,
                     selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
-                    todayContentColor = MaterialTheme.colorScheme.primary,
-                    todayDateBorderColor = MaterialTheme.colorScheme.primary,
+                    todayContentColor = MaterialTheme.colorScheme.secondary,
+                    todayDateBorderColor = MaterialTheme.colorScheme.secondary,
                 ),
             )
         }

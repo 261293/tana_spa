@@ -15,6 +15,7 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import kotlin.time.Clock
 
 val bookingModule: Module = module {
     single<SpaCatalogRepository> { SpaCatalogRepositoryImpl(get(), Constants.apiBaseUrl()) }
@@ -25,5 +26,5 @@ val bookingModule: Module = module {
     viewModelOf(::BookingViewModel)
     viewModelOf(::BookingsViewModel)
     viewModelOf(::ServiceDetailViewModel)
-    viewModel { HomeViewModel(get(), get(), SpaDate.deviceToday()) }
+    viewModel { HomeViewModel(get(), get(), get(), SpaDate.deviceToday()) { Clock.System.now().toEpochMilliseconds() } }
 }

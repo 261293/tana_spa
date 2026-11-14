@@ -38,7 +38,7 @@ fun CurrentVisitStrip(onOpen: (String) -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
             .spaClickable { onOpen(visit.booking.id) }
             .padding(start = 16.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),

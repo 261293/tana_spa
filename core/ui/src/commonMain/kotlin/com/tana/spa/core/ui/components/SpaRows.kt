@@ -53,7 +53,12 @@ private fun toneColors(tone: SpaTone): Pair<Color, Color> = when (tone) {
 }
 
 @Composable
-fun SpaRowGroup(modifier: Modifier = Modifier, title: String? = null, action: (@Composable () -> Unit)? = null, rows: List<@Composable () -> Unit>) {
+fun SpaRowGroup(
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    action: (@Composable () -> Unit)? = null,
+    rows: List<@Composable () -> Unit>,
+) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (title != null || action != null) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -110,7 +115,9 @@ fun SpaListRow(
             )
         },
         overlineContent = overline?.let { { Text(it, style = SpaTheme.textStyles.label) } },
-        supportingContent = supporting?.let { { Text(it, style = SpaTheme.textStyles.caption, maxLines = 2, overflow = TextOverflow.Ellipsis) } },
+        supportingContent = supporting?.let {
+            { Text(it, style = SpaTheme.textStyles.caption, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+        },
         leadingContent = leading,
         trailingContent = trailing ?: if (interactive && !selected) {
             { SpaIconImage(SpaIcon.ChevronRight, size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant) }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,19 +25,26 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
+import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaDateBlock
+import com.tana.spa.core.ui.components.SpaEmptyBlock
 import com.tana.spa.core.ui.components.SpaIcon
+import com.tana.spa.core.ui.components.SpaImageTile
+import com.tana.spa.core.ui.components.SpaListRow
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPanel
+import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.components.SpaRowGroup
 import com.tana.spa.core.ui.components.SpaScreenHeader
-import com.tana.spa.core.ui.components.SpaSecondaryButton
 import com.tana.spa.core.ui.components.SpaSkeleton
-import com.tana.spa.core.ui.components.SpaStatusPill
 import com.tana.spa.core.ui.components.SpaStepper
+import com.tana.spa.core.ui.components.SpaTextButton
 import com.tana.spa.core.ui.formatDayAndTime
 import com.tana.spa.core.ui.formatPrice
 import com.tana.spa.core.ui.monthShort
@@ -62,17 +70,18 @@ import com.tana.spa.feature.booking.resources.bookings_empty
 import com.tana.spa.feature.booking.resources.bookings_failed
 import com.tana.spa.feature.booking.resources.bookings_instead
 import com.tana.spa.feature.booking.resources.bookings_meta
+import com.tana.spa.feature.booking.resources.bookings_past
 import com.tana.spa.feature.booking.resources.bookings_retry
-import com.tana.spa.feature.booking.resources.bookings_status_cancelled
 import com.tana.spa.feature.booking.resources.bookings_status_completed
 import com.tana.spa.feature.booking.resources.bookings_status_confirmed
-import com.tana.spa.feature.booking.resources.bookings_status_declined
-import com.tana.spa.feature.booking.resources.bookings_status_no_show
 import com.tana.spa.feature.booking.resources.bookings_status_pending
 import com.tana.spa.feature.booking.resources.bookings_subtitle
+import com.tana.spa.feature.booking.resources.bookings_suggestions
 import com.tana.spa.feature.booking.resources.bookings_title
 import com.tana.spa.feature.booking.resources.bookings_title_accent
 import com.tana.spa.feature.booking.resources.bookings_too_late
+import com.tana.spa.feature.booking.resources.bookings_upcoming
+import com.tana.spa.feature.booking.resources.home_treatment_meta
 import com.tana.spa.feature.booking.resources.visit_in_progress
 import com.tana.spa.feature.booking.resources.visit_progress_description
 import com.tana.spa.shared.booking.BookingStatusDto
@@ -85,7 +94,13 @@ import org.jetbrains.compose.resources.stringResource
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
 @Composable
-fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent: (BookingsEvent) -> Unit, onBook: () -> Unit) {
+fun BookingsScreen(
+    state: BookingsState,
+    effects: Flow<BookingsEffect>,
+    onEvent: (BookingsEvent) -> Unit,
+    onBook: () -> Unit,
+    onBookService: (String) -> Unit,
+) {
     val snackbar = remember { SnackbarHostState() }
     val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
@@ -114,27 +129,53 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
             when {
                 state.loading && state.bookings.isEmpty() -> repeat(SKELETONS) { SpaSkeleton(ROW_HEIGHT) }
 
-                state.failed && state.bookings.isEmpty() -> Message(
-                    text = stringResource(Res.string.bookings_failed),
-                    action = stringResource(Res.string.bookings_retry),
-                    onAction = { onEvent(BookingsEvent.Refresh) },
-                )
+                state.failed && state.bookings.isEmpty() -> SpaEmptyBlock(stringResource(Res.string.bookings_failed)) {
+                    SpaTextButton(stringResource(Res.string.bookings_retry), onClick = { onEvent(BookingsEvent.Refresh) })
+                }
 
-                state.bookings.isEmpty() -> Message(
-                    text = stringResource(Res.string.bookings_empty),
-                    action = stringResource(Res.string.bookings_book_now),
-                    onAction = onBook,
-                )
-
-                else -> state.bookings.forEachIndexed { index, booking ->
-                    BookingRow(
-                        booking = booking,
-                        nowEpochMillis = state.nowEpochMillis,
-                        enabled = !state.working,
-                        opened = booking.id == state.openedId,
-                        onEvent = onEvent,
-                        modifier = Modifier.revealOnScroll(order = index),
-                    )
+                else -> {
+                    Group(stringResource(Res.string.bookings_upcoming)) {
+                        if (state.upcoming.isEmpty()) {
+                            SpaEmptyBlock(stringResource(Res.string.bookings_empty)) {
+                                SpaPrimaryButton(
+                                    stringResource(Res.string.bookings_book_now),
+                                    onClick = onBook,
+                                    modifier = Modifier.widthIn(max = ActionWidth),
+                                )
+                            }
+                        }
+                        state.upcoming.forEachIndexed { index, booking -> Row(booking, state, onEvent, index) }
+                        if (state.upcoming.isEmpty() && state.suggestions.isNotEmpty()) {
+                            SpaRowGroup(
+                                title = stringResource(Res.string.bookings_suggestions),
+                                rows = state.suggestions.map { service ->
+                                    {
+                                        SpaListRow(
+                                            title = service.name,
+                                            supporting = stringResource(
+                                                Res.string.home_treatment_meta,
+                                                service.minutes,
+                                                formatPrice(service.priceVnd),
+                                            ),
+                                            leading = {
+                                                SpaImageTile(
+                                                    Modifier.size(40.dp),
+                                                    shape = MaterialTheme.shapes.small,
+                                                    photo = SpaPhotos.treatment(service.id),
+                                                )
+                                            },
+                                            onClick = { onBookService(service.id) },
+                                        )
+                                    }
+                                },
+                            )
+                        }
+                    }
+                    if (state.past.isNotEmpty()) {
+                        Group(stringResource(Res.string.bookings_past)) {
+                            state.past.forEachIndexed { index, booking -> Row(booking, state, onEvent, index) }
+                        }
+                    }
                 }
             }
         }
@@ -142,6 +183,32 @@ fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent:
     }
 
     state.cancelling?.let { CancelDialog(it, onEvent) }
+}
+
+@Composable
+private fun Group(title: String, content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = title,
+            style = SpaTheme.textStyles.body,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.semantics { heading() },
+        )
+        content()
+    }
+}
+
+@Composable
+private fun Row(booking: GuestBooking, state: BookingsState, onEvent: (BookingsEvent) -> Unit, index: Int) {
+    BookingRow(
+        booking = booking,
+        nowEpochMillis = state.nowEpochMillis,
+        enabled = !state.working,
+        opened = booking.id == state.openedId,
+        onEvent = onEvent,
+        modifier = Modifier.revealOnScroll(order = index),
+    )
 }
 
 @Composable
@@ -166,7 +233,7 @@ private fun BookingRow(
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                         )
-                        StatusPill(booking.status)
+                        BookingStatusPill(booking.status)
                     }
                     Text(
                         text = stringResource(
@@ -193,7 +260,7 @@ private fun BookingRow(
                 Text(
                     text = stringResource(Res.string.bookings_instead, offer),
                     style = SpaTheme.textStyles.body,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.secondary,
                 )
             }
 
@@ -249,62 +316,17 @@ private fun VisitProgress(booking: GuestBooking, nowEpochMillis: Long) {
             Text(
                 text = stringResource(Res.string.visit_in_progress),
                 style = SpaTheme.textStyles.caption,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.secondary,
             )
         }
     }
 }
 
 @Composable
-private fun StatusPill(status: BookingStatusDto) = when (status) {
-    BookingStatusDto.PENDING -> SpaStatusPill(
-        text = stringResource(Res.string.bookings_status_pending),
-        container = SpaTheme.extraColors.warningContainer,
-        content = SpaTheme.extraColors.warning,
-        icon = SpaIcon.Clock,
-    )
-
-    BookingStatusDto.CONFIRMED -> SpaStatusPill(
-        text = stringResource(Res.string.bookings_status_confirmed),
-        container = MaterialTheme.colorScheme.primaryContainer,
-        content = MaterialTheme.colorScheme.primary,
-        icon = SpaIcon.Check,
-    )
-
-    BookingStatusDto.COMPLETED -> SpaStatusPill(
-        text = stringResource(Res.string.bookings_status_completed),
-        container = MaterialTheme.colorScheme.surfaceVariant,
-        content = MaterialTheme.colorScheme.onSurface,
-        icon = SpaIcon.CheckCircle,
-    )
-
-    BookingStatusDto.DECLINED -> SpaStatusPill(
-        text = stringResource(Res.string.bookings_status_declined),
-        container = MaterialTheme.colorScheme.errorContainer,
-        content = MaterialTheme.colorScheme.onErrorContainer,
-        icon = SpaIcon.Close,
-    )
-
-    BookingStatusDto.CANCELLED -> SpaStatusPill(
-        text = stringResource(Res.string.bookings_status_cancelled),
-        container = MaterialTheme.colorScheme.surfaceVariant,
-        content = MaterialTheme.colorScheme.onSurfaceVariant,
-        icon = SpaIcon.Close,
-    )
-
-    BookingStatusDto.NO_SHOW -> SpaStatusPill(
-        text = stringResource(Res.string.bookings_status_no_show),
-        container = MaterialTheme.colorScheme.errorContainer,
-        content = MaterialTheme.colorScheme.onErrorContainer,
-        icon = SpaIcon.Prohibit,
-    )
-}
-
-@Composable
 private fun CancelDialog(booking: GuestBooking, onEvent: (BookingsEvent) -> Unit) {
     AlertDialog(
         onDismissRequest = { onEvent(BookingsEvent.CancelDismissed) },
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(
                 text = stringResource(Res.string.bookings_cancel_title, booking.serviceName),
@@ -338,25 +360,6 @@ private fun CancelDialog(booking: GuestBooking, onEvent: (BookingsEvent) -> Unit
             }
         },
     )
-}
-
-@Composable
-private fun Message(text: String, action: String? = null, onAction: () -> Unit = {}) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(
-            text = text,
-            style = SpaTheme.textStyles.body,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        if (action != null) {
-            SpaSecondaryButton(text = action, onClick = onAction, modifier = Modifier.widthIn(max = ActionWidth))
-        }
-    }
 }
 
 private fun declineText(reason: DeclineReasonDto) = when (reason) {

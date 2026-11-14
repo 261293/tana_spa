@@ -5,6 +5,7 @@ import com.tana.spa.feature.booking.domain.Product
 import com.tana.spa.feature.booking.presentation.HomeEvent
 import com.tana.spa.feature.booking.presentation.HomeViewModel
 import com.tana.spa.shared.auth.SpaRoles
+import com.tana.spa.shared.booking.BookingStatusDto
 import com.tana.spa.shared.spa.SpaCatalog
 import com.tana.spa.shared.spa.SpaDate
 import kotlinx.coroutines.Dispatchers
@@ -18,11 +19,14 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class HomeViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val catalog = FakeSpaCatalogRepository()
+    private val bookings = FakeGuestBookingRepository()
+    private val now = 10_000L
     private val serum = Product("serum", "Serum trà xanh", "Tana", "Dưỡng ẩm", null, 450_000, "30ml")
 
     @BeforeTest
@@ -32,7 +36,7 @@ class HomeViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     private fun TestScope.viewModel(role: String = SpaRoles.CUSTOMER, today: SpaDate = SpaDate(2026, 11, 13)) =
-        HomeViewModel(catalog, CallerRole { role }, today).also { testScheduler.advanceUntilIdle() }
+        HomeViewModel(catalog, CallerRole { role }, bookings, today) { now }.also { testScheduler.advanceUntilIdle() }
 
     @Test
     fun home_shows_the_treatments_and_the_shelf() = runTest(dispatcher) {
@@ -76,5 +80,39 @@ class HomeViewModelTest {
     fun only_offers_still_running_are_counted() = runTest(dispatcher) {
         val today = SpaDate(2026, 11, 13)
         assertEquals(SpaCatalog.livePromos(today).size, viewModel(today = today).state.value.liveOffers)
+    }
+
+    @Test
+    fun the_next_visit_is_the_earliest_pending_or_confirmed_ahead_of_now() = runTest(dispatcher) {
+        bookings.mine = listOf(
+            guestBooking(id = "later", status = BookingStatusDto.CONFIRMED, startAtEpochMillis = 90_000),
+            guestBooking(id = "soon", status = BookingStatusDto.PENDING, startAtEpochMillis = 20_000),
+        )
+        assertEquals("soon", viewModel().state.value.nextVisit?.id)
+    }
+
+    @Test
+    fun past_and_cancelled_visits_are_not_next() = runTest(dispatcher) {
+        bookings.mine = listOf(
+            guestBooking(id = "past", status = BookingStatusDto.CONFIRMED, startAtEpochMillis = 5_000),
+            guestBooking(id = "off", status = BookingStatusDto.CANCELLED, startAtEpochMillis = 50_000),
+        )
+        assertNull(viewModel().state.value.nextVisit)
+    }
+
+    @Test
+    fun a_failed_bookings_call_leaves_the_menu() = runTest(dispatcher) {
+        bookings.failMine = true
+        val state = viewModel().state.value
+        assertNull(state.nextVisit)
+        assertFalse(state.failed)
+        assertEquals(ServerCatalog.catalog.services, state.services)
+    }
+
+    @Test
+    fun staff_have_no_next_visit_and_are_never_asked() = runTest(dispatcher) {
+        bookings.mine = listOf(guestBooking(startAtEpochMillis = 20_000))
+        assertNull(viewModel(SpaRoles.STAFF).state.value.nextVisit)
+        assertEquals(0, bookings.mineCalls)
     }
 }

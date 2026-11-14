@@ -36,6 +36,9 @@
     <string name="bookings_title_accent">của bạn</string>
     <string name="bookings_subtitle">Những gì bạn đã đặt và những gì spa đã xác nhận.</string>
     <string name="bookings_meta">%1$s · %2$s</string>
+    <string name="bookings_upcoming">Sắp tới</string>
+    <string name="bookings_past">Đã qua</string>
+    <string name="bookings_suggestions">Gợi ý cho buổi đầu tiên</string>
     <string name="bookings_empty">Bạn chưa đặt lịch hẹn nào.</string>
     <string name="bookings_book_now">Đặt lịch ngay</string>
     <string name="bookings_failed">Không tải được lịch hẹn của bạn.</string>
@@ -118,6 +121,12 @@
     <string name="treatments_empty_title">Không có liệu trình nào khớp</string>
     <string name="treatments_empty_body">Thử từ khóa khác, hoặc xem lại toàn bộ liệu trình.</string>
     <string name="treatments_empty_action">Xem tất cả liệu trình</string>
+    <string name="home_title">Tana Spa</string>
+    <string name="home_next_title">Buổi hẹn sắp tới</string>
+    <string name="home_next_meta">%1$s · %2$d phút</string>
+    <string name="home_next_open">Xem lịch hẹn</string>
+    <string name="home_treatments_title">Liệu trình</string>
+    <string name="home_treatments_lead">Giá cho mỗi buổi, thanh toán khi bạn đến spa. Spa sắp xếp kỹ thuật viên cho bạn.</string>
     <string name="home_subtitle">Liệu trình, sản phẩm và ưu đãi ở cùng một chỗ. Chạm vào một liệu trình để đặt lịch.</string>
     <string name="home_subtitle_staff">Liệu trình và sản phẩm spa đang có, để bạn tư vấn cho khách.</string>
     <string name="home_offers">%1$d ưu đãi đang chạy</string>
@@ -129,20 +138,8 @@
     <string name="home_failed">Không tải được danh sách liệu trình.</string>
     <string name="home_retry">Thử lại</string>
     <string name="refusal_staff">Tài khoản nhân viên không đặt lịch hẹn.</string>
-    <string name="home_hero_accent">Tana Spa,</string>
-    <string name="home_hero_rest">nơi cơ thể được nghỉ ngơi</string>
     <string name="home_quick_title">Đặt lịch nhanh</string>
     <string name="home_quick_service">Liệu trình</string>
     <string name="home_quick_action">Chọn ngày và giờ</string>
     <string name="home_quick_note">Spa sẽ xác nhận giờ hẹn, thường trong vòng 30 phút. Bạn chỉ thanh toán khi đến spa.</string>
-    <string name="home_stat_treatments">Liệu trình</string>
-    <string name="home_stat_minutes">%1$d–%2$d</string>
-    <string name="home_stat_minutes_label">Phút mỗi buổi</string>
-    <string name="home_stat_price_label">Giá từ</string>
-    <string name="home_stat_offers">Ưu đãi đang chạy</string>
-    <string name="home_treatments_title">Chọn liệu trình của bạn</string>
-    <string name="home_treatments_lead">Massage, chăm sóc da mặt và chăm sóc toàn thân. Chạm vào một liệu trình để chọn giờ.</string>
-    <string name="home_treatments_note">Thanh toán tại spa · Spa sắp xếp kỹ thuật viên cho bạn</string>
-    <string name="home_prices_title">Bảng giá</string>
-    <string name="home_prices_lead">Giá cho mỗi buổi, thanh toán khi bạn đến spa.</string>
 </resources>

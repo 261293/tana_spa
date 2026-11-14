@@ -23,6 +23,7 @@ object HomeEntry : FeatureEntry {
             onEvent = viewModel::onEvent,
             onBookService = { navigator.navigate(Routes.BOOKING.withArg(Routes.ARG_SERVICE, it)) },
             onOpenOffers = { navigator.navigate(Routes.PROMOTIONS) },
+            onOpenVisit = { navigator.navigate(Routes.MY_BOOKINGS.withArg(Routes.ARG_BOOKING, it)) },
         )
     }
 }

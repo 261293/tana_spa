@@ -1,12 +1,25 @@
 package com.tana.spa.feature.booking
 
 import com.tana.spa.core.ui.SpaWindowSize
+import com.tana.spa.feature.booking.presentation.ui.balancedColumns
 import com.tana.spa.feature.booking.presentation.ui.catalogueColumns
 import com.tana.spa.feature.booking.presentation.ui.staggeredColumns
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class CatalogueGridTest {
+
+    @Test
+    fun groups_go_to_the_lightest_column_in_order() {
+        val groups = listOf("massage" to 2, "facial" to 1, "body" to 2)
+        val columns = balancedColumns(groups, columns = 2) { it.second + 1 }
+        assertEquals(listOf(listOf("massage"), listOf("facial", "body")), columns.map { column -> column.map { it.first } })
+    }
+
+    @Test
+    fun one_column_keeps_every_group_in_order() {
+        assertEquals(listOf(listOf(1, 2, 3)), balancedColumns(listOf(1, 2, 3), columns = 1) { it })
+    }
 
     @Test
     fun one_column_keeps_the_menu_in_the_order_the_spa_listed_it() {

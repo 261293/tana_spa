@@ -90,7 +90,7 @@ fun WelcomeScreen(onContinue: () -> Unit, onClose: () -> Unit) {
                 Text(
                     text = stringResource(Res.string.welcome_brand),
                     style = SpaTheme.textStyles.brandTitle,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.revealOnScroll(order = 1),
                 )
                 Text(

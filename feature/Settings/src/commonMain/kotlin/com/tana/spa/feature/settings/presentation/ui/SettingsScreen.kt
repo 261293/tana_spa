@@ -1,7 +1,6 @@
 package com.tana.spa.feature.settings.presentation.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,8 +10,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.ListItem
@@ -21,15 +18,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,18 +31,17 @@ import com.tana.spa.core.ui.AppLanguage
 import com.tana.spa.core.ui.SpaPageWidth
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.components.SpaAvatar
-import com.tana.spa.core.ui.components.SpaGroupLabel
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPrimaryButton
+import com.tana.spa.core.ui.components.SpaRowGroup
 import com.tana.spa.core.ui.components.SpaScreenHeader
 import com.tana.spa.core.ui.components.SpaSecondaryButton
+import com.tana.spa.core.ui.components.SpaSegmented
 import com.tana.spa.core.ui.components.SpaTextField
-import com.tana.spa.core.ui.components.spaFelt
 import com.tana.spa.core.ui.rememberSpaScrollState
 import com.tana.spa.core.ui.revealOnScroll
-import com.tana.spa.core.ui.spaClickable
 import com.tana.spa.core.ui.spaPointer
 import com.tana.spa.feature.settings.presentation.NotificationPref
 import com.tana.spa.feature.settings.presentation.SettingsEffect
@@ -151,16 +144,12 @@ fun SettingsScreen(state: SettingsState, effects: Flow<SettingsEffect>, onEvent:
 
 @Composable
 private fun Group(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SpaGroupLabel(title, Modifier.padding(start = 4.dp))
-        // 2dp gaps rather than dividers: this palette separates rows by tone, not by lines.
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) { content() }
-    }
+    SpaRowGroup(modifier = modifier, title = title, rows = listOf { Column { content() } })
 }
 
 @Composable
 private fun rowColors() = ListItemDefaults.colors(
-    containerColor = MaterialTheme.colorScheme.surface,
+    containerColor = Color.Transparent,
     headlineColor = MaterialTheme.colorScheme.onSurface,
     supportingColor = MaterialTheme.colorScheme.onSurfaceVariant,
     leadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -186,7 +175,8 @@ private fun ProfileRow(state: SettingsState, onEvent: (SettingsEvent) -> Unit) {
             SpaAvatar(
                 initials = initialsOf(state.profile.name),
                 size = 52.dp,
-                container = MaterialTheme.colorScheme.primaryContainer,
+                container = MaterialTheme.colorScheme.secondaryContainer,
+                content = MaterialTheme.colorScheme.onSecondaryContainer,
             )
         },
         trailingContent = {
@@ -202,7 +192,7 @@ private fun ProfileRow(state: SettingsState, onEvent: (SettingsEvent) -> Unit) {
 @Composable
 private fun ProfileEditor(state: SettingsState, onEvent: (SettingsEvent) -> Unit) {
     Column(
-        modifier = Modifier.fillMaxWidth().spaFelt().padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         SpaTextField(
@@ -251,9 +241,9 @@ private fun ToggleRow(label: String, help: String, checked: Boolean, onChange: (
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                     checkedTrackColor = MaterialTheme.colorScheme.primary,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    uncheckedBorderColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surface,
+                    uncheckedBorderColor = MaterialTheme.colorScheme.outline,
                 ),
             )
         },
@@ -264,7 +254,7 @@ private fun ToggleRow(label: String, help: String, checked: Boolean, onChange: (
 
 @Composable
 private fun LanguageRow(language: AppLanguage, onChange: (AppLanguage) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
+    val options = AppLanguage.entries
     ListItem(
         headlineContent = {
             Text(
@@ -274,25 +264,12 @@ private fun LanguageRow(language: AppLanguage, onChange: (AppLanguage) -> Unit) 
         },
         leadingContent = { SpaIconImage(SpaIcon.Globe, size = 22.dp) },
         trailingContent = {
-            Box {
-                TextButton(onClick = { expanded = true }) {
-                    Text(language.label, style = SpaTheme.textStyles.body)
-                    SpaIconImage(SpaIcon.ChevronDown, size = 16.dp, modifier = Modifier.padding(start = 6.dp))
-                }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    AppLanguage.entries.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option.label, style = SpaTheme.textStyles.body) },
-                            onClick = {
-                                onChange(option)
-                                expanded = false
-                            },
-                        )
-                    }
-                }
-            }
+            SpaSegmented(
+                options = options.map { it.label },
+                selectedIndex = options.indexOf(language),
+                onSelect = { onChange(options[it]) },
+            )
         },
         colors = rowColors(),
-        modifier = Modifier.spaClickable { expanded = true },
     )
 }
