@@ -27,6 +27,7 @@ class BookingsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val bookings = FakeGuestBookingRepository()
+    private val catalog = FakeSpaCatalogRepository()
 
     private val hour = 60L * 60_000
     private val cancelWindow = BookingRules.CANCEL_WINDOW_MINUTES * 60_000L
@@ -37,7 +38,7 @@ class BookingsViewModelTest {
     @AfterTest
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun TestScope.viewModel(): BookingsViewModel = BookingsViewModel(bookings).also { testScheduler.advanceUntilIdle() }
+    private fun TestScope.viewModel(): BookingsViewModel = BookingsViewModel(bookings, catalog).also { testScheduler.advanceUntilIdle() }
 
     @Test
     fun the_list_comes_from_the_server_with_its_statuses() = runTest(dispatcher) {
@@ -59,11 +60,6 @@ class BookingsViewModelTest {
         bookings.mine = listOf(guestBooking("a"), guestBooking("b"))
         val vm = viewModel()
         val reads = bookings.mineCalls
-
-        vm.onEvent(BookingsEvent.Opened(null))
-        testScheduler.advanceUntilIdle()
-        assertNull(vm.state.value.openedId, "the screen was opened on its own")
-        assertEquals(reads, bookings.mineCalls, "there is nothing to catch up with")
 
         vm.onEvent(BookingsEvent.Opened("b"))
         testScheduler.advanceUntilIdle()
@@ -162,5 +158,25 @@ class BookingsViewModelTest {
 
         vm.onEvent(BookingsEvent.RowToggled("b"))
         assertNull(vm.state.value.openedId)
+    }
+
+    @Test
+    fun an_empty_diary_suggests_the_first_three_treatments() = runTest(dispatcher) {
+        val state = viewModel().state.value
+        assertEquals(ServerCatalog.catalog.services.take(3), state.suggestions)
+    }
+
+    @Test
+    fun a_diary_with_a_visit_ahead_suggests_nothing() = runTest(dispatcher) {
+        bookings.mine = listOf(guestBooking(startAtEpochMillis = Long.MAX_VALUE / 2))
+        assertTrue(viewModel().state.value.suggestions.isEmpty())
+    }
+
+    @Test
+    fun returning_to_the_screen_reads_the_diary_again() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onEvent(BookingsEvent.Opened(null))
+        testScheduler.advanceUntilIdle()
+        assertEquals(2, bookings.mineCalls)
     }
 }

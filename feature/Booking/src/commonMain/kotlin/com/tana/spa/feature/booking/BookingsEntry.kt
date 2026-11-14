@@ -8,6 +8,7 @@ import com.tana.spa.core.navigation.FeatureEntry
 import com.tana.spa.core.navigation.Navigator
 import com.tana.spa.core.navigation.Routes
 import com.tana.spa.core.navigation.routeArg
+import com.tana.spa.core.navigation.withArg
 import com.tana.spa.feature.booking.presentation.BookingsEvent
 import com.tana.spa.feature.booking.presentation.BookingsViewModel
 import com.tana.spa.feature.booking.presentation.ui.BookingsScreen
@@ -22,8 +23,12 @@ object BookingsEntry : FeatureEntry {
         val state by viewModel.state.collectAsStateWithLifecycle()
         val opened = navigator.current.routeArg(Routes.ARG_BOOKING)
         LaunchedEffect(opened) { viewModel.onEvent(BookingsEvent.Opened(opened)) }
-        BookingsScreen(state = state, effects = viewModel.effects, onEvent = viewModel::onEvent, onBook = {
-            navigator.navigate(Routes.BOOKING)
-        })
+        BookingsScreen(
+            state = state,
+            effects = viewModel.effects,
+            onEvent = viewModel::onEvent,
+            onBook = { navigator.navigate(Routes.BOOKING) },
+            onBookService = { navigator.navigate(Routes.BOOKING.withArg(Routes.ARG_SERVICE, it)) },
+        )
     }
 }

@@ -116,15 +116,17 @@ fun SpaCard(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val hovered by interactionSource.collectIsHoveredAsState()
-    val container = if (selected) MaterialTheme.colorScheme.primaryContainer else color
-    // The largest tone step this palette can make is 1.2:1 against a white card, which reads as no
-    // feedback at all, so hover steps the card's hairline up the way the design export does.
-    val hoverBorder = if (hovered && onClick != null) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null
+    val container = if (selected) MaterialTheme.colorScheme.secondaryContainer else color
+    val edge = when {
+        selected -> MaterialTheme.colorScheme.secondary
+        hovered && onClick != null -> MaterialTheme.colorScheme.outline
+        else -> MaterialTheme.colorScheme.outlineVariant
+    }
+    val border = if (color == MaterialTheme.colorScheme.surface || selected) BorderStroke(1.dp, edge) else null
     val colors = CardDefaults.cardColors(
         containerColor = container,
         contentColor = MaterialTheme.colorScheme.onSurface,
     )
-    // Flat in every state: this palette layers by tone, and shadows are not part of it.
     val elevation = CardDefaults.cardElevation(
         defaultElevation = 0.dp,
         pressedElevation = 0.dp,
@@ -134,7 +136,7 @@ fun SpaCard(
         disabledElevation = 0.dp,
     )
     if (onClick == null) {
-        Card(shape = shape, colors = colors, elevation = elevation, modifier = modifier) {
+        Card(shape = shape, colors = colors, elevation = elevation, border = border, modifier = modifier) {
             Box(Modifier.padding(padding)) { content() }
         }
     } else {
@@ -143,7 +145,7 @@ fun SpaCard(
             shape = shape,
             colors = colors,
             elevation = elevation,
-            border = hoverBorder,
+            border = border,
             interactionSource = interactionSource,
             modifier = modifier.spaPointer(),
         ) {
@@ -167,7 +169,12 @@ fun SpaDisplayTitle(lead: String, accent: String? = null, modifier: Modifier = M
 @Composable
 fun SpaScreenHeader(title: String, accent: String? = null, subtitle: String? = null, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SpaDisplayTitle(title, accent)
+        Text(
+            text = listOfNotNull(title, accent).joinToString(" "),
+            style = SpaTheme.textStyles.screenTitle,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.semantics { heading() },
+        )
         subtitle?.let {
             Text(text = it, style = SpaTheme.textStyles.sectionLead, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -206,7 +213,7 @@ fun SpaAvatar(
     modifier: Modifier = Modifier,
     size: Dp = 36.dp,
     container: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    content: Color = MaterialTheme.colorScheme.primary,
+    content: Color = MaterialTheme.colorScheme.onSurface,
 ) {
     Surface(shape = CircleShape, color = container, modifier = modifier.size(size)) {
         Box(contentAlignment = Alignment.Center) {
@@ -241,7 +248,7 @@ fun SpaImageTile(
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            SpaIconImage(icon, size = 28.dp, tint = MaterialTheme.colorScheme.primary)
+            SpaIconImage(icon, size = 28.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -249,9 +256,9 @@ fun SpaImageTile(
 @Composable
 fun SpaBrand(modifier: Modifier = Modifier, compact: Boolean = false) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(34.dp)) {
+        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.size(34.dp)) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                SpaIconImage(SpaIcon.Leaf, size = 19.dp, tint = MaterialTheme.colorScheme.primary)
+                SpaIconImage(SpaIcon.Leaf, size = 19.dp, tint = MaterialTheme.colorScheme.secondary)
             }
         }
         if (!compact) {
@@ -270,7 +277,7 @@ fun SpaCodeChip(code: String, modifier: Modifier = Modifier, trailing: (@Composa
     Surface(
         shape = MaterialTheme.shapes.extraSmall,
         color = MaterialTheme.colorScheme.background,
-        modifier = modifier.spaDashedBorder(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.extraSmall),
+        modifier = modifier.spaDashedBorder(MaterialTheme.colorScheme.outline, MaterialTheme.shapes.extraSmall),
     ) {
         Row(
             modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
@@ -279,7 +286,7 @@ fun SpaCodeChip(code: String, modifier: Modifier = Modifier, trailing: (@Composa
             Text(
                 text = code,
                 style = SpaTheme.textStyles.cardTitle.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp),
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
             trailing?.invoke()

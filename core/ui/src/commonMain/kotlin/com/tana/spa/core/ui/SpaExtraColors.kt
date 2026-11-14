@@ -31,21 +31,21 @@ data class SpaExtraColors(
 )
 
 internal val LightExtraColors = SpaExtraColors(
-    link = SpaColors.Copper,
+    link = SpaColors.Jade,
     success = SpaColors.Moss,
     warning = SpaColors.Ochre,
     warningContainer = SpaColors.OchreTint,
     pocket = SpaColors.Ink,
-    onPocket = SpaColors.Paper,
-    onPocketMuted = SpaColors.Paper3,
-    pocketAction = SpaColors.Card,
+    onPocket = SpaColors.Ground,
+    onPocketMuted = SpaColors.FieldHighest,
+    pocketAction = SpaColors.Panel,
     onPocketAction = SpaColors.Ink,
-    felt = SpaColors.Paper2,
+    felt = SpaColors.Field,
     shadow = SpaColors.Shadow,
     tag = SpaColors.Muted,
     inkSoft = SpaColors.InkSoft,
-    onPhoto = SpaColors.Card,
-    onPhotoAccent = SpaColors.CopperGlow,
+    onPhoto = SpaColors.Panel,
+    onPhotoAccent = SpaColors.Panel,
 )
 
 internal val LocalSpaExtraColors = staticCompositionLocalOf { LightExtraColors }

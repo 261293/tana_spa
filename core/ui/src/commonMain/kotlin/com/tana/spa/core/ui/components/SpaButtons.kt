@@ -123,7 +123,7 @@ fun SpaTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    contentColor: Color = MaterialTheme.colorScheme.primary,
+    contentColor: Color = MaterialTheme.colorScheme.secondary,
 ) {
     TextButton(
         onClick = onClick,

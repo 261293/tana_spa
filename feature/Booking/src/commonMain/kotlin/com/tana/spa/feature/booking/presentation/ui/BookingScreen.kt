@@ -24,6 +24,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaPageWidth
@@ -31,7 +33,6 @@ import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindow
 import com.tana.spa.core.ui.components.SpaBackLink
 import com.tana.spa.core.ui.components.SpaDateBlock
-import com.tana.spa.core.ui.components.SpaDisplayTitle
 import com.tana.spa.core.ui.components.SpaPage
 import com.tana.spa.core.ui.components.SpaPanel
 import com.tana.spa.core.ui.components.SpaSecondaryButton
@@ -50,6 +51,7 @@ import com.tana.spa.feature.booking.presentation.BookingEvent
 import com.tana.spa.feature.booking.presentation.BookingState
 import com.tana.spa.feature.booking.resources.Res
 import com.tana.spa.feature.booking.resources.booking_back
+import com.tana.spa.feature.booking.resources.booking_card_discount
 import com.tana.spa.feature.booking.resources.booking_card_minutes
 import com.tana.spa.feature.booking.resources.booking_card_need_service
 import com.tana.spa.feature.booking.resources.booking_card_need_time
@@ -239,9 +241,11 @@ private fun BookingStepPage(
 @Composable
 private fun BookingHeader(modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SpaDisplayTitle(
-            lead = stringResource(Res.string.booking_title),
-            accent = stringResource(Res.string.booking_title_accent),
+        Text(
+            text = listOf(stringResource(Res.string.booking_title), stringResource(Res.string.booking_title_accent)).joinToString(" "),
+            style = SpaTheme.textStyles.screenTitle,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.semantics { heading() },
         )
         // A phone spends its first screen on the menu; the subtitle only explains it.
         if (!SpaWindow.size.isCompact) {
@@ -258,7 +262,12 @@ private fun BookingHeader(modifier: Modifier = Modifier) {
 private fun appointmentLine(state: BookingState): String {
     val service = state.service ?: return stringResource(Res.string.booking_strip_choose)
     val time = state.slot?.let { formatHour(it.startHour) } ?: stringResource(Res.string.booking_card_no_time)
-    return listOf(time, stringResource(Res.string.booking_card_minutes, service.minutes), formatPrice(state.totalVnd))
+    val discount = if (state.discountVnd > 0) {
+        stringResource(Res.string.booking_card_discount, state.code, formatPrice(state.discountVnd))
+    } else {
+        null
+    }
+    return listOfNotNull(time, stringResource(Res.string.booking_card_minutes, service.minutes), discount, formatPrice(state.totalVnd))
         .joinToString(APPOINTMENT_SEPARATOR)
 }
 

@@ -127,8 +127,8 @@ internal fun CreateCodePanel(state: AdminCodesState, onEvent: (AdminCodesEvent) 
                                     onClick = { onEvent(AdminCodesEvent.DraftChanged(draft.copy(kind = kind))) },
                                     shape = SegmentedButtonDefaults.itemShape(index, DiscountKind.entries.size),
                                     colors = SegmentedButtonDefaults.colors(
-                                        activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        activeContentColor = MaterialTheme.colorScheme.primary,
+                                        activeContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        activeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                         inactiveContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                                         inactiveContentColor = MaterialTheme.colorScheme.onSurface,
                                     ),
@@ -264,7 +264,7 @@ private fun GuestPreview(state: AdminCodesState) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Box(Modifier.fillMaxWidth()) {
-            Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.primaryContainer) {
+            Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.secondaryContainer) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = stringResource(

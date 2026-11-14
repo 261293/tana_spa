@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
@@ -57,7 +56,7 @@ internal fun AssistantAvatar(size: Dp, modifier: Modifier = Modifier) {
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, SpaTheme.extraColors.link))),
+            .background(MaterialTheme.colorScheme.secondary),
         contentAlignment = Alignment.Center,
     ) {
         Image(
@@ -156,7 +155,7 @@ internal fun ConsentCheckRow(
             // The row owns the click (bigger target, one accessibility node); the box only displays.
             onCheckedChange = null,
             colors = CheckboxDefaults.colors(
-                checkedColor = MaterialTheme.colorScheme.primary,
+                checkedColor = MaterialTheme.colorScheme.secondary,
                 uncheckedColor = MaterialTheme.colorScheme.outline,
                 checkmarkColor = MaterialTheme.colorScheme.onPrimary,
             ),

@@ -210,10 +210,10 @@ internal fun RequestSentDialog(sent: GuestBooking, onEvent: (BookingEvent) -> Un
         containerColor = MaterialTheme.colorScheme.background,
         icon = {
             Box(
-                modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                modifier = Modifier.size(64.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                SpaIconImage(SpaIcon.CheckCircle, size = 32.dp, tint = MaterialTheme.colorScheme.primary)
+                SpaIconImage(SpaIcon.CheckCircle, size = 32.dp, tint = MaterialTheme.colorScheme.secondary)
             }
         },
         title = {

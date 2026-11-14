@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -79,16 +78,7 @@ internal fun AuthShell(title: String, accent: String, intro: String, content: @C
 
 @Composable
 private fun Panel(modifier: Modifier) {
-    Box(modifier) {
-        SpaImageTile(Modifier.fillMaxSize(), shape = RectangleShape, photo = SpaPhotos.hero)
-        Surface(
-            shape = MaterialTheme.shapes.small,
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.padding(16.dp),
-        ) {
-            SpaBrand(Modifier.padding(start = 6.dp, end = 14.dp, top = 6.dp, bottom = 6.dp))
-        }
-    }
+    SpaImageTile(modifier, shape = RectangleShape, photo = SpaPhotos.hero)
 }
 
 @Composable
@@ -100,6 +90,7 @@ private fun Form(title: String, accent: String, intro: String, content: @Composa
             .padding(horizontal = 20.dp, vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        SpaBrand(Modifier.padding(bottom = 16.dp))
         Column(Modifier.revealOnScroll(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             SpaDisplayTitle(title, accent)
             Text(intro, style = SpaTheme.textStyles.bodyRelaxed, color = MaterialTheme.colorScheme.onSurfaceVariant)

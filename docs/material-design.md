@@ -1,6 +1,6 @@
 # Material 3 in this app
 
-The app is a Material 3 app wearing the limewash system in `DESIGN.md` (ADR 0008). **Reach for the Material component
+The app is a Material 3 app wearing the Đá bazan system in `DESIGN.md` (ADR 0009). **Reach for the Material component
 first**; only draw something by hand when Material has no component for it, and say so in a comment.
 
 A Material component brings behaviour we would otherwise have to write and get wrong: focus order,
@@ -17,9 +17,13 @@ at <https://developer.android.com/develop/ui/compose/components>.
 | Primary / quiet / destructive action | `Button`, `FilledTonalButton` | `SpaPrimaryButton`, `SpaSecondaryButton`, `SpaSocialButton` |
 | One tap on an icon | `IconButton`, `FilledTonalIconButton` | copy a code, close a sheet, the codes table's edit/disable |
 | Pick one of a set, inline | `FilterChip` | `SpaFilterChip`: booking days, times, code states, eligible treatments |
-| Two to five exclusive options | `SingleChoiceSegmentedButtonRow` + `SegmentedButton` | percent vs amount in the create-code panel |
+| Two to five exclusive options | `SingleChoiceSegmentedButtonRow` + `SegmentedButton` | `SpaSegmented`: the language in Settings; percent vs amount in the create-code panel |
 | One subject, grouped content | `Card` | `SpaCard` (flat; `onClick`/`selected` for treatments and therapists) |
-| A row of text with leading/trailing extras | `ListItem` | settings rows, notification rows, the request queue, promo rows |
+| A row of text with leading/trailing extras | `ListItem` | `SpaListRow` inside a `SpaRowGroup` (a white panel with a hairline edge and rules between rows): the Home menu, booking step 1, offers, suggestions; settings and notification rows |
+| A status beside a value | `Surface` | `SpaTonePill(text, SpaTone)`: pending is ochre, confirmed jade, declined red, the rest grey |
+| Labels over values | `Column`s | `SpaFactGrid` |
+| A price | `Text` | `SpaPrice`: Fraunces in ink, never in a hue |
+| An empty block | `Column` | `SpaEmptyBlock`: the frame stays, one sentence and an action |
 | On/off | `Switch` on a `toggleable` `ListItem` | notification preferences |
 | One of several, stacked | `RadioButton` on a `selectable` row | decline reasons |
 | Choose from a list on a temporary surface | `DropdownMenu` + `DropdownMenuItem` | language, "suggest another time" |
@@ -50,7 +54,7 @@ where they are defined:
 ### Material's text field
 
 `SpaTextField` is Material 3's `OutlinedTextField` with the theme's colours: the label floats into
-the outline, the outline turns copper on focus and red with an icon and a message on an error, and
+the outline, the outline turns jade on focus and red with an icon and a message on an error, and
 the helper is its supporting text. Until 2026-11-13 it was hand-built on `BasicTextField`, because
 `material3 1.11.0-alpha07` with `compose 1.12.1` threw `AbstractMethodError` (`TextFieldDefaults`
 building a `CustomStyle` that foundation did not implement). `material3 1.12.0-alpha03` composes it
@@ -161,7 +165,7 @@ where a zero duration is not enough.
 
 1. Sketch the screen as a list of Material components from the table above. Anything left over is
    either a `core:ui` wrapper you can reuse, or a new one worth naming.
-2. `Scaffold`/`AppScaffold` for the frame; `SpaScreenHeader` for the title and its moss accent.
+2. `Scaffold`/`AppScaffold` for the frame; `SpaScreenHeader` for the title.
 3. Compose the body from `SpaCard` + `ListItem` + chips + buttons; keep the screen a stateless
    `(state, effects, onEvent)` composable, with the entry object the only thing that touches Koin.
 4. Lay out for both sizes: `BoxWithConstraints` with one breakpoint (840dp for content, 900dp for

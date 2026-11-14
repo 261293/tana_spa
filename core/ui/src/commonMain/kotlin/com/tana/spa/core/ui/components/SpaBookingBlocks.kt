@@ -70,7 +70,8 @@ fun SpaStepTrail(steps: List<String>, current: Int, modifier: Modifier = Modifie
                     )
                 }
                 HorizontalDivider(
-                    color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                    color = if (isCurrent) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant,
+                    thickness = if (isCurrent) 2.dp else 1.dp,
                 )
             }
         }
@@ -80,18 +81,18 @@ fun SpaStepTrail(steps: List<String>, current: Int, modifier: Modifier = Modifie
 @Composable
 private fun StepNumber(number: Int, done: Boolean, current: Boolean) {
     val container = when {
-        current -> MaterialTheme.colorScheme.primary
+        current -> MaterialTheme.colorScheme.secondary
         done -> MaterialTheme.colorScheme.secondaryContainer
         else -> MaterialTheme.colorScheme.surface
     }
     val border = when {
-        current -> MaterialTheme.colorScheme.primary
+        current -> MaterialTheme.colorScheme.secondary
         done -> MaterialTheme.colorScheme.secondary
         else -> MaterialTheme.colorScheme.outlineVariant
     }
     val content = when {
-        current -> MaterialTheme.colorScheme.onPrimary
-        done -> MaterialTheme.colorScheme.primary
+        current -> MaterialTheme.colorScheme.onSecondary
+        done -> MaterialTheme.colorScheme.onSecondaryContainer
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     Box(
@@ -156,14 +157,14 @@ fun SpaDateCell(
     contentDescription: String? = null,
 ) {
     val shape = RoundedCornerShape(14.dp)
-    val container = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-    val label = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-    val muted = if (selected) SpaTheme.extraColors.onPocketMuted else MaterialTheme.colorScheme.onSurfaceVariant
+    val container = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface
+    val label = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+    val muted = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
     Column(
         modifier = modifier
             .widthIn(min = DateCellWidth)
             .background(container, shape)
-            .border(1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, shape)
+            .border(1.dp, if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant, shape)
             .spaClickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 10.dp)
             .alphaIfDisabled(enabled)
@@ -184,8 +185,8 @@ fun SpaSlotButton(label: String, selected: Boolean, onClick: () -> Unit, modifie
     Box(
         modifier = modifier
             .defaultMinSize(minHeight = SlotHeight)
-            .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface, shape)
-            .border(1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, shape)
+            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface, shape)
+            .border(1.dp, if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant, shape)
             .spaClickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 6.dp)
             .alphaIfDisabled(enabled),
@@ -195,7 +196,7 @@ fun SpaSlotButton(label: String, selected: Boolean, onClick: () -> Unit, modifie
             text = label,
             style = SpaTheme.textStyles.caption,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+            color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             maxLines = 1,
         )
@@ -217,12 +218,12 @@ fun SpaChoiceRow(
         modifier = modifier
             .fillMaxWidth()
             .background(
-                if (selected) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface,
+                if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
                 ChoiceShape,
             )
             .border(
-                if (selected) 2.dp else 1.dp,
-                if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                1.dp,
+                if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant,
                 ChoiceShape,
             )
             .spaClickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
@@ -252,7 +253,7 @@ fun SpaChoiceRow(
             }
         }
         if (selected) {
-            SpaIconImage(SpaIcon.Check, size = 16.dp, tint = MaterialTheme.colorScheme.primary)
+            SpaIconImage(SpaIcon.Check, size = 16.dp, tint = MaterialTheme.colorScheme.secondary)
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.tana.spa.feature.booking.presentation
 
 import com.tana.spa.feature.booking.domain.GuestBooking
+import com.tana.spa.shared.booking.BookingStatusDto
+import com.tana.spa.shared.spa.Service
 
 /**
  * [cancelling] non-null is the open confirmation: cancelling is not something to do by accident.
@@ -15,7 +17,18 @@ data class BookingsState(
     val nowEpochMillis: Long = 0,
     val cancelling: GuestBooking? = null,
     val openedId: String? = null,
-)
+    val suggestions: List<Service> = emptyList(),
+) {
+    val upcoming: List<GuestBooking>
+        get() = bookings.filter { it.status in AHEAD && it.startAtEpochMillis > nowEpochMillis }.sortedBy { it.startAtEpochMillis }
+
+    val past: List<GuestBooking>
+        get() = (bookings - upcoming.toSet()).sortedByDescending { it.startAtEpochMillis }
+
+    private companion object {
+        val AHEAD = setOf(BookingStatusDto.PENDING, BookingStatusDto.CONFIRMED)
+    }
+}
 
 sealed interface BookingsEvent {
     data object Refresh : BookingsEvent

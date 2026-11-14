@@ -150,7 +150,7 @@ private fun ScheduleBlock(startHour: Double, minutes: Int, title: String, subtit
 @Composable
 private fun ProposedBlock(request: DeskRequest) {
     val conflicted = request.conflict != null
-    val accent = if (conflicted) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+    val accent = if (conflicted) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary
     Column(
         modifier = Modifier
             .fillMaxWidth()

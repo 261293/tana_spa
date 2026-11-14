@@ -87,9 +87,9 @@ private fun Rail(section: AdminSection, pendingCount: Int, onSelect: (AdminSecti
         },
     ) {
         val colors = NavigationRailItemDefaults.colors(
-            selectedIconColor = MaterialTheme.colorScheme.primary,
-            selectedTextColor = MaterialTheme.colorScheme.primary,
-            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            selectedTextColor = MaterialTheme.colorScheme.onSurface,
+            indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -147,7 +147,7 @@ private fun CompactTabs(section: AdminSection, pendingCount: Int, onSelect: (Adm
         PrimaryTabRow(
             selectedTabIndex = section.ordinal,
             containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ) {
             Tab(
                 selected = section == AdminSection.REQUESTS,
