@@ -12,15 +12,15 @@ import kotlin.test.assertTrue
 class SpaColorSchemeTest {
     @Test
     fun scheme_roles_match_design_tokens() {
-        assertEquals(SpaColors.Eucalyptus, SpaColorScheme.primary)
-        assertEquals(SpaColors.OnEucalyptus, SpaColorScheme.onPrimary)
-        assertEquals(SpaColors.EucalyptusTint, SpaColorScheme.primaryContainer)
-        assertEquals(SpaColors.EucalyptusDeep, SpaColorScheme.onPrimaryContainer)
-        assertEquals(SpaColors.Umber, SpaColorScheme.secondary)
-        assertEquals(SpaColors.UmberTint, SpaColorScheme.secondaryContainer)
-        assertEquals(SpaColors.Ink, SpaColorScheme.onSecondaryContainer)
-        assertEquals(SpaColors.Umber, SpaColorScheme.tertiary)
-        assertEquals(SpaColors.UmberTint, SpaColorScheme.tertiaryContainer)
+        assertEquals(SpaColors.Copper, SpaColorScheme.primary)
+        assertEquals(SpaColors.OnCopper, SpaColorScheme.onPrimary)
+        assertEquals(SpaColors.CopperTint, SpaColorScheme.primaryContainer)
+        assertEquals(SpaColors.CopperDeep, SpaColorScheme.onPrimaryContainer)
+        assertEquals(SpaColors.Eucalyptus, SpaColorScheme.secondary)
+        assertEquals(SpaColors.EucalyptusTint, SpaColorScheme.secondaryContainer)
+        assertEquals(SpaColors.EucalyptusDeep, SpaColorScheme.onSecondaryContainer)
+        assertEquals(SpaColors.Slate, SpaColorScheme.tertiary)
+        assertEquals(SpaColors.SlateTint, SpaColorScheme.tertiaryContainer)
         assertEquals(SpaColors.Paper, SpaColorScheme.background)
         assertEquals(SpaColors.Ink, SpaColorScheme.onBackground)
         assertEquals(SpaColors.Card, SpaColorScheme.surface)
@@ -31,7 +31,7 @@ class SpaColorSchemeTest {
         assertEquals(SpaColors.Paper, SpaColorScheme.surfaceContainerLow)
         assertEquals(SpaColors.Paper2, SpaColorScheme.surfaceContainer)
         assertEquals(SpaColors.Paper3, SpaColorScheme.surfaceContainerHigh)
-        assertEquals(SpaColors.UmberTint, SpaColorScheme.surfaceContainerHighest)
+        assertEquals(SpaColors.SlateTint, SpaColorScheme.surfaceContainerHighest)
         assertEquals(SpaColors.Outline, SpaColorScheme.outline)
         assertEquals(SpaColors.Rule, SpaColorScheme.outlineVariant)
         assertEquals(SpaColors.Danger, SpaColorScheme.error)
@@ -41,7 +41,7 @@ class SpaColorSchemeTest {
 
     @Test
     fun extra_colors_match_design_tokens() {
-        assertEquals(SpaColors.Eucalyptus, LightExtraColors.link)
+        assertEquals(SpaColors.Copper, LightExtraColors.link)
         assertEquals(SpaColors.Moss, LightExtraColors.success)
         assertEquals(SpaColors.Ochre, LightExtraColors.warning)
         assertEquals(SpaColors.OchreTint, LightExtraColors.warningContainer)
@@ -60,20 +60,24 @@ class SpaColorSchemeTest {
     @Test
     fun text_pairs_are_readable() {
         val pairs = listOf(
+            SpaColors.OnCopper to SpaColors.Copper,
+            SpaColors.Copper to SpaColors.Paper,
+            SpaColors.Copper to SpaColors.Paper2,
+            SpaColors.CopperDeep to SpaColors.CopperTint,
             SpaColors.OnEucalyptus to SpaColors.Eucalyptus,
             SpaColors.Eucalyptus to SpaColors.Paper,
             SpaColors.Eucalyptus to SpaColors.Card,
             SpaColors.EucalyptusDeep to SpaColors.EucalyptusTint,
             SpaColors.Ink to SpaColors.Paper,
             SpaColors.Ink to SpaColors.Card,
-            SpaColors.Ink to SpaColors.UmberTint,
+            SpaColors.Ink to SpaColors.SlateTint,
             SpaColors.InkSoft to SpaColors.Paper,
             SpaColors.InkSoft to SpaColors.Paper2,
             SpaColors.InkSoft to SpaColors.Paper3,
             SpaColors.Muted to SpaColors.Paper,
             SpaColors.Muted to SpaColors.Card,
             SpaColors.Muted to SpaColors.Paper2,
-            SpaColors.Umber to SpaColors.Card,
+            SpaColors.Slate to SpaColors.Card,
             SpaColors.Ochre to SpaColors.Card,
             SpaColors.Ochre to SpaColors.OchreTint,
             SpaColors.Moss to SpaColors.Card,
@@ -90,6 +94,6 @@ class SpaColorSchemeTest {
     fun a_control_boundary_can_be_seen() {
         assertTrue(contrastRatio(SpaColors.Outline, SpaColors.Card) >= 3.0)
         assertTrue(contrastRatio(SpaColors.Outline, SpaColors.Paper) >= 3.0)
-        assertTrue(contrastRatio(SpaColors.Focus, SpaColors.Paper) >= 3.0)
+        assertTrue(contrastRatio(SpaColors.Copper, SpaColors.Paper) >= 3.0)
     }
 }

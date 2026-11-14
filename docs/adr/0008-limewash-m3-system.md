@@ -48,3 +48,15 @@ colour and text style from `MaterialTheme` and `SpaTheme` (ADR 0002).
   to this app's screens anyway.
 - `SpaDisplayTitle(lead, accent)` keeps both parameters so call sites compile; the accent is now
   set in the same style as the lead. Screens drop the split as they are redesigned.
+
+## Amendment, 2026-11-13: the mineral-spring palette and Material's own text field
+
+The owner asked for the look of a hot-springs spa site built in Zarla: a photograph hero with a
+booking card on it, a cool mist ground, sage fields with slanted edges between sections and copper
+actions. `primary` moved from eucalyptus to copper `#9A521F` (eucalyptus became `secondary`), the
+ground from limewash to mist, and headings to Fraunces medium. The values and contrast pairs are in
+`DESIGN.md`.
+
+`SpaTextField` is now Material 3's `OutlinedTextField` (floating label, supporting text, error
+state), as in the Compose samples. `material3 1.12.0-alpha03` composes it with `compose 1.12.1` on
+the desktop and web targets; `1.11.0-alpha07` threw `AbstractMethodError` and is no longer pinned.

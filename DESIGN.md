@@ -6,34 +6,37 @@ through `MaterialTheme` and `SpaTheme`; the Kotlin source of truth is `core/ui`
 
 ## Colour
 
-| Token | OKLCH | sRGB | Role |
-| --- | --- | --- | --- |
-| Paper | 94.5% 0.010 76 | `#F1ECE6` | `background`, `surfaceContainerLow` |
-| Paper2 | 91.8% 0.013 74 | `#E9E3DB` | `surfaceVariant`, `surfaceContainer` |
-| Paper3 | 88% 0.015 72 | `#DED6CD` | `surfaceContainerHigh` |
-| Card | 97.6% 0.007 82 | `#F9F7F2` | `surface`, `surfaceContainerLowest` |
-| Ink | 19% 0.024 52 | `#1C110A` | `onBackground`, `onSurface`, `inverseSurface` |
-| InkSoft | 31% 0.018 54 | `#382E28` | body copy on paper |
-| Muted | 47% 0.014 60 | `#615953` | `onSurfaceVariant`, tags |
-| Rule | 81% 0.011 70 | `#C6C0B9` | `outlineVariant`, hairlines |
-| Outline | 58% 0.014 64 | `#807972` | `outline`, control boundaries |
-| Eucalyptus | 43.7% 0.051 184 | `#2E5B55` | `primary`: the primary action, selection, links |
-| EucalyptusTint | 90.7% 0.020 173 | `#D4E5DF` | `primaryContainer` |
-| EucalyptusDeep | 31.8% 0.047 184 | `#0F3A35` | `onPrimaryContainer` |
-| Focus | 51.1% 0.061 182 | `#3A7269` | focus rings |
-| Umber | 40% 0.035 58 | `#564335` | `secondary`, `tertiary` |
-| UmberTint | 90% 0.018 70 | `#E6DCD2` | `secondaryContainer`, `surfaceContainerHighest` |
-| Ochre / OchreTint | 52% 0.10 70 / 93.5% 0.035 80 | `#8D5D1C` / `#F6E8D0` | warning |
-| Moss | 46% 0.07 150 | `#3A6343` | success |
-| Danger / DangerTint / DangerDeep | 47% 0.13 32 / 93% 0.03 32 / 36% 0.11 32 | `#963828` / `#FBE1DC` / `#6B2013` | error roles |
+The mineral-spring palette (amended 2026-11-13, after the owner's reference: a hot-springs spa
+site with a cool mist ground, sage fields between sections and copper actions).
 
-Eucalyptus, a deep blue-green, is the only chromatic signal: never a second accent, never a warm one, and never a
-decorative fill. Light only (ADR 0002).
+| Token | sRGB | Role |
+| --- | --- | --- |
+| Paper | `#F2F5F4` | `background`, `surfaceContainerLow`: the mist ground |
+| Paper2 | `#E3EAE8` | `surfaceVariant`, `surfaceContainer`: the sage field a section may sit on |
+| Paper3 | `#D5DFDC` | `surfaceContainerHigh` |
+| Card | `#FFFFFF` | `surface`, `surfaceContainerLowest`: cards and fields |
+| Ink | `#16282B` | `onBackground`, `onSurface`, `inverseSurface`: slate ink |
+| InkSoft | `#2C3E41` | body copy on mist |
+| Muted | `#4A5A5D` | `onSurfaceVariant`, tags |
+| Rule | `#C9D3D1` | `outlineVariant` |
+| Outline | `#6F7F82` | `outline`, control boundaries (3:1 on card and mist) |
+| Copper | `#9A521F` | `primary`: the primary action, selection, links, focus (white on it 5.8:1; on mist 5.3:1; on the sage field 4.8:1) |
+| CopperTint / CopperDeep | `#F7E4D2` / `#3D1F08` | `primaryContainer` / `onPrimaryContainer` |
+| CopperGlow | `#E9A66C` | the accent words of a headline set over a darkened photograph (`SpaTheme.extraColors.onPhotoAccent`) |
+| Eucalyptus / EucalyptusTint / EucalyptusDeep | `#2E5B55` / `#D4E5DF` / `#0F3A35` | `secondary` roles |
+| Slate / SlateTint | `#3C4F52` / `#CCD7D4` | `tertiary` roles, `surfaceContainerHighest` |
+| Ochre / OchreTint | `#8D5D1C` / `#F6E8D0` | warning |
+| Moss | `#3A6343` | success |
+| Danger / DangerTint / DangerDeep | `#963828` / `#FBE1DC` / `#6B2013` | error roles |
+
+Copper is the one warm signal: the action, the selection, a price, the rule under a price group.
+A field of sage separates sections, with a slanted top edge; nothing is separated by a shadow.
+Light only (ADR 0002). `SpaColorSchemeTest` pins every pair above to WCAG 2.2.
 
 ## Type
 
-- **Fraunces** regular: display and screen titles, card titles and prices, sentence case, roman.
-  Medium: the brand name. Never running text.
+- **Fraunces** medium: display and screen titles and the brand name; regular: card titles and
+  prices. Sentence case, roman. Never running text.
 - **Be Vietnam Pro** 400/500/600: body (16sp), labels, controls, data. Untracked. Drawn for
   Vietnamese, so stacked marks (`ể`, `ẫ`, `ở`) keep their spacing at small sizes.
 - Labels (`SpaTag`) are a step smaller, sentence case, never uppercase or letter-spaced.

@@ -47,8 +47,8 @@ internal fun spaTextStyles(typography: Typography, display: FontFamily): SpaText
     val serif = base.copy(fontFamily = display, letterSpacing = 0.sp)
     return SpaTextStyles(
         brandTitle = serif.copy(fontSize = 24.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.24).sp),
-        displayTitle = serif.copy(fontSize = 36.sp, fontWeight = FontWeight.Normal, lineHeight = 40.sp, letterSpacing = (-0.6).sp),
-        screenTitle = serif.copy(fontSize = 26.sp, fontWeight = FontWeight.Normal, lineHeight = 30.sp, letterSpacing = (-0.4).sp),
+        displayTitle = serif.copy(fontSize = 36.sp, fontWeight = FontWeight.Medium, lineHeight = 40.sp, letterSpacing = (-0.6).sp),
+        screenTitle = serif.copy(fontSize = 26.sp, fontWeight = FontWeight.Medium, lineHeight = 30.sp, letterSpacing = (-0.4).sp),
         cardTitle = serif.copy(fontSize = 20.sp, fontWeight = FontWeight.Normal, lineHeight = 26.sp),
         prompt = base.copy(fontSize = 17.sp),
         sectionLead = base.copy(fontSize = 16.sp),

@@ -25,10 +25,13 @@ data class SpaExtraColors(
     val shadow: Color,
     val tag: Color,
     val inkSoft: Color,
+    /** Type set over a darkened photograph: the words and the one accent among them. */
+    val onPhoto: Color,
+    val onPhotoAccent: Color,
 )
 
 internal val LightExtraColors = SpaExtraColors(
-    link = SpaColors.Eucalyptus,
+    link = SpaColors.Copper,
     success = SpaColors.Moss,
     warning = SpaColors.Ochre,
     warningContainer = SpaColors.OchreTint,
@@ -41,6 +44,8 @@ internal val LightExtraColors = SpaExtraColors(
     shadow = SpaColors.Shadow,
     tag = SpaColors.Muted,
     inkSoft = SpaColors.InkSoft,
+    onPhoto = SpaColors.Card,
+    onPhotoAccent = SpaColors.CopperGlow,
 )
 
 internal val LocalSpaExtraColors = staticCompositionLocalOf { LightExtraColors }
