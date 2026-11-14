@@ -70,6 +70,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 
 private const val HERO_MEDIA_RATIO = 3f / 2f
@@ -87,11 +88,12 @@ fun FeedScreen(
 ) {
     val snackbar = remember { SnackbarHostState() }
     val openAssistant by rememberUpdatedState(onOpenAssistant)
+    val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
                 FeedEffect.OpenAssistant -> openAssistant()
-                FeedEffect.ShowComingSoon -> snackbar.showSnackbar(getString(Res.string.home_coming_soon))
+                FeedEffect.ShowComingSoon -> snackbar.showSnackbar(getString(resources, Res.string.home_coming_soon))
             }
         }
     }

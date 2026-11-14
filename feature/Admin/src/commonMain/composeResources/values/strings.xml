@@ -52,7 +52,8 @@
     <string name="admin_status_recorded">Đã ghi nhận buổi hẹn</string>
     <string name="admin_overlap">Trùng giờ</string>
     <string name="admin_stale">Chờ quá lâu</string>
-    <string name="admin_waited">%1$s trước</string>
+    <string name="admin_waited_minutes">%1$d phút trước</string>
+    <string name="admin_waited_hours">%1$d giờ trước</string>
 
     <string name="admin_queue_empty">Không có yêu cầu nào chờ xử lý.</string>
     <string name="admin_desk_failed">Không tải được quầy lễ tân. Kiểm tra kết nối và thử lại.</string>

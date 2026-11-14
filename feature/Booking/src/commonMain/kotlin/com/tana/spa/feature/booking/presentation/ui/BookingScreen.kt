@@ -67,6 +67,7 @@ import com.tana.spa.feature.booking.resources.booking_title
 import com.tana.spa.feature.booking.resources.booking_title_accent
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -199,6 +200,7 @@ private fun BookingStepPage(
     content: @Composable () -> Unit,
 ) {
     val snackbar = remember { SnackbarHostState() }
+    val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
@@ -208,7 +210,7 @@ private fun BookingStepPage(
 
                 is BookingEffect.ShowRefusal -> {
                     snackbar.currentSnackbarData?.dismiss()
-                    snackbar.showSnackbar(getString(refusalText(effect.code)))
+                    snackbar.showSnackbar(getString(resources, refusalText(effect.code)))
                 }
             }
         }

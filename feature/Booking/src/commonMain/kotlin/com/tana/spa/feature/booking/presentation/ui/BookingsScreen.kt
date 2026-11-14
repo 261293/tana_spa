@@ -80,17 +80,19 @@ import com.tana.spa.shared.booking.DeclineReasonDto
 import com.tana.spa.shared.spa.SpaDate
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
 @Composable
 fun BookingsScreen(state: BookingsState, effects: Flow<BookingsEffect>, onEvent: (BookingsEvent) -> Unit, onBook: () -> Unit) {
     val snackbar = remember { SnackbarHostState() }
+    val resources = rememberResourceEnvironment()
     LaunchedEffect(effects) {
         effects.collect { effect ->
             val message = when (effect) {
-                BookingsEffect.ShowCancelled -> getString(Res.string.bookings_cancelled_toast)
-                is BookingsEffect.ShowRefusal -> getString(refusalText(effect.code))
+                BookingsEffect.ShowCancelled -> getString(resources, Res.string.bookings_cancelled_toast)
+                is BookingsEffect.ShowRefusal -> getString(resources, refusalText(effect.code))
             }
             snackbar.currentSnackbarData?.dismiss()
             snackbar.showSnackbar(message)

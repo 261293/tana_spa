@@ -195,7 +195,7 @@ fun SpaStatusPill(text: String, container: Color, content: Color, modifier: Modi
             verticalAlignment = Alignment.CenterVertically,
         ) {
             icon?.let { SpaIconImage(it, size = 13.dp, tint = content) }
-            Text(text = text, style = SpaTheme.textStyles.label, color = content)
+            Text(text = text, style = SpaTheme.textStyles.label, color = content, maxLines = 1, softWrap = false)
         }
     }
 }

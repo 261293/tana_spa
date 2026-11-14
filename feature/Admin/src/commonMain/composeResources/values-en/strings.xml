@@ -52,7 +52,8 @@
     <string name="admin_status_recorded">Visit recorded</string>
     <string name="admin_overlap">Overlap</string>
     <string name="admin_stale">Waiting too long</string>
-    <string name="admin_waited">%1$s ago</string>
+    <string name="admin_waited_minutes">%1$d min ago</string>
+    <string name="admin_waited_hours">%1$d h ago</string>
 
     <string name="admin_queue_empty">Nothing is waiting for a decision.</string>
     <string name="admin_desk_failed">We couldn’t load the desk. Check the connection and try again.</string>

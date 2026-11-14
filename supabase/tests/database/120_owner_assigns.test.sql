@@ -102,10 +102,10 @@ select public.spa_assign_therapist((select a from bk), 'mai');
 select pg_temp.as_user((select lan from ctx));
 select public.spa_cancel_booking((select a from bk));
 select pg_temp.as_postgres();
-select is((select n.title || ' | ' || n.body from notices n where n.title = 'Ca đã huỷ'),
-  'Ca đã huỷ | Chăm sóc da mặt con lăn ngọc, '
+select is((select n.title || ' | ' || n.body from notices n where n.title = 'Ca đã hủy'),
+  'Ca đã hủy | Chăm sóc da mặt con lăn ngọc, '
     || (select case extract(isodow from today + 2)::int when 7 then 'CN' else 'Th ' || (extract(isodow from today + 2)::int + 1) end
-               || ' ' || to_char(today + 2, 'DD/MM') from ctx) || ', 10:00: khách đã huỷ.',
+               || ' ' || to_char(today + 2, 'DD/MM') from ctx) || ', 10:00: khách đã hủy.',
   'a_guest_cancelling_tells_the_therapist_it_is_off');
 
 select is(
