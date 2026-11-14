@@ -4,9 +4,9 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    /* The page paints before the wasm binary arrives; mint cream, not white, so the first frame
-       is not a flash of a different colour. Matches SpaColors.Background. */
-    background-color: #F7FFF6;
+    /* The page paints before the wasm binary arrives; the app's ground, so the first frame
+       is not a flash of a different colour. Matches SpaColors.Ground. */
+    background-color: #F4F4F1;
     /* No pull-to-refresh or rubber-banding over a canvas that scrolls its own content. */
     overscroll-behavior: none;
 }
@@ -18,7 +18,7 @@ html, body {
     place-items: center;
     font-family: system-ui, sans-serif;
     font-size: 15px;
-    color: #5F6C7E;
+    color: #55605B;
 }
 
 #loading::after {
@@ -26,8 +26,8 @@ html, body {
     width: 28px;
     height: 28px;
     margin-top: 44px;
-    border: 3px solid #D7EBD3;
-    border-top-color: #117034;
+    border: 3px solid #DCDEDA;
+    border-top-color: #1D2421;
     border-radius: 50%;
     animation: spin 0.9s linear infinite;
 }

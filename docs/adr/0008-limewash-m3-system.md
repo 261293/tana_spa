@@ -4,7 +4,7 @@ Date: 2026-11-12
 
 ## Status
 
-Accepted. Supersedes the Serein export (`Spa-Booking-UI-Redesign`) as the visual contract. ADR 0002
+Accepted; the palette is superseded by ADR 0009 (2026-11-14). Supersedes the Serein export (`Spa-Booking-UI-Redesign`) as the visual contract. ADR 0002
 (light only, read only through the theme) and ADR 0005 (motion) still hold.
 
 ## Context
