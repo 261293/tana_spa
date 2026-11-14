@@ -98,7 +98,7 @@ every body in a `SpaPage`. Changes:
   a labels-over-values sheet.
 - **Service detail:** photo, then a facts sheet (minutes, price, includes) and the one action.
 - **Lịch hẹn:** upcoming and past as row groups with a status pill; empty state keeps the frame and
-  offers the three most-booked treatments as rows.
+  offers the first three treatments on the menu as rows (the app has no booking counts).
 - **Ưu đãi:** each code a row with its terms and a copy action; expired codes dimmed in their own group.
 - **Thông báo:** rows, unread marked by a jade dot and ink weight, not a tinted row.
 - **Cài đặt:** grouped rows; switches neutral (ink track); the language a segmented control.

@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaEasing
 import com.tana.spa.core.ui.SpaPhotos
 import com.tana.spa.core.ui.SpaTheme
+import com.tana.spa.core.ui.SpaWindow
 import com.tana.spa.core.ui.SpaWindowSize
 import com.tana.spa.core.ui.components.SpaAvatar
 import com.tana.spa.core.ui.components.SpaChoiceRow
@@ -175,13 +176,18 @@ private fun MenuUnavailable(onRetry: () -> Unit) {
 
 @Composable
 private fun PickRow(service: Service, selected: Boolean, onSelect: () -> Unit) {
+    val compact = SpaWindow.size.isCompact
     SpaListRow(
         title = service.name,
-        supporting = stringResource(Res.string.booking_service_meta, service.minutes, service.category.localizedLabel()),
+        supporting = stringResource(
+            Res.string.booking_service_meta,
+            service.minutes,
+            if (compact) formatPrice(service.priceVnd) else service.category.localizedLabel(),
+        ),
         leading = { SpaImageTile(Modifier.size(PICK_THUMB_SIZE), shape = PickThumbShape, photo = SpaPhotos.treatment(service.id)) },
         trailing = {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                SpaPrice(formatPrice(service.priceVnd))
+                if (!compact) SpaPrice(formatPrice(service.priceVnd))
                 if (selected) SpaIconImage(SpaIcon.Check, size = 18.dp, tint = MaterialTheme.colorScheme.secondary)
             }
         },

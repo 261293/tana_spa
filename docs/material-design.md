@@ -17,9 +17,13 @@ at <https://developer.android.com/develop/ui/compose/components>.
 | Primary / quiet / destructive action | `Button`, `FilledTonalButton` | `SpaPrimaryButton`, `SpaSecondaryButton`, `SpaSocialButton` |
 | One tap on an icon | `IconButton`, `FilledTonalIconButton` | copy a code, close a sheet, the codes table's edit/disable |
 | Pick one of a set, inline | `FilterChip` | `SpaFilterChip`: booking days, times, code states, eligible treatments |
-| Two to five exclusive options | `SingleChoiceSegmentedButtonRow` + `SegmentedButton` | percent vs amount in the create-code panel |
+| Two to five exclusive options | `SingleChoiceSegmentedButtonRow` + `SegmentedButton` | `SpaSegmented`: the language in Settings; percent vs amount in the create-code panel |
 | One subject, grouped content | `Card` | `SpaCard` (flat; `onClick`/`selected` for treatments and therapists) |
-| A row of text with leading/trailing extras | `ListItem` | settings rows, notification rows, the request queue, promo rows |
+| A row of text with leading/trailing extras | `ListItem` | `SpaListRow` inside a `SpaRowGroup` (a white panel with a hairline edge and rules between rows): the Home menu, booking step 1, offers, suggestions; settings and notification rows |
+| A status beside a value | `Surface` | `SpaTonePill(text, SpaTone)`: pending is ochre, confirmed jade, declined red, the rest grey |
+| Labels over values | `Column`s | `SpaFactGrid` |
+| A price | `Text` | `SpaPrice`: Fraunces in ink, never in a hue |
+| An empty block | `Column` | `SpaEmptyBlock`: the frame stays, one sentence and an action |
 | On/off | `Switch` on a `toggleable` `ListItem` | notification preferences |
 | One of several, stacked | `RadioButton` on a `selectable` row | decline reasons |
 | Choose from a list on a temporary surface | `DropdownMenu` + `DropdownMenuItem` | language, "suggest another time" |

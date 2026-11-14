@@ -306,19 +306,18 @@ private fun Menu(services: List<Service>, onBook: ((String) -> Unit)?) {
 
 @Composable
 private fun TreatmentRow(service: Service, onBook: ((String) -> Unit)?) {
+    val compact = SpaWindow.size.isCompact
     SpaListRow(
         title = service.name,
         supporting = stringResource(
             Res.string.home_treatment_meta,
             service.minutes,
-            service.includes.ifBlank {
-                service.category.localizedLabel()
-            },
+            if (compact) formatPrice(service.priceVnd) else service.includes.ifBlank { service.category.localizedLabel() },
         ),
         leading = { SpaImageTile(Modifier.size(ThumbSize), shape = MaterialTheme.shapes.small, photo = SpaPhotos.treatment(service.id)) },
         trailing = {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                SpaPrice(formatPrice(service.priceVnd))
+                if (!compact) SpaPrice(formatPrice(service.priceVnd))
                 if (onBook != null) SpaIconImage(SpaIcon.ChevronRight, size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
