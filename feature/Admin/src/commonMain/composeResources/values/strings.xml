@@ -109,6 +109,10 @@
     <string name="admin_codes_create">Tạo mã giảm giá</string>
     <string name="admin_filter_all">Tất cả %1$d</string>
     <string name="admin_filter_state">%1$s %2$d</string>
+    <string name="admin_code_state_live">Đang chạy</string>
+    <string name="admin_code_state_scheduled">Sắp chạy</string>
+    <string name="admin_code_state_expired">Hết hạn</string>
+    <string name="admin_code_state_disabled">Đã tắt</string>
     <string name="admin_column_code">Mã</string>
     <string name="admin_column_offer">Ưu đãi</string>
     <string name="admin_column_eligible">Áp dụng cho</string>

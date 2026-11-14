@@ -30,7 +30,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tana.spa.core.ui.SpaTheme
 import com.tana.spa.core.ui.SpaWindow
-import com.tana.spa.core.ui.components.SpaAvatar
 import com.tana.spa.core.ui.components.SpaBrand
 import com.tana.spa.core.ui.components.SpaIcon
 import com.tana.spa.core.ui.components.SpaIconImage
@@ -115,7 +114,7 @@ private fun Rail(section: AdminSection, pendingCount: Int, onSelect: (AdminSecti
             colors = colors,
         )
         Spacer(Modifier.weight(1f))
-        IconButton(onClick = onOpenGuestApp) {
+        IconButton(onClick = onOpenGuestApp, modifier = Modifier.padding(bottom = 16.dp)) {
             SpaIconImage(
                 icon = SpaIcon.External,
                 size = 22.dp,
@@ -123,7 +122,6 @@ private fun Rail(section: AdminSection, pendingCount: Int, onSelect: (AdminSecti
                 contentDescription = stringResource(Res.string.admin_open_guest_app),
             )
         }
-        SpaAvatar("RM", Modifier.padding(bottom = 16.dp))
     }
 }
 

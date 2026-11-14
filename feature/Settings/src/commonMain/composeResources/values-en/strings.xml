@@ -20,6 +20,7 @@
     <string name="settings_reminder_help">Arrival time and what to bring.</string>
     <string name="settings_sms">Text messages</string>
     <string name="settings_sms_help">Send booking updates to %1$s as well.</string>
+    <string name="settings_sms_help_no_phone">Add a phone number to get booking updates by SMS.</string>
     <string name="settings_offers">Offers &amp; discount codes</string>
     <string name="settings_offers_help">About two emails a month. Booking updates are separate.</string>
 

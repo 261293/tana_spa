@@ -3,6 +3,7 @@ package com.tana.spa.feature.admin.presentation.ui
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -51,6 +52,10 @@ import com.tana.spa.feature.admin.presentation.AdminCodesEffect
 import com.tana.spa.feature.admin.presentation.AdminCodesEvent
 import com.tana.spa.feature.admin.presentation.AdminCodesState
 import com.tana.spa.feature.admin.resources.Res
+import com.tana.spa.feature.admin.resources.admin_code_state_disabled
+import com.tana.spa.feature.admin.resources.admin_code_state_expired
+import com.tana.spa.feature.admin.resources.admin_code_state_live
+import com.tana.spa.feature.admin.resources.admin_code_state_scheduled
 import com.tana.spa.feature.admin.resources.admin_codes_create
 import com.tana.spa.feature.admin.resources.admin_codes_empty
 import com.tana.spa.feature.admin.resources.admin_codes_subtitle
@@ -85,6 +90,7 @@ import org.jetbrains.compose.resources.rememberResourceEnvironment
 import org.jetbrains.compose.resources.stringResource
 
 private const val USAGE_WARNING_PERCENT = 90
+private val TABLE_MIN_WIDTH = 820.dp
 
 /** Stateless: renders [state], reports intents through [onEvent], routes one-shot [effects]. */
 @Composable
@@ -147,12 +153,16 @@ fun AdminCodesScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(24.dp),
                     )
-                } else if (wide) {
-                    Box(Modifier.revealOnScroll(order = 3)) { CodesTable(state, onEvent) }
                 } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        state.shown.forEachIndexed { index, code ->
-                            Box(Modifier.revealOnScroll(order = index)) { CodeCard(code, onEvent) }
+                    BoxWithConstraints {
+                        if (wide && maxWidth >= TABLE_MIN_WIDTH) {
+                            Box(Modifier.revealOnScroll(order = 3)) { CodesTable(state, onEvent) }
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                state.shown.forEachIndexed { index, code ->
+                                    Box(Modifier.revealOnScroll(order = index)) { CodeCard(code, onEvent) }
+                                }
+                            }
                         }
                     }
                 }
@@ -178,7 +188,7 @@ private fun Filters(state: AdminCodesState, onEvent: (AdminCodesEvent) -> Unit, 
         )
         AdminCodeState.entries.forEach { codeState ->
             SpaFilterChip(
-                label = stringResource(Res.string.admin_filter_state, codeState.label, state.count(codeState)),
+                label = stringResource(Res.string.admin_filter_state, stateLabel(codeState), state.count(codeState)),
                 selected = state.filter == codeState,
                 onClick = { onEvent(AdminCodesEvent.FilterChanged(codeState)) },
             )
@@ -357,8 +367,18 @@ private fun StateTag(state: AdminCodeState) {
             content = MaterialTheme.colorScheme.onErrorContainer
         }
     }
-    SpaStatusPill(text = state.label, container = container, content = content)
+    SpaStatusPill(text = stateLabel(state), container = container, content = content)
 }
+
+@Composable
+private fun stateLabel(state: AdminCodeState): String = stringResource(
+    when (state) {
+        AdminCodeState.LIVE -> Res.string.admin_code_state_live
+        AdminCodeState.SCHEDULED -> Res.string.admin_code_state_scheduled
+        AdminCodeState.EXPIRED -> Res.string.admin_code_state_expired
+        AdminCodeState.DISABLED -> Res.string.admin_code_state_disabled
+    },
+)
 
 @Composable
 private fun RowActions(code: AdminCode, onEvent: (AdminCodesEvent) -> Unit, modifier: Modifier = Modifier) {

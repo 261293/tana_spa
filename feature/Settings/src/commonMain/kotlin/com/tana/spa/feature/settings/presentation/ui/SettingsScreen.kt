@@ -68,6 +68,7 @@ import com.tana.spa.feature.settings.resources.settings_save
 import com.tana.spa.feature.settings.resources.settings_sign_out
 import com.tana.spa.feature.settings.resources.settings_sms
 import com.tana.spa.feature.settings.resources.settings_sms_help
+import com.tana.spa.feature.settings.resources.settings_sms_help_no_phone
 import com.tana.spa.feature.settings.resources.settings_title
 import com.tana.spa.feature.settings.resources.settings_title_accent
 import com.tana.spa.shared.spa.initialsOf
@@ -114,7 +115,11 @@ fun SettingsScreen(state: SettingsState, effects: Flow<SettingsEffect>, onEvent:
             )
             ToggleRow(
                 label = stringResource(Res.string.settings_sms),
-                help = stringResource(Res.string.settings_sms_help, state.profile.phone),
+                help = if (state.profile.phone.isBlank()) {
+                    stringResource(Res.string.settings_sms_help_no_phone)
+                } else {
+                    stringResource(Res.string.settings_sms_help, state.profile.phone)
+                },
                 checked = state.prefs.textMessages,
                 onChange = { onEvent(SettingsEvent.PrefToggled(NotificationPref.TEXT_MESSAGES, it)) },
             )
