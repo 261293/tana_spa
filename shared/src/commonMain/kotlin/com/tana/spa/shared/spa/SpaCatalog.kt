@@ -78,12 +78,7 @@ data class BookingRequest(
 
 data class ScheduledBooking(val id: String, val guest: String, val serviceId: String, val therapistId: String, val startHour: Double)
 
-enum class AdminCodeState(val label: String) {
-    LIVE("Live"),
-    SCHEDULED("Scheduled"),
-    EXPIRED("Expired"),
-    DISABLED("Disabled"),
-}
+enum class AdminCodeState { LIVE, SCHEDULED, EXPIRED, DISABLED }
 
 data class AdminCode(
     val code: String,

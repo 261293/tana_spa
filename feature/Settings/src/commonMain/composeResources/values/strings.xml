@@ -20,6 +20,7 @@
     <string name="settings_reminder_help">Giờ đến và những thứ cần mang theo.</string>
     <string name="settings_sms">Tin nhắn SMS</string>
     <string name="settings_sms_help">Gửi cập nhật lịch hẹn tới %1$s nữa.</string>
+    <string name="settings_sms_help_no_phone">Thêm số điện thoại để nhận cập nhật lịch hẹn qua SMS.</string>
     <string name="settings_offers">Ưu đãi &amp; mã giảm giá</string>
     <string name="settings_offers_help">Khoảng hai email mỗi tháng. Cập nhật lịch hẹn được gửi riêng.</string>
 

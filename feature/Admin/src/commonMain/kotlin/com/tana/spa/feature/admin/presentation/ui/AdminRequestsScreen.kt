@@ -430,20 +430,22 @@ private fun DecisionPanel(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.width(96.dp),
                     )
-                    Text(
-                        text = formatPrice(request.total),
-                        style = SpaTheme.textStyles.body,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    val code = request.code
-                    if (code != null) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            SpaIconImage(SpaIcon.Percent, size = 14.dp, tint = MaterialTheme.colorScheme.secondary)
-                            Text(
-                                text = stringResource(Res.string.admin_price_code, code, formatPrice(request.discount)),
-                                style = SpaTheme.textStyles.body,
-                                color = MaterialTheme.colorScheme.secondary,
-                            )
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = formatPrice(request.total),
+                            style = SpaTheme.textStyles.body,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        val code = request.code
+                        if (code != null) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                SpaIconImage(SpaIcon.Percent, size = 14.dp, tint = MaterialTheme.colorScheme.secondary)
+                                Text(
+                                    text = stringResource(Res.string.admin_price_code, code, formatPrice(request.discount)),
+                                    style = SpaTheme.textStyles.body,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                )
+                            }
                         }
                     }
                 }

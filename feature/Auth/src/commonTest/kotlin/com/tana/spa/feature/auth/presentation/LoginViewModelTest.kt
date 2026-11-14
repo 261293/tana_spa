@@ -63,6 +63,17 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun aSuccessfulLoginLeavesNoCredentialsInTheFormForTheNextSignIn() = runTest {
+        val vm = viewModel()
+        vm.fill()
+        vm.onEvent(LoginEvent.Submit)
+        vm.effects.first()
+
+        assertEquals("", vm.state.value.email)
+        assertEquals("", vm.state.value.password)
+    }
+
+    @Test
     fun theOwnerLandsInTheConsoleAndEveryoneElseInTheGuestApp() = runTest {
         val owner = TestFixtures.response.copy(user = TestFixtures.response.user.copy(role = "owner"))
         remote.response = owner

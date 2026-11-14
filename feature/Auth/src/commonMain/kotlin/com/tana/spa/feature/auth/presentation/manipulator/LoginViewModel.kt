@@ -60,7 +60,7 @@ class LoginViewModel(private val login: LoginUseCase, getCurrentSession: GetCurr
             when (val result = login(email, password)) {
                 is LoginResult.Success -> {
                     AppLog.i(logTag) { "login succeeded as ${result.session.user.role.wire}" }
-                    setState { copy(isLoading = false) }
+                    setState { LoginState() }
                     sendEffect(result.session.destination())
                 }
 
