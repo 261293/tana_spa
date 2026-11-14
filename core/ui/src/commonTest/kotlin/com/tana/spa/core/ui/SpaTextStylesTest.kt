@@ -17,7 +17,8 @@ class SpaTextStylesTest {
     fun sizes_match_the_design_tokens() {
         assertEquals(24.sp, styles.brandTitle.fontSize)
         assertEquals(36.sp, styles.displayTitle.fontSize)
-        assertEquals(26.sp, styles.screenTitle.fontSize)
+        assertEquals(28.sp, styles.screenTitle.fontSize)
+        assertEquals(44.sp, styles.heroTitle.fontSize)
         assertEquals(20.sp, styles.cardTitle.fontSize)
         assertEquals(17.sp, styles.prompt.fontSize)
         assertEquals(16.sp, styles.sectionLead.fontSize)
@@ -39,6 +40,7 @@ class SpaTextStylesTest {
         assertEquals(FontWeight.Medium, styles.brandTitle.fontWeight)
         assertEquals(FontWeight.Medium, styles.screenTitle.fontWeight)
         assertEquals(FontWeight.Medium, styles.displayTitle.fontWeight)
+        assertEquals(FontWeight.Medium, styles.heroTitle.fontWeight)
         assertEquals(FontWeight.Normal, styles.cardTitle.fontWeight)
         assertEquals(FontWeight.Medium, styles.tag.fontWeight)
         assertEquals(FontWeight.SemiBold, styles.buttonLabel.fontWeight)
@@ -49,7 +51,8 @@ class SpaTextStylesTest {
     @Test
     fun explicit_line_heights_are_kept() {
         assertEquals(40.sp, styles.displayTitle.lineHeight)
-        assertEquals(30.sp, styles.screenTitle.lineHeight)
+        assertEquals(32.sp, styles.screenTitle.lineHeight)
+        assertEquals(48.sp, styles.heroTitle.lineHeight)
         assertEquals(26.sp, styles.cardTitle.lineHeight)
         assertEquals(24.sp, styles.bodyRelaxed.lineHeight)
         assertEquals(26.sp, styles.bodyLoose.lineHeight)
@@ -77,7 +80,7 @@ class SpaTextStylesTest {
     /** Headings are the display serif; everything else stays on the body face. */
     @Test
     fun headings_use_the_display_face_and_the_rest_stays_on_the_body_face() {
-        val headings = with(styles) { listOf(brandTitle, displayTitle, screenTitle, cardTitle) }
+        val headings = with(styles) { listOf(brandTitle, heroTitle, displayTitle, screenTitle, cardTitle) }
         headings.forEach { assertEquals(display, it.fontFamily) }
 
         val body = typography.bodyLarge.fontFamily

@@ -31,13 +31,13 @@ fun SpaFilterChip(
         selected = selected,
         onClick = onClick,
         enabled = enabled,
-        label = { Text(label, style = SpaTheme.textStyles.body) },
+        label = { Text(label, style = SpaTheme.textStyles.caption) },
         leadingIcon = leadingIcon?.let {
             {
                 SpaIconImage(
                     icon = it,
                     size = FilterChipDefaults.IconSize,
-                    tint = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
@@ -45,8 +45,8 @@ fun SpaFilterChip(
         border = FilterChipDefaults.filterChipBorder(
             enabled = enabled,
             selected = selected,
-            borderColor = MaterialTheme.colorScheme.outline,
-            selectedBorderColor = MaterialTheme.colorScheme.primary,
+            borderColor = MaterialTheme.colorScheme.outlineVariant,
+            selectedBorderColor = MaterialTheme.colorScheme.secondary,
             borderWidth = 1.dp,
             selectedBorderWidth = 1.dp,
         ),
@@ -55,9 +55,9 @@ fun SpaFilterChip(
             labelColor = MaterialTheme.colorScheme.onSurface,
             disabledContainerColor = MaterialTheme.colorScheme.surface,
             disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DISABLED_ALPHA),
-            selectedContainerColor = MaterialTheme.colorScheme.primary,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
+            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
         modifier = modifier,
     )

@@ -35,9 +35,9 @@ import com.tana.spa.core.ui.spaClickable
 @Composable
 fun NavBar(items: List<NavConfig>, selectedRoute: String, onSelect: (String) -> Unit) {
     val colors = NavigationBarItemDefaults.colors(
-        selectedIconColor = MaterialTheme.colorScheme.primary,
-        selectedTextColor = MaterialTheme.colorScheme.primary,
-        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+        selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        selectedTextColor = MaterialTheme.colorScheme.onSurface,
+        indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -58,9 +58,9 @@ fun NavBar(items: List<NavConfig>, selectedRoute: String, onSelect: (String) -> 
 @Composable
 fun SpaNavigationRail(items: List<NavConfig>, selectedRoute: String, onSelect: (String) -> Unit) {
     val colors = NavigationRailItemDefaults.colors(
-        selectedIconColor = MaterialTheme.colorScheme.primary,
-        selectedTextColor = MaterialTheme.colorScheme.primary,
-        indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+        selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        selectedTextColor = MaterialTheme.colorScheme.onSurface,
+        indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
     )
@@ -87,9 +87,6 @@ fun SpaTopBarDestinations(items: List<NavConfig>, selectedRoute: String, onSelec
     Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
         items.forEach { item ->
             val selected = item.route == selectedRoute
-            // A filled chip here only reads while the bar keeps its resting colour: once the bar
-            // lifts on scroll every chip shows up and none of them looks chosen. The design marks
-            // the place with weight, full ink and a rule under the word instead.
             val ink = if (selected) MaterialTheme.colorScheme.onSurface else SpaTheme.extraColors.inkSoft
             val rule = MaterialTheme.colorScheme.secondary
             Row(
@@ -99,7 +96,7 @@ fun SpaTopBarDestinations(items: List<NavConfig>, selectedRoute: String, onSelec
                     .semantics { this.selected = selected }
                     .drawBehind {
                         if (selected) {
-                            val width = 1.dp.toPx()
+                            val width = 2.dp.toPx()
                             val y = size.height - width / 2
                             drawLine(rule, Offset(0f, y), Offset(size.width, y), strokeWidth = width)
                         }
