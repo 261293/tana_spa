@@ -14,6 +14,8 @@ object SpaValidation {
     const val MAX_NAME_LENGTH = 80
     const val MAX_DESCRIPTION_LENGTH = 240
     const val MAX_FOCUS_LENGTH = 80
+    const val MAX_BRAND_LENGTH = 60
+    const val MAX_SIZE_LENGTH = 30
 
     /** The diary is a grid of quarter hours, so a treatment has to land on one. */
     const val DURATION_STEP_MINUTES = 15
@@ -26,6 +28,8 @@ object SpaValidation {
     const val FIELD_MINUTES = "minutes"
     const val FIELD_PRICE = "price"
     const val FIELD_FOCUS = "focus"
+    const val FIELD_BRAND = "brand"
+    const val FIELD_SIZE = "size"
 
     fun validateName(raw: String): TextFieldError? = text(raw, MAX_NAME_LENGTH)
 
@@ -52,6 +56,17 @@ object SpaValidation {
         validateDescription(request.description) != null -> FIELD_DESCRIPTION
         validateMinutes(request.minutes) != null -> FIELD_MINUTES
         validatePrice(request.price) != null -> FIELD_PRICE
+        else -> null
+    }
+
+    fun validateLabel(raw: String, max: Int): TextFieldError? = if (raw.trim().length > max) TextFieldError.TOO_LONG else null
+
+    fun firstInvalidField(request: CreateProductRequest): String? = when {
+        validateName(request.name) != null -> FIELD_NAME
+        validateLabel(request.brand, MAX_BRAND_LENGTH) != null -> FIELD_BRAND
+        validateDescription(request.description) != null -> FIELD_DESCRIPTION
+        validatePrice(request.price) != null -> FIELD_PRICE
+        validateLabel(request.size, MAX_SIZE_LENGTH) != null -> FIELD_SIZE
         else -> null
     }
 

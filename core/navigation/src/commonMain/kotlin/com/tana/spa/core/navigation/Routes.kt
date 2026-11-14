@@ -16,6 +16,7 @@ object Routes {
     const val NOTIFICATIONS = "notifications"
 
     /** The booking flow: a step to a screen, so the address bar and Back follow the guest's place in it. */
+    const val HOME = "home"
     const val BOOKING = "booking"
     const val BOOKING_WHEN = "bookingWhen"
     const val BOOKING_CONFIRM = "bookingConfirm"

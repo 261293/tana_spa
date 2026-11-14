@@ -1,6 +1,7 @@
 package com.tana.spa.feature.booking
 
 import com.tana.spa.feature.booking.domain.Catalog
+import com.tana.spa.feature.booking.domain.Product
 import com.tana.spa.feature.booking.domain.SpaCatalogRepository
 import com.tana.spa.shared.booking.SlotMomentDto
 import com.tana.spa.shared.spa.Service
@@ -27,6 +28,13 @@ object ServerCatalog {
 class FakeSpaCatalogRepository(private val menu: Catalog = ServerCatalog.catalog) : SpaCatalogRepository {
     var fail = false
     var calls = 0
+    var shelf: List<Product> = emptyList()
+    var shelfFails = false
+
+    override suspend fun products(): List<Product> {
+        if (shelfFails) throw IllegalStateException("offline")
+        return shelf
+    }
 
     override suspend fun catalog(): Catalog {
         calls++

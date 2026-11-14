@@ -9,6 +9,7 @@ import com.tana.spa.feature.booking.resources.refusal_settled
 import com.tana.spa.feature.booking.resources.refusal_signed_out
 import com.tana.spa.feature.booking.resources.refusal_slot_past
 import com.tana.spa.feature.booking.resources.refusal_slot_taken
+import com.tana.spa.feature.booking.resources.refusal_staff
 import com.tana.spa.feature.booking.resources.refusal_too_late
 import com.tana.spa.shared.auth.AuthErrorCodes
 import com.tana.spa.shared.booking.BookingErrorCodes
@@ -23,6 +24,7 @@ internal fun refusalText(code: String?): StringResource = when (code) {
     BookingErrorCodes.SLOT_IN_PAST -> Res.string.refusal_slot_past
     BookingErrorCodes.INVALID_CODE -> Res.string.refusal_code
     BookingErrorCodes.TOO_LATE_TO_CANCEL -> Res.string.refusal_too_late
+    BookingErrorCodes.STAFF_CANNOT_BOOK -> Res.string.refusal_staff
     BookingErrorCodes.INVALID_TRANSITION, BookingErrorCodes.ALREADY_DECIDED -> Res.string.refusal_settled
     BookingErrorCodes.UNKNOWN_SERVICE, BookingErrorCodes.UNKNOWN_THERAPIST -> Res.string.refusal_menu_changed
     AuthErrorCodes.UNAUTHORIZED -> Res.string.refusal_signed_out

@@ -26,7 +26,7 @@ class RestoredRouteTest {
 
     @Test
     fun a_guest_is_not_dropped_into_the_console() {
-        assertEquals(Routes.BOOKING, restoredRoute(Routes.ADMIN_REQUESTS, SpaRoles.CUSTOMER))
+        assertEquals(Routes.HOME, restoredRoute(Routes.ADMIN_REQUESTS, SpaRoles.CUSTOMER))
     }
 
     @Test
@@ -35,7 +35,14 @@ class RestoredRouteTest {
     }
 
     @Test
-    fun an_address_this_build_knows_no_screen_for_opens_booking() {
-        assertEquals(Routes.BOOKING, restoredRoute("somethingElse", SpaRoles.CUSTOMER))
+    fun an_address_this_build_knows_no_screen_for_opens_home() {
+        assertEquals(Routes.HOME, restoredRoute("somethingElse", SpaRoles.CUSTOMER))
+    }
+
+    @Test
+    fun staff_restoring_a_booking_address_land_at_home() {
+        assertEquals(Routes.HOME, restoredRoute(Routes.BOOKING, SpaRoles.STAFF))
+        assertEquals(Routes.HOME, restoredRoute(Routes.MY_BOOKINGS, SpaRoles.STAFF))
+        assertEquals(Routes.ADMIN_REQUESTS, restoredRoute(Routes.ADMIN_REQUESTS, SpaRoles.STAFF))
     }
 }

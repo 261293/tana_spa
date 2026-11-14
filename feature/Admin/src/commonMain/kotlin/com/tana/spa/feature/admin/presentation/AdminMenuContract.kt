@@ -25,6 +25,19 @@ data class ServiceForm(
     val priceError: PriceError? = null,
 )
 
+data class ProductForm(
+    val name: String = "",
+    val brand: String = "",
+    val description: String = "",
+    val price: String = "",
+    val size: String = "",
+    val nameError: TextFieldError? = null,
+    val brandError: TextFieldError? = null,
+    val descriptionError: TextFieldError? = null,
+    val priceError: PriceError? = null,
+    val sizeError: TextFieldError? = null,
+)
+
 data class TherapistForm(
     val name: String = "",
     val focus: String = "",
@@ -45,6 +58,8 @@ data class PersonForm(
 
 data class AdminMenuState(
     val service: ServiceForm = ServiceForm(),
+    val product: ProductForm = ProductForm(),
+    val savingProduct: Boolean = false,
     val therapist: TherapistForm = TherapistForm(),
     val person: PersonForm = PersonForm(),
     val savingService: Boolean = false,
@@ -68,6 +83,13 @@ sealed interface AdminMenuEvent {
     data class ServiceCategoryChanged(val category: ServiceCategoryDto) : AdminMenuEvent
     data object SaveService : AdminMenuEvent
 
+    data class ProductNameChanged(val value: String) : AdminMenuEvent
+    data class ProductBrandChanged(val value: String) : AdminMenuEvent
+    data class ProductDescriptionChanged(val value: String) : AdminMenuEvent
+    data class ProductPriceChanged(val value: String) : AdminMenuEvent
+    data class ProductSizeChanged(val value: String) : AdminMenuEvent
+    data object SaveProduct : AdminMenuEvent
+
     data class TherapistNameChanged(val value: String) : AdminMenuEvent
     data class TherapistFocusChanged(val value: String) : AdminMenuEvent
     data object SaveTherapist : AdminMenuEvent
@@ -86,6 +108,7 @@ sealed interface AdminMenuEffect {
     /** The guest catalogue has it from now on, which is what the owner is really waiting to hear. */
     data class ShowServiceAdded(val name: String) : AdminMenuEffect
     data class ShowTherapistAdded(val name: String) : AdminMenuEffect
+    data class ShowProductAdded(val name: String) : AdminMenuEffect
     data class ShowPersonAdded(val name: String) : AdminMenuEffect
 
     /** [account] null: the therapist no longer has an account. */

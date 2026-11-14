@@ -2,6 +2,7 @@
     <string name="brand_name">Tana Spa</string>
 
     <!-- The app's destinations, in the bottom bar, the rail and the app bar. -->
+    <string name="nav_home">Trang chủ</string>
     <string name="nav_book">Đặt lịch</string>
     <string name="nav_alerts">Thông báo</string>
     <string name="nav_offers">Ưu đãi</string>

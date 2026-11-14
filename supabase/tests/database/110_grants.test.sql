@@ -11,7 +11,7 @@ $$;
 select is(
     (select array_agg(proname::text order by proname) from pg_temp.own_functions('public')
      where has_function_privilege('anon', oid, 'execute') and proname not in ('app_unaccent', 'set_updated_at')),
-    array['app_update_config', 'feature_flags', 'spa_availability', 'spa_catalog', 'spa_check_offer', 'spa_offers'],
+    array['app_update_config', 'feature_flags', 'spa_availability', 'spa_catalog', 'spa_check_offer', 'spa_offers', 'spa_products'],
     'anon_executes_only_the_public_reads'
 );
 

@@ -12,9 +12,11 @@ import com.tana.spa.feature.admin.presentation.AdminRequestsViewModel
 import com.tana.spa.shared.auth.CreateAccountRequest
 import com.tana.spa.shared.auth.CreatedAccountDto
 import com.tana.spa.shared.booking.BookingErrorCodes
+import com.tana.spa.shared.booking.CreateProductRequest
 import com.tana.spa.shared.booking.CreateServiceRequest
 import com.tana.spa.shared.booking.CreateTherapistRequest
 import com.tana.spa.shared.booking.DeclineReasonDto
+import com.tana.spa.shared.booking.ProductDto
 import com.tana.spa.shared.booking.ServiceDto
 import com.tana.spa.shared.booking.TherapistDto
 import com.tana.spa.shared.spa.SpaDate
@@ -119,6 +121,8 @@ class AdminRequestsViewModelTest {
 
         override suspend fun createTherapist(request: CreateTherapistRequest): TherapistDto =
             error("the queue screen never adds to the menu")
+
+        override suspend fun createProduct(request: CreateProductRequest): ProductDto = error("the queue screen never stocks the shelf")
 
         override suspend fun createAccount(request: CreateAccountRequest): CreatedAccountDto =
             error("the queue screen never takes anybody on")

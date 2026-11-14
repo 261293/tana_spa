@@ -27,7 +27,7 @@ object AuthEntry : FeatureEntry {
             state = state,
             effects = viewModel.effects,
             onEvent = viewModel::onEvent,
-            onNavigateHome = { navigator.replaceAll(Routes.BOOKING) },
+            onNavigateHome = { navigator.replaceAll(Routes.HOME) },
             onNavigateToSignUp = { navigator.navigate(Routes.SIGNUP) },
             // replaceAll: Back from the console must not return to the sign-in form.
             onNavigateToDesk = { navigator.replaceAll(Routes.ADMIN_REQUESTS) },
@@ -69,7 +69,7 @@ object VerifyPhoneEntry : FeatureEntry {
             effects = viewModel.effects,
             onEvent = viewModel::onEvent,
             // Verified, skipped, or already verified: straight into booking.
-            onNavigateHome = { navigator.replaceAll(Routes.BOOKING) },
+            onNavigateHome = { navigator.replaceAll(Routes.HOME) },
             onNavigateToLogin = { navigator.replaceAll(Routes.AUTH) },
         )
     }

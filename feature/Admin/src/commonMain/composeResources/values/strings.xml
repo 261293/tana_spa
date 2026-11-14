@@ -177,4 +177,14 @@
     <string name="admin_menu_person_name_error">Hãy nhập tên</string>
     <string name="admin_menu_person_email_error">Email không hợp lệ</string>
     <string name="admin_menu_person_password_error">Mật khẩu cần ít nhất 8 ký tự</string>
+    <string name="admin_menu_product_title">Sản phẩm mới</string>
+    <string name="admin_menu_product_name_hint">Serum trà xanh</string>
+    <string name="admin_menu_product_brand">Thương hiệu</string>
+    <string name="admin_menu_product_brand_hint">Tana</string>
+    <string name="admin_menu_product_description_hint">Dưỡng ẩm, làm dịu da sau trị liệu</string>
+    <string name="admin_menu_product_price_hint">450000</string>
+    <string name="admin_menu_product_size">Dung tích</string>
+    <string name="admin_menu_product_size_hint">30ml</string>
+    <string name="admin_menu_add_product">Bày lên kệ</string>
+    <string name="admin_menu_product_added">Đã bày %1$s lên kệ</string>
 </resources>

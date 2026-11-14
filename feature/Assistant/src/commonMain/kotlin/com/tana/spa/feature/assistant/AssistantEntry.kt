@@ -25,7 +25,7 @@ object WelcomeEntry : FeatureEntry {
         val consent: AssistantConsent = koinInject()
         WelcomeScreen(
             onContinue = { if (consent.given) navigator.replaceAll(Routes.ASSISTANT) else navigator.navigate(Routes.CONSENT) },
-            onClose = { navigator.replaceAll(Routes.FEED) },
+            onClose = { navigator.replaceAll(Routes.HOME) },
         )
     }
 }
@@ -61,7 +61,7 @@ object AssistantEntry : FeatureEntry {
             state = state,
             effects = viewModel.effects,
             onEvent = viewModel::onEvent,
-            onNavigateHome = { navigator.replaceAll(Routes.FEED) },
+            onNavigateHome = { navigator.replaceAll(Routes.HOME) },
         )
     }
 }

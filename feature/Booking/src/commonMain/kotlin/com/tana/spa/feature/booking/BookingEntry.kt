@@ -22,8 +22,12 @@ object BookingEntry : FeatureEntry {
         val viewModel: BookingViewModel = koinViewModel()
         val state by viewModel.state.collectAsStateWithLifecycle()
         val offeredCode = navigator.current.routeArg(Routes.ARG_CODE)
+        val chosenService = navigator.current.routeArg(Routes.ARG_SERVICE)
         LaunchedEffect(offeredCode) {
             offeredCode?.let { viewModel.onEvent(BookingEvent.CodeOffered(it)) }
+        }
+        LaunchedEffect(chosenService) {
+            chosenService?.let { viewModel.onEvent(BookingEvent.ServiceSelected(it)) }
         }
         BookingTreatmentScreen(
             state = state,

@@ -40,6 +40,9 @@ object BookingErrorCodes {
 
     /** A request cannot be confirmed until the owner has given it a therapist. */
     const val THERAPIST_REQUIRED = "therapist_required"
+
+    /** Staff work the visits; they do not book one. */
+    const val STAFF_CANNOT_BOOK = "staff_cannot_book"
 }
 
 @Serializable
@@ -165,6 +168,25 @@ data class CreateServiceRequest(
     val price: Int,
     val category: ServiceCategoryDto,
 )
+
+/** A retail product on the spa's shelf, at its cheapest size. [imageUrl] is null until the spa adds a photo. */
+@Serializable
+data class ProductDto(
+    val slug: String,
+    val name: String,
+    val brand: String,
+    val description: String,
+    val imageUrl: String? = null,
+    val price: Int,
+    val size: String,
+)
+
+@Serializable
+data class ProductsResponse(val products: List<ProductDto>)
+
+/** The owner puts a product on the shelf; [brand] and [size] may be blank. The server generates the slug. */
+@Serializable
+data class CreateProductRequest(val name: String, val brand: String, val description: String, val price: Int, val size: String)
 
 @Serializable
 data class CreateTherapistRequest(val name: String, val focus: String, val accent: TherapistAccentDto = TherapistAccentDto.MOSS)

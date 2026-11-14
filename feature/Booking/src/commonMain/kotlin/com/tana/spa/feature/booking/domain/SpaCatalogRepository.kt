@@ -12,4 +12,7 @@ data class Catalog(val services: List<Service>, val therapists: List<Therapist>,
 interface SpaCatalogRepository {
     /** Throws on any failure, so the caller can offer a retry. */
     suspend fun catalog(): Catalog
+
+    /** The shelf, newest first. Throws on any failure. */
+    suspend fun products(): List<Product>
 }
